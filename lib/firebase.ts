@@ -3,24 +3,28 @@ import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyAysDw4A8bwBBrR-EI6MhB0-up87vXqRXA",
+  authDomain: "workly-c7458.firebaseapp.com",
+  projectId: "workly-c7458",
+  storageBucket: "workly-c7458.firebasestorage.app",
+  messagingSenderId: "230299369193",
+  appId: "1:230299369193:web:1d641125c997f20e49ba78",
 };
 
-// Firebase is browser-only here. Skipping init during SSR/prerender avoids
-// "auth/invalid-api-key" crashes when env vars are not yet set.
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 
-if (typeof window !== "undefined" && firebaseConfig.apiKey) {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
+if (typeof window !== "undefined") {
+  try {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+  } catch {
+    app = null;
+    auth = null;
+    db = null;
+  }
 }
 
 export { app, auth, db };
