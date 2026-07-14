@@ -67,7 +67,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u && db) {
         const ref = doc(db, "users", u.uid);
         const snap = await getDoc(ref);
-        setRole(snap.exists() ? (snap.data().role as Role) : "customer");
+        if (snap.exists()) {
+          setRole(snap.data().role as Role);
+        } else {
+          await setDoc(ref, {
+            uid: u.uid,
+            name: u.displayName || u.email || "",
+            email: u.email,
+            role: "customer",
+            isTasker: true,
+            isPrivate: false,
+            createdAt: serverTimestamp(),
+          });
+          setRole("customer");
+        }
       } else {
         setRole(null);
       }
