@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Star, Shield, Save, Briefcase } from "lucide-react";
+import { User, Star, Shield, Save, Key } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -48,6 +49,18 @@ export default function ProfilePage() {
   const save = async (e: React.FormEvent) => { e.preventDefault(); setError(""); setSaved(false);
     try { if (!db) throw new Error("Firebase not configured"); const data: any = { name, bio, isTasker }; data.skills = skills.split(",").map(s => s.trim()).filter(Boolean); if (isAdmin) data.isPrivate = isPrivate; await updateDoc(doc(db, "users", user.uid), data); setSaved(true); } catch (err: any) { setError(err?.message || "Could not save"); } };
 
+  const changePassword = async () => {
+    if (!user?.email || !auth) return;
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      setError("");
+      setSaved(true);
+      alert("Password reset link sent to your email!");
+    } catch (err: any) {
+      setError(err?.message || "Could not send reset email");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-extrabold text-ink">My Profile</h1>
@@ -75,6 +88,14 @@ export default function ProfilePage() {
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}
         <Button type="submit" className="flex items-center gap-2 rounded-xl"><Save className="h-4 w-4" /> Save profile</Button>
+
+        <div className="border-t border-ink-100 pt-5">
+          <p className="text-sm font-medium text-ink mb-2">Change Password</p>
+          <p className="text-xs text-ink-500 mb-3">A reset link will be sent to {user.email}</p>
+          <button type="button" onClick={changePassword} className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink-50">
+            <Key className="h-4 w-4" /> Send reset link
+          </button>
+        </div>
       </form>
 
       {reviews.length > 0 && (
