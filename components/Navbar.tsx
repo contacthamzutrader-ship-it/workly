@@ -47,11 +47,6 @@ export default function Navbar() {
           <Link href="/wallet" onClick={() => setMobileOpen(false)} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-600 transition hover:bg-ink-50 hover:text-ink">
             <Wallet className="h-4 w-4" /> Wallet
           </Link>
-          {isAdmin && (
-            <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-2 text-sm font-semibold text-brand transition hover:bg-brand/20">
-              <ShieldCheck className="h-4 w-4" /> Admin
-            </Link>
-          )}
           <div className="mx-1 h-5 w-px bg-ink-200" />
           <Link href="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-600 transition hover:bg-ink-50 hover:text-ink">
             <User className="h-4 w-4" /> Profile

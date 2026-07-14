@@ -48,11 +48,6 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3">
           <Link href="/post"><Button className="flex items-center gap-2 rounded-xl px-5 py-2.5"><Plus className="h-4 w-4" /> Post a Task</Button></Link>
-          {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand-100">
-              <ShieldCheck className="h-4 w-4" /> Admin Panel
-            </Link>
-          )}
         </div>
       </div>
 
