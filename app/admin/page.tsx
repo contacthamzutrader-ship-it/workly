@@ -6,6 +6,8 @@ import { ShieldCheck, Clock, Lock, CheckCircle2, ArrowRight, Eye, Users, Briefca
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { listPendingTasks, listPrivateTasks, approveTask, type Task } from "@/lib/tasks";
+import { collection, getDocs, limit, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 
 export default function AdminPage() {
@@ -13,6 +15,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [pending, setPending] = useState<Task[]>([]);
   const [privateTasks, setPrivateTasks] = useState<Task[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [busy, setBusy] = useState(true);
 
   const isAdmin = role === "company_admin" || role === "super_admin";
@@ -21,7 +24,14 @@ export default function AdminPage() {
 
   const load = async () => {
     setBusy(true);
-    try { setPending(await listPendingTasks()); setPrivateTasks(await listPrivateTasks()); } catch {} finally { setBusy(false); }
+    try {
+      setPending(await listPendingTasks());
+      setPrivateTasks(await listPrivateTasks());
+      if (db) {
+        const snap = await getDocs(query(collection(db, "users"), limit(100)));
+        setAllUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    } catch {} finally { setBusy(false); }
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
@@ -102,6 +112,25 @@ export default function AdminPage() {
                   <div className="min-w-0 flex-1"><h3 className="font-bold text-ink">{t.title}</h3><div className="mt-1 flex items-center gap-4 text-sm text-ink-500"><span className="font-bold text-brand">${t.budget}</span><span>{t.bidsCount} bids</span></div></div>
                   <span className="ml-3 shrink-0 rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{t.status}</span>
                 </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* All Users */}
+          <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><Users className="h-5 w-5" /></div>
+              <div><h2 className="text-lg font-bold text-ink">All Users ({allUsers.length})</h2><p className="text-sm text-ink-500">Platform members & roles</p></div>
+            </div>
+            <div className="space-y-2">
+              {allUsers.length === 0 ? <p className="text-sm text-ink-500 py-4">No users found.</p> : allUsers.map(u => (
+                <div key={u.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-dark">{(u.name || u.email || "U")[0].toUpperCase()}</div>
+                    <div><p className="text-sm font-semibold text-ink">{u.name || u.email || "No name"}</p><p className="text-xs text-ink-400">{u.email}</p></div>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${u.role === "company_admin" || u.role === "super_admin" ? "bg-brand-50 text-brand-dark" : u.role === "tasker" ? "bg-blue-50 text-blue-700" : "bg-ink-50 text-ink-600"}`}>{u.role || "customer"}</span>
+                </div>
               ))}
             </div>
           </section>

@@ -121,7 +121,8 @@ export default function TaskDetailPage() {
           <span className="flex items-center gap-1.5 font-bold text-brand"><DollarSign className="h-4 w-4" />${task.budget}</span>
           <span className="flex items-center gap-1.5 text-ink-500"><MapPin className="h-4 w-4" />{task.location}</span>
           <span className="flex items-center gap-1.5 text-ink-500"><User className="h-4 w-4" />{task.posterName}</span>
-          <span className="flex items-center gap-1.5 text-ink-400"><Calendar className="h-4 w-4" />{new Date(task.createdAt || Date.now()).toLocaleDateString()}</span>
+          <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />{new Date(task.createdAt || Date.now()).toLocaleDateString()}</span>
+          {task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: {new Date(task.deadline).toLocaleDateString()}</span>}
         </div>
         {task.assignedName && <p className="mt-3 text-sm text-ink-500">Assigned to: <Link href={`/u/${task.assignedTo}`} className="font-semibold text-ink hover:text-brand">{task.assignedName}</Link></p>}
 

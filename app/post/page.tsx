@@ -7,7 +7,7 @@ import { createTask, CATEGORIES, type ApprovalMode, type Visibility } from "@/li
 import { analyzeTask, type TaskSuggestion } from "@/lib/hf";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { Sparkles, MapPin, DollarSign, FileText, Tag } from "lucide-react";
+import { Sparkles, MapPin, DollarSign, FileText, Tag, Calendar } from "lucide-react";
 
 export default function PostTaskPage() {
   const { user, role, loading } = useAuth();
@@ -21,6 +21,7 @@ export default function PostTaskPage() {
   const [visibility, setVisibility] = useState<Visibility>("public");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deadline, setDeadline] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<TaskSuggestion | null>(null);
 
@@ -48,7 +49,7 @@ export default function PostTaskPage() {
     setError("");
     try {
       const vis: Visibility = isAdmin && visibility === "private" ? "private" : "public";
-      const id = await createTask({ title, description, category, budget: Number(budget), location, posterId: user.uid, posterName: user.displayName || user.email || "User", status: approvalMode === "auto" ? "open" : "pending", visibility: vis, approvalMode });
+      const id = await createTask({ title, description, category, budget: Number(budget), location, deadline: deadline || undefined, posterId: user.uid, posterName: user.displayName || user.email || "User", status: approvalMode === "auto" ? "open" : "pending", visibility: vis, approvalMode });
       router.push(`/tasks/${id}`);
     } catch (err: any) { setError(err?.message || "Could not post task"); } finally { setBusy(false); }
   };
@@ -102,9 +103,15 @@ export default function PostTaskPage() {
           </div>
         </div>
 
-        <div>
-          <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-ink"><MapPin className="h-4 w-4 text-ink-400" /> Location</label>
-          <Input value={location} onChange={(e) => setLocation(e.target.value)} required placeholder="City, area" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-ink"><MapPin className="h-4 w-4 text-ink-400" /> Location</label>
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} required placeholder="City, area" />
+          </div>
+          <div>
+            <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-ink"><Calendar className="h-4 w-4 text-ink-400" /> Deadline</label>
+            <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} placeholder="Optional" />
+          </div>
         </div>
 
         <div>

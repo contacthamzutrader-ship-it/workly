@@ -36,6 +36,8 @@ export default function DashboardPage() {
   const isAdmin = role === "company_admin" || role === "super_admin";
   const active = posted.filter(t => t.status === "open" || t.status === "assigned" || t.status === "in_progress");
   const done = posted.filter(t => t.status === "completed");
+  const earned = myBids.filter(b => b.status === "selected").reduce((s, b) => s + b.amount, 0);
+  const completedJobs = myBids.filter(b => b.task?.status === "completed" && b.status === "selected").length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -59,8 +61,8 @@ export default function DashboardPage() {
         {[
           { icon: Briefcase, label: "Posted", value: posted.length, color: "bg-brand-50 text-brand" },
           { icon: Clock, label: "Active", value: active.length, color: "bg-blue-50 text-blue-600" },
-          { icon: CheckCircle2, label: "Completed", value: done.length, color: "bg-green-50 text-green-600" },
-          { icon: Wallet, label: "Wallet", value: `$${wallet}`, color: "bg-purple-50 text-purple-600" },
+          { icon: CheckCircle2, label: "Completed", value: done.length + completedJobs, color: "bg-green-50 text-green-600" },
+          { icon: Wallet, label: "Earned", value: `$${earned}`, color: "bg-purple-50 text-purple-600" },
         ].map(s => (
           <div key={s.label} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
             <div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>

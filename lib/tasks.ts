@@ -46,6 +46,7 @@ export interface Task {
   category: string;
   budget: number;
   location: string;
+  deadline?: string;
   posterId: string;
   posterName: string;
   status: TaskStatus;
