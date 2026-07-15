@@ -21,10 +21,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (loading || !user) return;
     (async () => {
-      const [p, b] = await Promise.all([listTasksByPoster(user.uid), listBidsByUser(user.uid)]);
-      const withTasks = await Promise.all(b.map(async (bid) => ({ ...bid, task: await getTask(bid.taskId) })));
-      setPosted(p);
-      setMyBids(withTasks);
+      try {
+        const [p, b] = await Promise.all([listTasksByPoster(user.uid), listBidsByUser(user.uid)]);
+        const withTasks = await Promise.all(b.map(async (bid) => ({ ...bid, task: await getTask(bid.taskId) })));
+        setPosted(p);
+        setMyBids(withTasks);
+      } catch {}
       try { if (db) { const s = await getDoc(doc(db, "users", user.uid)); if (s.exists()) setWallet(s.data().wallet ?? 0); } } catch {}
       setBusy(false);
     })();

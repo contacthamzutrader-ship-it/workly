@@ -11,10 +11,13 @@ import {
   updateDoc,
   increment,
   limit,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { recalcTrust } from "./trust";
 import { notify } from "./notifications";
+
+export const PLATFORM_FEE = 0.15; // 15% commission like Airtasker
 
 export const CATEGORIES = [
   "Cleaning",
@@ -26,6 +29,12 @@ export const CATEGORIES = [
   "Moving",
   "Pet Care",
   "Tutoring",
+  "Business & Admin",
+  "Photography",
+  "Cooking",
+  "Furniture Assembly",
+  "Painting",
+  "Marketing & Design",
   "Other",
 ];
 
@@ -56,6 +65,10 @@ export interface Task {
   assignedName?: string;
   bidsCount: number;
   createdAt: any;
+  heldAmount?: number;
+  paymentRequested?: boolean;
+  paymentReleased?: boolean;
+  paidAt?: any;
 }
 
 export interface Bid {
@@ -213,13 +226,20 @@ export async function selectBid(
   taskId: string,
   bidId: string,
   bidderId: string,
-  bidderName: string
+  bidderName: string,
+  amount?: number
 ): Promise<void> {
   const database = needDb();
+  const bidAmount = amount || 0;
+  const fee = Math.round(bidAmount * PLATFORM_FEE);
+
   await updateDoc(doc(database, "tasks", taskId), {
     status: "assigned",
     assignedTo: bidderId,
     assignedName: bidderName,
+    heldAmount: bidAmount,
+    paymentRequested: false,
+    paymentReleased: false,
   });
   await updateDoc(doc(database, "bids", bidId), { status: "selected" });
   await notify({
@@ -228,6 +248,66 @@ export async function selectBid(
     title: "Bid selected",
     body: `Your bid was selected — task assigned to you.`,
     link: `/tasks/${taskId}`,
+  });
+}
+
+export async function requestPayment(taskId: string): Promise<void> {
+  const database = needDb();
+  await updateDoc(doc(database, "tasks", taskId), { paymentRequested: true });
+  const snap = await getDoc(doc(database, "tasks", taskId));
+  if (snap.exists()) {
+    await notify({
+      userId: snap.data().posterId,
+      type: "payment_request",
+      title: "Payment requested",
+      body: `${snap.data().assignedName} has requested payment for the task.`,
+      link: `/tasks/${taskId}`,
+    });
+  }
+}
+
+export async function releasePayment(taskId: string): Promise<void> {
+  const database = needDb();
+  const snap = await getDoc(doc(database, "tasks", taskId));
+  if (!snap.exists()) return;
+  const data = snap.data();
+  const amount = data.heldAmount || 0;
+  const fee = Math.round(amount * PLATFORM_FEE);
+  const taskerGets = amount - fee;
+
+  await runTransaction(database, async (transaction) => {
+    const taskerRef = doc(database, "users", data.assignedTo);
+    const taskerSnap = await transaction.get(taskerRef);
+    const taskerWallet = taskerSnap?.data()?.wallet ?? 0;
+    transaction.update(taskerRef, { wallet: taskerWallet + taskerGets });
+
+    const posterRef = doc(database, "users", data.posterId);
+    const posterSnap = await transaction.get(posterRef);
+    const posterWallet = posterSnap?.data()?.wallet ?? 0;
+    transaction.update(posterRef, { wallet: posterWallet - amount });
+
+    transaction.update(doc(database, "tasks", taskId), {
+      paymentReleased: true,
+      paidAt: serverTimestamp(),
+      status: "completed",
+    });
+  });
+
+  await addDoc(collection(database, "wallet_txs"), {
+    userId: data.assignedTo,
+    amount: taskerGets,
+    type: "release",
+    note: `Payment for task (${snap.data()?.title || taskId}) — ${fee} platform fee`,
+    createdAt: new Date().toISOString(),
+    taskId,
+  });
+
+  await notify({
+    userId: data.assignedTo,
+    type: "payment_released",
+    title: "Payment released",
+    body: `$${taskerGets} has been added to your wallet.`,
+    link: `/wallet`,
   });
 }
 

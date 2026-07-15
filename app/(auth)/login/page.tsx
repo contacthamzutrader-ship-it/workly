@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogIn, Eye, EyeOff, Hammer } from "lucide-react";
@@ -16,6 +16,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [redirect, setRedirect] = useState("/dashboard");
+
+  useEffect(() => {
+    const r = new URLSearchParams(window.location.search).get("redirect");
+    if (r) setRedirect(r);
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +29,7 @@ export default function LoginPage() {
     setError("");
     try {
       await signInWithEmail(email, password);
-      router.push("/dashboard");
+      router.push(redirect);
     } catch (err: any) {
       setError(err?.message || "Login failed");
     } finally {
@@ -36,7 +42,7 @@ export default function LoginPage() {
     setError("");
     try {
       await signInWithGoogle();
-      router.push("/dashboard");
+      router.push(redirect);
     } catch (err: any) {
       setError(err?.message || "Google sign-in failed");
     } finally {

@@ -25,7 +25,7 @@ export default function PostTaskPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<TaskSuggestion | null>(null);
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/post"); }, [loading, user, router]);
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   const isAdmin = role === "company_admin" || role === "super_admin";

@@ -20,7 +20,7 @@ export default function ConversationPage() {
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/messages/"+id); }, [loading, user, router, id]);
 
   useEffect(() => {
     if (!user || !id || !db) return;

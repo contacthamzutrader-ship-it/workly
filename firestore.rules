@@ -51,20 +51,11 @@ service cloud.firestore {
 
     // -------- BIDS --------
     match /bids/{bidId} {
-      // Bids readable by task owner, the bidder, or admins.
-      allow read: if isAdmin()
-                    || isOwner(resource.data.bidderId)
-                    || (isSignedIn()
-                        && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
-                        && get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.posterId == request.auth.uid);
-      // Bidder must be the signed-in user; private tasks only bid by admins.
+      allow read: if isSignedIn();
       allow create: if isSignedIn()
-                      && request.resource.data.bidderId == request.auth.uid
-                      && ( !exists(/databases/$(database)/documents/tasks/$(request.resource.data.taskId))
-                          || get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.visibility == 'public'
-                          || isAdmin() );
-      // Poster or admin can update a bid (e.g. mark selected).
+                      && request.resource.data.bidderId == request.auth.uid;
       allow update: if isAdmin()
+                      || isOwner(resource.data.bidderId)
                       || (isSignedIn()
                           && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
                           && get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.posterId == request.auth.uid);

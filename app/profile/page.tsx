@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Star, Shield, Save, Key } from "lucide-react";
+import { User, Star, Shield, Save, Key, CheckCircle2, Percent } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
@@ -21,12 +21,14 @@ export default function ProfilePage() {
   const [trust, setTrust] = useState<number | null>(null);
   const [skills, setSkills] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [completionRate, setCompletionRate] = useState<number | null>(null);
+  const [tasksDone, setTasksDone] = useState(0);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/profile"); }, [loading, user, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -39,6 +41,16 @@ export default function ProfilePage() {
         setTrust(typeof d.trustScore === "number" ? d.trustScore : null); setSkills((d.skills || []).join(", "));
       }
       setReviews(await listReviewsForUser(user.uid));
+
+      const taskSnap = await getDocs(query(collection(db, "tasks"), where("assignedTo", "==", user.uid)));
+      const assigned = taskSnap.docs.map(d => d.data());
+      const completed = assigned.filter(t => t.status === "completed" && t.paymentReleased);
+      const total = assigned.filter(t => t.status === "completed" || t.status === "cancelled" || t.status === "in_progress");
+      if (assigned.length > 0) {
+        setTasksDone(completed.length);
+        const rate = assigned.filter(t => t.status === "completed" || t.paymentReleased).length / assigned.length;
+        setCompletionRate(Math.round(rate * 100));
+      }
     })();
   }, [user]);
 
@@ -66,17 +78,23 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-extrabold text-ink">My Profile</h1>
       <p className="mt-1 text-ink-500">Manage your public appearance</p>
 
-      <div className="mt-6 grid grid-cols-2 gap-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-50 text-yellow-500"><Star className="h-5 w-5" /></div>
             <div><p className="text-2xl font-extrabold text-ink">{avg}</p><p className="text-xs text-ink-500">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p></div></div>
         </div>
-        {trust !== null && (
-          <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
-            <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Shield className="h-5 w-5" /></div>
-              <div><p className="text-2xl font-extrabold text-ink">{trust}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
-          </div>
-        )}
+        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Shield className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "—"}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
+        </div>
+        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-green-50 text-green-600"><Percent className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "—"}</p><p className="text-xs text-ink-500">Completion Rate</p></div></div>
+        </div>
+        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><CheckCircle2 className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-xs text-ink-500">Tasks Done</p></div></div>
+        </div>
       </div>
 
       <form onSubmit={save} className="mt-6 space-y-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">

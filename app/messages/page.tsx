@@ -16,7 +16,7 @@ export default function MessagesPage() {
   const [names, setNames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(true);
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/messages"); }, [loading, user, router]);
 
   useEffect(() => {
     if (!user) return;

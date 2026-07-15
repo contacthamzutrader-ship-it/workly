@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ShieldCheck, Clock, Lock, CheckCircle2, ArrowRight, Eye, Users, Briefcase, TrendingUp } from "lucide-react";
+import { ShieldCheck, Clock, Lock, CheckCircle2, ArrowRight, Eye, Users, Briefcase, TrendingUp, DollarSign, BarChart3, PieChart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { listPendingTasks, listPrivateTasks, approveTask, type Task } from "@/lib/tasks";
+import { listPendingTasks, listPrivateTasks, approveTask, PLATFORM_FEE } from "@/lib/tasks";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
@@ -13,14 +13,15 @@ import Button from "@/components/ui/Button";
 export default function AdminPage() {
   const { user, role, loading } = useAuth();
   const router = useRouter();
-  const [pending, setPending] = useState<Task[]>([]);
-  const [privateTasks, setPrivateTasks] = useState<Task[]>([]);
+  const [pending, setPending] = useState<any[]>([]);
+  const [privateTasks, setPrivateTasks] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
   const [busy, setBusy] = useState(true);
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); if (!loading && user && !isAdmin) router.replace("/dashboard"); }, [loading, user, isAdmin, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/admin"); if (!loading && user && !isAdmin) router.replace("/dashboard"); }, [loading, user, isAdmin, router]);
 
   const load = async () => {
     setBusy(true);
@@ -28,8 +29,12 @@ export default function AdminPage() {
       setPending(await listPendingTasks());
       setPrivateTasks(await listPrivateTasks());
       if (db) {
-        const snap = await getDocs(query(collection(db, "users"), limit(100)));
-        setAllUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        const [userSnap, taskSnap] = await Promise.all([
+          getDocs(query(collection(db, "users"), limit(500))),
+          getDocs(query(collection(db, "tasks"), limit(500))),
+        ]);
+        setAllUsers(userSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setAllTasks(taskSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
     } catch {} finally { setBusy(false); }
   };
@@ -41,24 +46,52 @@ export default function AdminPage() {
 
   const approve = async (taskId: string, visibility: "public" | "private") => { await approveTask(taskId, visibility); load(); };
 
+  const totalUsers = allUsers.length;
+  const totalTasks = allTasks.length;
+  const completedTasks = allTasks.filter(t => t.status === "completed").length;
+  const paidTasks = allTasks.filter(t => t.paymentReleased).length;
+  const totalRevenue = allTasks
+    .filter(t => t.heldAmount && t.paymentReleased)
+    .reduce((sum, t) => sum + Math.round(t.heldAmount * PLATFORM_FEE), 0);
+  const categoryBreakdown = allTasks.reduce((acc: Record<string, number>, t) => {
+    acc[t.category] = (acc[t.category] || 0) + 1;
+    return acc;
+  }, {});
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white"><ShieldCheck className="h-6 w-6" /></div>
-          <div><h1 className="text-2xl font-extrabold text-ink">Admin Panel</h1><p className="text-sm text-ink-500">Manage approvals, tasks & team</p></div>
+          <div><h1 className="text-2xl font-extrabold text-ink">Admin Panel</h1><p className="text-sm text-ink-500">Platform management & analytics</p></div>
         </div>
         <Link href="/dashboard" className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink-50">
           <ArrowRight className="h-4 w-4 rotate-180" /> Dashboard
         </Link>
       </div>
 
+      {/* Platform Overview Stats */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: Clock, label: "Pending", value: pending.length, color: "bg-amber-50 text-amber-600" },
-          { icon: Lock, label: "Private", value: privateTasks.length, color: "bg-purple-50 text-purple-600" },
-          { icon: Briefcase, label: "Total Queue", value: pending.length + privateTasks.length, color: "bg-blue-50 text-blue-600" },
-          { icon: TrendingUp, label: "Active Private", value: privateTasks.filter(t => t.status !== "completed" && t.status !== "cancelled").length, color: "bg-green-50 text-green-600" },
+          { icon: Users, label: "Users", value: totalUsers, color: "bg-blue-50 text-blue-600" },
+          { icon: Briefcase, label: "Total Tasks", value: totalTasks, color: "bg-purple-50 text-purple-600" },
+          { icon: CheckCircle2, label: "Completed", value: completedTasks, color: "bg-green-50 text-green-600" },
+          { icon: DollarSign, label: "Revenue", value: `$${totalRevenue}`, color: "bg-brand-50 text-brand-dark" },
+        ].map(s => (
+          <div key={s.label} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+            <div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>
+              <div><p className="text-xl font-extrabold text-ink">{s.value}</p><p className="text-xs text-ink-500">{s.label}</p></div></div>
+          </div>
+        ))}
+      </div>
+
+      {/* Secondary stats */}
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { icon: Clock, label: "Pending Approvals", value: pending.length, color: "bg-amber-50 text-amber-600" },
+          { icon: Lock, label: "Private Tasks", value: privateTasks.length, color: "bg-purple-50 text-purple-600" },
+          { icon: DollarSign, label: "Platform Fee", value: `${PLATFORM_FEE * 100}%`, color: "bg-brand-50 text-brand-dark" },
+          { icon: BarChart3, label: "Paid Tasks", value: paidTasks, color: "bg-green-50 text-green-600" },
         ].map(s => (
           <div key={s.label} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
             <div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>
@@ -71,6 +104,24 @@ export default function AdminPage() {
         <div className="flex min-h-[30vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>
       ) : (
         <div className="mt-6 space-y-6">
+          {/* Category Breakdown */}
+          {Object.keys(categoryBreakdown).length > 0 && (
+            <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><PieChart className="h-5 w-5" /></div>
+                <div><h2 className="text-lg font-bold text-ink">Tasks by Category</h2><p className="text-sm text-ink-500">How tasks are distributed</p></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {Object.entries(categoryBreakdown).sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
+                  <div key={cat} className="rounded-xl border border-ink-100 bg-ink-50/50 p-3">
+                    <p className="text-lg font-extrabold text-ink">{count}</p>
+                    <p className="text-xs text-ink-500 truncate">{cat}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Pending */}
           <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
             <div className="flex items-center gap-3 mb-4">

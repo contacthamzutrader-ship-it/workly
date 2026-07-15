@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, type Task, type Bid, type Review } from "@/lib/tasks";
+import { getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, requestPayment, releasePayment, PLATFORM_FEE, type Task, type Bid, type Review } from "@/lib/tasks";
 import { getOrCreateConversation } from "@/lib/chat";
 import { computeBidMatch, isFreshTalent, type BidMatch } from "@/lib/matching";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { MapPin, DollarSign, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft } from "lucide-react";
+import { MapPin, DollarSign, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Percent } from "lucide-react";
 
 type BidView = Bid & { match?: BidMatch; fresh?: boolean };
 
@@ -76,11 +76,17 @@ export default function TaskDetailPage() {
   const canBid = task.status === "open" && ((task.visibility === "public" && !isPoster) || (task.visibility === "private" && isAdmin));
   const canSelect = (isPoster || isAdmin) && task.status === "open";
   const canManage = (isAssigned || isAdmin) && (task.status === "assigned" || task.status === "in_progress");
+  const canRequestPayment = isAssigned && task.status === "completed" && !task.paymentRequested && !task.paymentReleased;
+  const canReleasePayment = isPoster && task.status === "completed" && task.paymentRequested && !task.paymentReleased;
+  const paymentDone = task.paymentReleased;
+  const fee = task.heldAmount ? Math.round(task.heldAmount * PLATFORM_FEE) : 0;
   const statusInfo = STATUS_TAGS[task.status] || STATUS_TAGS.pending;
 
   const submitBid = async (e: React.FormEvent) => { e.preventDefault(); setError(""); try { if (!user) return; await placeBid({ taskId: id, bidderId: user.uid, bidderName: user.displayName || user.email || "Tasker", amount: Number(amount), message }); setAmount(""); setMessage(""); load(); } catch (err: any) { setError(err?.message || "Could not place bid"); } };
-  const chooseBid = async (bid: Bid) => { if (!bid.id) return; await selectBid(id, bid.id, bid.bidderId, bid.bidderName); load(); };
+  const chooseBid = async (bid: Bid) => { if (!bid.id) return; await selectBid(id, bid.id, bid.bidderId, bid.bidderName, bid.amount); load(); };
   const updateStatus = async (status: "in_progress" | "completed") => { await setTaskStatus(id, status); load(); };
+  const reqPayment = async () => { try { await requestPayment(id); load(); } catch (err: any) { setError(err?.message || "Could not request payment"); } };
+  const relPayment = async () => { try { await releasePayment(id); load(); } catch (err: any) { setError(err?.message || "Could not release payment"); } };
   const submitReview = async (e: React.FormEvent) => { e.preventDefault(); setError(""); try { if (!user || !task.assignedTo) return; await addReview({ taskId: id, fromId: user.uid, fromName: user.displayName || user.email || "User", toId: task.assignedTo, rating, comment }); setComment(""); load(); } catch (err: any) { setError(err?.message || "Could not submit review"); } };
 
   return (
@@ -123,6 +129,8 @@ export default function TaskDetailPage() {
           <span className="flex items-center gap-1.5 text-ink-500"><User className="h-4 w-4" />{task.posterName}</span>
           <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />{new Date(task.createdAt || Date.now()).toLocaleDateString()}</span>
           {task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: {new Date(task.deadline).toLocaleDateString()}</span>}
+          {task.heldAmount && <span className="flex items-center gap-1.5 text-ink-500"><Banknote className="h-4 w-4" />${task.heldAmount} held</span>}
+          {paymentDone && <span className="flex items-center gap-1.5 text-green-600 font-semibold"><CheckCircle2 className="h-4 w-4" />Paid</span>}
         </div>
         {task.assignedName && <p className="mt-3 text-sm text-ink-500">Assigned to: <Link href={`/u/${task.assignedTo}`} className="font-semibold text-ink hover:text-brand">{task.assignedName}</Link></p>}
 
@@ -178,8 +186,51 @@ export default function TaskDetailPage() {
         </div>
       )}
 
+      {/* Request Payment — Tasker */}
+      {canRequestPayment && (
+        <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-6 shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-blue-600"><Send className="h-5 w-5" /></div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-ink">Request Payment</h2>
+              <p className="text-sm text-ink-500">Ask the poster to release payment (${task.heldAmount}) </p>
+              <p className="text-xs text-ink-400 mt-1">Platform fee: {PLATFORM_FEE * 100}% — you receive ${task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0}</p>
+            </div>
+            <Button onClick={reqPayment} className="rounded-xl flex items-center gap-1.5"><Send className="h-4 w-4" /> Request Payment</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Release Payment — Poster */}
+      {canReleasePayment && (
+        <div className="mt-6 rounded-2xl border border-brand-100 bg-brand-50 p-6 shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand"><Banknote className="h-5 w-5" /></div>
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-ink">Release Payment</h2>
+              <p className="text-sm text-ink-500">{task.assignedName} has requested payment of ${task.heldAmount}</p>
+              <p className="text-xs text-ink-400 mt-1">Platform fee ({PLATFORM_FEE * 100}%): ${fee} · Tasker receives ${task.heldAmount ? task.heldAmount - fee : 0}</p>
+            </div>
+            <Button onClick={relPayment} className="rounded-xl flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Release ${task.heldAmount}</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Complete */}
+      {paymentDone && (
+        <div className="mt-6 rounded-2xl border border-green-100 bg-green-50 p-6 shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-green-100 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
+            <div>
+              <h2 className="text-lg font-bold text-green-700">Payment Released</h2>
+              <p className="text-sm text-green-600">${task.heldAmount} has been released. Tasker received ${task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0} (${PLATFORM_FEE * 100}% platform fee).</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Review Form */}
-      {isPoster && task.status === "completed" && task.assignedTo && (
+      {isPoster && task.paymentReleased && task.assignedTo && (
         <form onSubmit={submitReview} className="mt-6 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
           <h2 className="flex items-center gap-2 text-lg font-bold text-ink"><Star className="h-5 w-5 text-brand" /> Rate the tasker</h2>
           <div className="mt-4 flex items-center gap-3">

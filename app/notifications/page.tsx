@@ -13,7 +13,7 @@ export default function NotificationsPage() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [busy, setBusy] = useState(true);
 
-  useEffect(() => { if (!loading && !user) router.replace("/login"); }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/notifications"); }, [loading, user, router]);
 
   useEffect(() => { if (!user) return; (async () => { try { setItems(await listNotifications(user.uid)); } catch {} finally { setBusy(false); } })(); }, [user]);
 
