@@ -23,7 +23,8 @@ service cloud.firestore {
     // -------- USERS --------
     match /users/{uid} {
       // Public profiles readable by anyone; private profiles only by admins.
-      allow read: if resource.data.isPrivate != true || isAdmin();
+      // First check if doc exists before accessing resource.data
+      allow read: if !resource || !resource.data || resource.data.isPrivate != true || isAdmin();
       allow create: if isOwner(uid);
       // Only the user can edit their own doc, except admins can edit any.
       allow update: if isOwner(uid) || isAdmin();
@@ -80,7 +81,7 @@ service cloud.firestore {
     // -------- CONVERSATIONS --------
     match /conversations/{convId} {
       function participant() {
-        return isSignedIn() && request.auth.uid in resource.data.participants;
+        return isSignedIn() && resource != null && resource.data != null && request.auth.uid in resource.data.participants;
       }
       allow read: if participant();
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
