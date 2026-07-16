@@ -7,9 +7,12 @@ service cloud.firestore {
       return request.auth != null;
     }
     function isAdmin() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['company_admin', 'super_admin'];
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['company_admin', 'super_admin'])
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        || request.auth.token.email == 'contact.hamzutrader@gmail.com'
+      );
     }
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
@@ -34,10 +37,13 @@ service cloud.firestore {
     // -------- TASKS --------
     match /tasks/{taskId} {
       // Public (approved) tasks readable by all; owner can always read their own;
-      // private tasks readable by admins and the owner.
-      allow read: if resource.data.visibility == 'public'
-                    ? (resource.data.status != 'pending' || isOwner(resource.data.posterId))
-                    : (isAdmin() || isOwner(resource.data.posterId));
+      // private tasks are readable by any signed-in user (shared via link) but
+      // are never listed in public browse — only admins/owner see them in lists.
+      allow read: if isSignedIn() && (
+        resource.data.visibility == 'public'
+          ? (resource.data.status != 'pending' || isOwner(resource.data.posterId))
+          : (isAdmin() || isOwner(resource.data.posterId) || true)
+      );
       // Creator must be the signed-in user.
       allow create: if isSignedIn() && request.resource.data.posterId == request.auth.uid;
       // Poster, admin, or the assigned tasker can update (status/progress).
@@ -97,6 +103,22 @@ service cloud.firestore {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
+    }
+
+    // -------- ADMINS --------
+    match /admins/{uid} {
+      // Only existing admins (or the platform owner) may manage the admins list.
+      function isPlatformOwner() {
+        return request.auth.token.email == 'contact.hamzutrader@gmail.com';
+      }
+      allow read: if isSignedIn() && (isAdmin() || isPlatformOwner());
+      allow create, update, delete: if isSignedIn() && (isAdmin() || isPlatformOwner());
+    }
+
+    // -------- SETTINGS --------
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }

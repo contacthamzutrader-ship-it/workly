@@ -3,22 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { createTask, CATEGORIES, type ApprovalMode, type Visibility } from "@/lib/tasks";
+import { createTask, CATEGORIES } from "@/lib/tasks";
 import { analyzeTask, type TaskSuggestion } from "@/lib/hf";
+import { getAutoApprove } from "@/lib/admin";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { Sparkles, MapPin, DollarSign, FileText, Tag, Calendar } from "lucide-react";
+import { Sparkles, MapPin, DollarSign, FileText, Tag, Calendar, Info } from "lucide-react";
 
 export default function PostTaskPage() {
-  const { user, role, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [budget, setBudget] = useState("");
   const [location, setLocation] = useState("");
-  const [approvalMode, setApprovalMode] = useState<ApprovalMode>("auto");
-  const [visibility, setVisibility] = useState<Visibility>("public");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [deadline, setDeadline] = useState("");
@@ -27,8 +26,6 @@ export default function PostTaskPage() {
 
   useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/post"); }, [loading, user, router]);
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-
-  const isAdmin = role === "company_admin" || role === "super_admin";
 
   const handleAiSuggest = async () => {
     if (!title.trim() || !description.trim()) return;
@@ -48,10 +45,25 @@ export default function PostTaskPage() {
     setBusy(true);
     setError("");
     try {
-      const vis: Visibility = isAdmin && visibility === "private" ? "private" : "public";
-      const id = await createTask({ title, description, category, budget: Number(budget), location, deadline: deadline || undefined, posterId: user.uid, posterName: user.displayName || user.email || "User", status: approvalMode === "auto" ? "open" : "pending", visibility: vis, approvalMode });
+      // Tasks are always reviewed by the team. If the platform-wide
+      // auto-approve setting is ON, it goes straight to public; otherwise it
+      // waits in the admin approval queue. Users never choose this.
+      const auto = await getAutoApprove();
+      const id = await createTask({
+        title,
+        description,
+        category,
+        budget: Number(budget),
+        location,
+        deadline: deadline || undefined,
+        posterId: user.uid,
+        posterName: user.displayName || user.email || "User",
+        status: auto ? "open" : "pending",
+        visibility: "public",
+        approvalMode: auto ? "auto" : "manual",
+      });
       router.push(`/tasks/${id}`);
-    } catch (err: any) { setError(err?.message || "Could not post task"); } finally { setBusy(false); }
+    } catch (err: any) { setError(err.message || "Could not post task"); } finally { setBusy(false); }
   };
 
   return (
@@ -114,33 +126,10 @@ export default function PostTaskPage() {
           </div>
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-ink">Approval mode</label>
-          <div className="flex gap-3">
-            <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm transition ${approvalMode === "auto" ? "border-brand bg-brand-50" : "border-ink-200"}`}>
-              <input type="radio" name="mode" checked={approvalMode === "auto"} onChange={() => setApprovalMode("auto")} />
-              <span><span className="font-semibold">Auto</span> — approved &amp; public instantly</span>
-            </label>
-            <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm transition ${approvalMode === "manual" ? "border-brand bg-brand-50" : "border-ink-200"}`}>
-              <input type="radio" name="mode" checked={approvalMode === "manual"} onChange={() => setApprovalMode("manual")} />
-              <span><span className="font-semibold">Manual</span> — our team reviews it</span>
-            </label>
-          </div>
+        <div className="flex items-start gap-2 rounded-xl border border-ink-100 bg-ink-50/60 p-3 text-xs text-ink-500">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>Your task will be reviewed by our team before going live. Once approved it becomes visible to taskers.</span>
         </div>
-
-        {isAdmin && (
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-ink">Visibility</label>
-            <div className="flex gap-3">
-              <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm ${visibility === "public" ? "border-brand bg-brand-50" : "border-ink-200"}`}>
-                <input type="radio" name="vis" checked={visibility === "public"} onChange={() => setVisibility("public")} /><span>Public</span>
-              </label>
-              <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm ${visibility === "private" ? "border-brand bg-brand-50" : "border-ink-200"}`}>
-                <input type="radio" name="vis" checked={visibility === "private"} onChange={() => setVisibility("private")} /><span>Private (team only)</span>
-              </label>
-            </div>
-          </div>
-        )}
 
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         <Button type="submit" disabled={busy} className="w-full rounded-xl py-3">{busy ? "Posting..." : "Post Task"}</Button>

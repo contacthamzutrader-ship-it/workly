@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { OWNER_EMAIL, getAdminDoc, ownerSession, type AdminSession, type Permission } from "./admin";
 
 export type Role = "customer" | "tasker" | "company_admin" | "super_admin";
 
@@ -19,6 +20,8 @@ type AuthContextType = {
   user: User | null;
   role: Role | null;
   loading: boolean;
+  adminSession: AdminSession | null;
+  permissions: Permission[];
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -55,6 +58,7 @@ async function ensureUserDoc(u: User, name: string) {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<Role | null>(null);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,10 +69,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u && db) {
+        // 1) OWNER is always super_admin — deterministic, never flaky.
+        if (u.email && u.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
+          setRole("super_admin");
+          setAdminSession(ownerSession());
+          if (db) {
+            const ref = doc(db, "users", u.uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+              await setDoc(ref, {
+                uid: u.uid,
+                name: u.displayName || "Owner",
+                email: u.email,
+                role: "super_admin",
+                isTasker: true,
+                isPrivate: false,
+                createdAt: serverTimestamp(),
+              });
+            }
+          }
+          setLoading(false);
+          return;
+        }
+
+        // 2) Regular user doc (for profile / wallet / trust).
         const ref = doc(db, "users", u.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-          setRole(snap.data().role as Role);
+          setRole((snap.data().role as Role) || "customer");
         } else {
           await setDoc(ref, {
             uid: u.uid,
@@ -81,8 +109,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
           setRole("customer");
         }
+
+        // 3) Check admins collection for permission-based admin.
+        const admin = await getAdminDoc(u.uid);
+        if (admin) {
+          setRole("company_admin");
+          setAdminSession({ role: "company_admin", isOwner: false, permissions: admin.permissions });
+        } else {
+          setAdminSession(null);
+        }
       } else {
         setRole(null);
+        setAdminSession(null);
       }
       setLoading(false);
     });
@@ -113,7 +151,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, role, loading, signInWithEmail, signUpWithEmail, signInWithGoogle, signOut }}
+      value={{
+        user,
+        role,
+        loading,
+        adminSession,
+        permissions: adminSession?.permissions ?? [],
+        signInWithEmail,
+        signUpWithEmail,
+        signInWithGoogle,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>
