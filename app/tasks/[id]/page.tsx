@@ -11,7 +11,8 @@ import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { MapPin, DollarSign, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Percent } from "lucide-react";
+import { MapPin, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Tag } from "lucide-react";
+import { formatDate, formatPKR } from "@/lib/format";
 
 type BidView = Bid & { match?: BidMatch; fresh?: boolean };
 
@@ -47,7 +48,8 @@ export default function TaskDetailPage() {
       const t = await getTask(id);
       if (!t) { setNotFound(true); return; }
       setTask(t);
-      const rawBids = await listBidsForTask(id);
+      const canReadBids = !!user && (user.uid === t.posterId || isAdmin);
+      const rawBids = canReadBids ? await listBidsForTask(id) : [];
       const withMatch = await Promise.all(rawBids.map(async (b) => {
         let match: BidMatch | undefined; let fresh = false;
         if (db) {
@@ -73,7 +75,7 @@ export default function TaskDetailPage() {
 
   const isPoster = user?.uid === task.posterId;
   const isAssigned = user?.uid === task.assignedTo;
-  const canBid = task.status === "open" && ((task.visibility === "public" && !isPoster) || (task.visibility === "private" && isAdmin));
+  const canBid = !!user && task.status === "open" && task.visibility === "public" && !isPoster;
   const canSelect = (isPoster || isAdmin) && task.status === "open";
   const canManage = (isAssigned || isAdmin) && (task.status === "assigned" || task.status === "in_progress");
   const canRequestPayment = isAssigned && task.status === "completed" && !task.paymentRequested && !task.paymentReleased;
@@ -83,23 +85,32 @@ export default function TaskDetailPage() {
   const statusInfo = STATUS_TAGS[task.status] || STATUS_TAGS.pending;
 
   const submitBid = async (e: React.FormEvent) => { e.preventDefault(); setError(""); try { if (!user) return; await placeBid({ taskId: id, bidderId: user.uid, bidderName: user.displayName || user.email || "Tasker", amount: Number(amount), message }); setAmount(""); setMessage(""); load(); } catch (err: any) { setError(err?.message || "Could not place bid"); } };
-  const chooseBid = async (bid: Bid) => { if (!bid.id) return; await selectBid(id, bid.id, bid.bidderId, bid.bidderName, bid.amount); load(); };
+  const chooseBid = async (bid: Bid) => {
+    if (!bid.id) return;
+    setError("");
+    try {
+      await selectBid(id, bid.id, bid.bidderId, bid.bidderName, bid.amount);
+      load();
+    } catch (err: any) {
+      setError(err?.message || "Could not select this offer.");
+    }
+  };
   const updateStatus = async (status: "in_progress" | "completed") => { await setTaskStatus(id, status); load(); };
   const reqPayment = async () => { try { await requestPayment(id); load(); } catch (err: any) { setError(err?.message || "Could not request payment"); } };
   const relPayment = async () => { try { await releasePayment(id); load(); } catch (err: any) { setError(err?.message || "Could not release payment"); } };
   const submitReview = async (e: React.FormEvent) => { e.preventDefault(); setError(""); try { if (!user || !task.assignedTo) return; await addReview({ taskId: id, fromId: user.uid, fromName: user.displayName || user.email || "User", toId: task.assignedTo, rating, comment }); setComment(""); load(); } catch (err: any) { setError(err?.message || "Could not submit review"); } };
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <Link href="/tasks" className="flex items-center gap-1 text-sm text-ink-500 hover:text-ink mb-6"><ArrowLeft className="h-4 w-4" /> Back to tasks</Link>
 
       {/* Task Header */}
-      <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+      <div className="rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-sm font-medium text-ink-600"><Tag /> {task.category}</span>
-          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.color}`}>{statusInfo.label}{task.visibility === "private" ? " · Private" : ""}</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-sm font-medium text-ink-600"><Tag className="h-3.5 w-3.5" /> {task.category}</span>
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.color}`}>{statusInfo.label}{task.visibility === "private" ? " - Private" : ""}</span>
         </div>
-        <h1 className="mt-4 text-2xl font-extrabold text-ink">{task.title}</h1>
+        <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink sm:text-4xl">{task.title}</h1>
         <p className="mt-3 whitespace-pre-wrap text-ink-600 leading-relaxed">{task.description}</p>
 
         {/* Lifecycle Progress Bar */}
@@ -124,15 +135,15 @@ export default function TaskDetailPage() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
-          <span className="flex items-center gap-1.5 font-bold text-brand"><DollarSign className="h-4 w-4" />${task.budget}</span>
+          <span className="rounded-lg bg-brand-50 px-3 py-2 font-black text-brand-dark">{formatPKR(task.budget)}</span>
           <span className="flex items-center gap-1.5 text-ink-500"><MapPin className="h-4 w-4" />{task.location}</span>
           <span className="flex items-center gap-1.5 text-ink-500"><User className="h-4 w-4" />{task.posterName}</span>
-          <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />{new Date(task.createdAt || Date.now()).toLocaleDateString()}</span>
-          {task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: {new Date(task.deadline).toLocaleDateString()}</span>}
-          {task.heldAmount && <span className="flex items-center gap-1.5 text-ink-500"><Banknote className="h-4 w-4" />${task.heldAmount} held</span>}
+          <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />{formatDate(task.createdAt)}</span>
+          {task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: {formatDate(task.deadline)}</span>}
+          {task.heldAmount && <span className="flex items-center gap-1.5 text-ink-500"><Banknote className="h-4 w-4" />{formatPKR(task.heldAmount)} held</span>}
           {paymentDone && <span className="flex items-center gap-1.5 text-green-600 font-semibold"><CheckCircle2 className="h-4 w-4" />Paid</span>}
         </div>
-        {task.assignedName && <p className="mt-3 text-sm text-ink-500">Assigned to: <Link href={`/u/${task.assignedTo}`} className="font-semibold text-ink hover:text-brand">{task.assignedName}</Link></p>}
+        {task.assignedName && <div className="mt-5 flex items-center gap-2 rounded-xl bg-ink-50 p-3 text-sm text-ink-500"><ShieldCheck className="h-4 w-4 text-brand" />Assigned to <Link href={`/u/${task.assignedTo}`} className="font-extrabold text-ink hover:text-brand">{task.assignedName}</Link>{task.visibility === "private" && <span className="ml-auto rounded-full bg-ink px-2.5 py-1 text-[10px] font-black uppercase text-white">Managed private</span>}</div>}
 
         {/* Chat button */}
         {task.assignedTo && (isPoster || isAssigned) && (
@@ -152,14 +163,14 @@ export default function TaskDetailPage() {
               {bids.map(b => (
                 <div key={b.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-4 transition hover:border-brand/30">
                   <div>
-                    <div className="flex items-center gap-2"><p className="font-bold text-ink">{b.bidderName}</p><span className="text-lg font-extrabold text-brand">${b.amount}</span></div>
+                    <div className="flex items-center gap-2"><p className="font-bold text-ink">{b.bidderName}</p><span className="text-lg font-extrabold text-brand">{formatPKR(b.amount)}</span></div>
                     <p className="mt-0.5 text-sm text-ink-500">{b.message}</p>
                     <div className="mt-1.5 flex gap-2 flex-wrap">
                       {b.match && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-dark">Match {b.match.percent}%</span>}
                       {b.fresh && <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700"><Zap className="mr-1 inline-block h-3 w-3" /> Fresh</span>}
                     </div>
                   </div>
-                  <Button onClick={() => chooseBid(b)} className="shrink-0">Select</Button>
+                  <Button onClick={() => chooseBid(b)} className="shrink-0">Select & hold funds</Button>
                 </div>
               ))}
             </div>}
@@ -171,11 +182,18 @@ export default function TaskDetailPage() {
         <form onSubmit={submitBid} className="mt-6 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
           <h2 className="text-lg font-bold text-ink">Place a bid</h2>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input type="number" min={1} placeholder="Your price ($)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+            <Input type="number" min={500} step={100} placeholder="Your offer (PKR)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
             <Input placeholder="Why should you be hired?" value={message} onChange={(e) => setMessage(e.target.value)} />
           </div>
-          <Button type="submit" className="mt-3 rounded-xl">Submit bid</Button>
+          <Button type="submit" className="mt-3 rounded-xl">Submit offer</Button>
         </form>
+      )}
+
+      {!user && task.status === "open" && task.visibility === "public" && (
+        <div className="mt-6 flex flex-col gap-4 rounded-3xl bg-ink p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="text-lg font-black">Want to send an offer?</h2><p className="mt-1 text-sm text-white/55">Join Workly to bid, message and receive protected payments.</p></div>
+          <Link href={`/login?redirect=/tasks/${id}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-extrabold text-white">Sign in to bid</Link>
+        </div>
       )}
 
       {/* Assigned Tasker Progress Controls */}
@@ -186,32 +204,32 @@ export default function TaskDetailPage() {
         </div>
       )}
 
-      {/* Request Payment — Tasker */}
+      {/* Request Payment - Tasker */}
       {canRequestPayment && (
         <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-6 shadow-card">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-blue-600"><Send className="h-5 w-5" /></div>
             <div className="flex-1">
               <h2 className="text-lg font-bold text-ink">Request Payment</h2>
-              <p className="text-sm text-ink-500">Ask the poster to release payment (${task.heldAmount}) </p>
-              <p className="text-xs text-ink-400 mt-1">Platform fee: {PLATFORM_FEE * 100}% — you receive ${task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0}</p>
+              <p className="text-sm text-ink-500">Ask the poster to release {formatPKR(task.heldAmount)}</p>
+              <p className="text-xs text-ink-400 mt-1">Platform fee: {PLATFORM_FEE * 100}% - you receive {formatPKR(task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0)}</p>
             </div>
             <Button onClick={reqPayment} className="rounded-xl flex items-center gap-1.5"><Send className="h-4 w-4" /> Request Payment</Button>
           </div>
         </div>
       )}
 
-      {/* Release Payment — Poster */}
+      {/* Release Payment - Poster */}
       {canReleasePayment && (
         <div className="mt-6 rounded-2xl border border-brand-100 bg-brand-50 p-6 shadow-card">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand"><Banknote className="h-5 w-5" /></div>
             <div className="flex-1">
               <h2 className="text-lg font-bold text-ink">Release Payment</h2>
-              <p className="text-sm text-ink-500">{task.assignedName} has requested payment of ${task.heldAmount}</p>
-              <p className="text-xs text-ink-400 mt-1">Platform fee ({PLATFORM_FEE * 100}%): ${fee} · Tasker receives ${task.heldAmount ? task.heldAmount - fee : 0}</p>
+              <p className="text-sm text-ink-500">{task.assignedName} has requested {formatPKR(task.heldAmount)}</p>
+              <p className="text-xs text-ink-400 mt-1">Platform fee ({PLATFORM_FEE * 100}%): {formatPKR(fee)} - Tasker receives {formatPKR(task.heldAmount ? task.heldAmount - fee : 0)}</p>
             </div>
-            <Button onClick={relPayment} className="rounded-xl flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Release ${task.heldAmount}</Button>
+            <Button onClick={relPayment} className="rounded-xl flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Release {formatPKR(task.heldAmount)}</Button>
           </div>
         </div>
       )}
@@ -223,7 +241,7 @@ export default function TaskDetailPage() {
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-green-100 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
             <div>
               <h2 className="text-lg font-bold text-green-700">Payment Released</h2>
-              <p className="text-sm text-green-600">${task.heldAmount} has been released. Tasker received ${task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0} (${PLATFORM_FEE * 100}% platform fee).</p>
+              <p className="text-sm text-green-600">{formatPKR(task.heldAmount)} has been released. Tasker received {formatPKR(task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0)} ({PLATFORM_FEE * 100}% platform fee).</p>
             </div>
           </div>
         </div>
@@ -236,7 +254,7 @@ export default function TaskDetailPage() {
           <div className="mt-4 flex items-center gap-3">
             <span className="text-sm text-ink-500">Rating</span>
             <select value={rating} onChange={(e) => setRating(Number(e.target.value))} className="rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm focus:border-brand focus:outline-none">
-              {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} ★</option>)}
+              {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} stars</option>)}
             </select>
           </div>
           <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} placeholder="Leave a comment..." className="mt-3 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
@@ -263,8 +281,4 @@ export default function TaskDetailPage() {
       )}
     </div>
   );
-}
-
-function Tag() {
-  return <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
 }

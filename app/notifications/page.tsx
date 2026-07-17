@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, ArrowRight } from "lucide-react";
+import { Bell, ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listNotifications, type AppNotification } from "@/lib/notifications";
 
@@ -20,14 +20,22 @@ export default function NotificationsPage() {
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-extrabold text-ink">Notifications</h1>
-      <p className="mt-1 text-ink-500">Stay updated on your tasks</p>
+    <div className="bg-canvas py-8 sm:py-10">
+      <div className="page-shell max-w-5xl">
+      <div className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Bell className="h-7 w-7" /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Activity centre</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Notifications</h1><p className="mt-1 text-sm text-white/55">Approvals, offers, assignments and payment updates in one place.</p></div>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-white/65"><ShieldCheck className="h-4 w-4 text-brand-300" /> {items.length} total updates</div>
+        </div>
+      </div>
 
       {busy ? <div className="flex min-h-[30vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div> :
         items.length === 0 ? (
-          <div className="mt-12 rounded-2xl border border-dashed border-ink-200 bg-white py-16 text-center">
-            <Bell className="mx-auto h-10 w-10 text-ink-300" /><p className="mt-4 text-lg font-semibold text-ink">No notifications</p><p className="mt-1 text-sm text-ink-500">You&apos;ll see updates about your tasks here</p>
+          <div className="surface mt-6 py-16 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-brand" /><p className="mt-4 text-lg font-semibold text-ink">All clear</p><p className="mt-1 text-sm text-ink-500">You&apos;ll see task, offer and payment updates here.</p>
           </div>
         ) : (
           <div className="mt-6 space-y-3">
@@ -42,6 +50,7 @@ export default function NotificationsPage() {
             ))}
           </div>
         )}
+      </div>
     </div>
   );
 }

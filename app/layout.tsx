@@ -1,21 +1,44 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = headers();
+  const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host") || "localhost:3000";
+  const protocol = requestHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
+  const origin = `${protocol}://${host}`;
+  const description = "Post local or digital work, compare verified professionals, and pay safely through protected milestones.";
 
-export const metadata: Metadata = {
-  title: "Workly — Get it done with trusted local taskers",
-  description: "Post a task, get bids from skilled taskers nearby, hire with confidence. Pakistan's #1 task marketplace.",
-};
+  return {
+    metadataBase: new URL(origin),
+    title: {
+      default: "Workly - Pakistan's trusted work marketplace",
+      template: "%s | Workly",
+    },
+    description,
+    openGraph: {
+      type: "website",
+      siteName: "Workly",
+      title: "The right person for every task.",
+      description,
+      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Workly - Pakistan's trusted work marketplace" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "The right person for every task.",
+      description,
+      images: [`${origin}/og.png`],
+    },
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="flex min-h-screen flex-col bg-gray-50 font-sans text-ink">
+    <html lang="en">
+      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink">
         <AuthProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

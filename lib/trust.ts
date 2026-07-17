@@ -6,7 +6,7 @@ function clamp(n: number) {
   return Math.max(0, Math.min(100, n));
 }
 
-// Review-based component of the trust score (base 70; +2 per 5★, -2 per <=2★).
+// Review-based component of the trust score (base 70; +2 per 5 stars, -2 per <=2 stars).
 export async function computeTrustScore(uid: string): Promise<number> {
   let score = 70;
   const reviews = await listReviewsForUser(uid);

@@ -1,4 +1,4 @@
-// Fraud Detection (docs: Fraud Detection Process — Escrow Bypass Scanner)
+// Fraud Detection (docs: Fraud Detection Process - Escrow Bypass Scanner)
 // Flags messages that try to move payment off-platform (PayPal, direct/bank
 // transfer, WhatsApp) or leak contact info (email, phone).
 const BANNED_PATTERNS: { label: string; re: RegExp }[] = [

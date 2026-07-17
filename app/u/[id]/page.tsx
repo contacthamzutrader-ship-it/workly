@@ -34,15 +34,15 @@ export default function PublicProfilePage() {
   const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : "\u2014";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <Link href="/tasks" className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink mb-6"><ArrowLeft className="h-4 w-4" /> Back</Link>
 
-      <div className="rounded-2xl border border-ink-100 bg-white p-8 shadow-card text-center">
-        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-brand-50 text-2xl font-extrabold text-brand-dark">{(data.name || "U")[0].toUpperCase()}</div>
-        <h1 className="mt-4 text-2xl font-extrabold text-ink">{data.name || "User"}</h1>
+      <div className="rounded-[32px] border border-ink-100 bg-white p-8 text-center shadow-elevated sm:p-12">
+        <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>
+        <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>
         <p className="mt-2 text-sm text-ink-500">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-dark">
-            {data.isPrivate ? "Private · Team" : data.role || "Member"}
+            {data.isPrivate ? "Private - Team" : data.role || "Member"}
           </span>
         </p>
         {data.bio && <p className="mt-4 max-w-md mx-auto text-ink-600 leading-relaxed">{data.bio}</p>}

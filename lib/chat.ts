@@ -11,6 +11,7 @@ import {
   onSnapshot,
   setDoc,
   limit,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { scanMessage } from "./fraud";
@@ -129,7 +130,7 @@ export function subscribeMessages(
 
 export async function listConversations(userId: string): Promise<Conversation[]> {
   const database = needDb();
-  const snap = await getDocs(query(collection(database, "conversations"), limit(200)));
+  const snap = await getDocs(query(collection(database, "conversations"), where("participants", "array-contains", userId), limit(200)));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Conversation)
     .filter((c) => c.participants.includes(userId))

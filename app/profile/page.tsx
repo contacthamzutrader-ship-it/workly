@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Star, Shield, Save, Key, CheckCircle2, Percent } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
@@ -74,35 +75,43 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-extrabold text-ink">My Profile</h1>
-      <p className="mt-1 text-ink-500">Manage your public appearance</p>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <div className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>
+            <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Workly profile"}</h1><BadgeCheck className="h-5 w-5 text-brand-light" /></div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
+          </div>
+          <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
+        </div>
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-50 text-yellow-500"><Star className="h-5 w-5" /></div>
             <div><p className="text-2xl font-extrabold text-ink">{avg}</p><p className="text-xs text-ink-500">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p></div></div>
         </div>
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Shield className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "—"}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "-"}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
         </div>
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-green-50 text-green-600"><Percent className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "—"}</p><p className="text-xs text-ink-500">Completion Rate</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "-"}</p><p className="text-xs text-ink-500">Completion Rate</p></div></div>
         </div>
-        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><CheckCircle2 className="h-5 w-5" /></div>
             <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-xs text-ink-500">Tasks Done</p></div></div>
         </div>
       </div>
 
-      <form onSubmit={save} className="mt-6 space-y-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+      <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
+        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
         <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={isTasker} onChange={(e) => setIsTasker(e.target.checked)} className="h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand" /> I want to <span className="font-semibold">do tasks</span> (bidding)</label>
         {isTasker && <div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. Cleaning, Gardening, Delivery" /></div>}
-        {isAdmin && <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand" /> <span className="font-semibold">Private</span> profile (team only)</label>}
+        {isAdmin && <label className="flex items-start gap-3 rounded-2xl bg-ink p-4 text-sm text-white"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand" /><span><span className="block font-extrabold">Internal private provider</span><span className="mt-1 block text-xs leading-5 text-white/50">Hidden from public discovery and available for managed private assignments.</span></span></label>}
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}
         <Button type="submit" className="flex items-center gap-2 rounded-xl"><Save className="h-4 w-4" /> Save profile</Button>
@@ -117,7 +126,7 @@ export default function ProfilePage() {
       </form>
 
       {reviews.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+        <div className="mt-6 rounded-3xl border border-ink-100 bg-white p-6 shadow-card">
           <h2 className="text-lg font-bold text-ink">Reviews</h2>
           <div className="mt-4 space-y-3">{reviews.map(r => (
             <div key={r.id} className="rounded-xl border border-ink-100 p-4">

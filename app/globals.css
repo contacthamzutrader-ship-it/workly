@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --brand: #16a34a;
-  --ink: #0a0a0a;
+  --brand: #0f9f6e;
+  --ink: #10261f;
+  --canvas: #f6f8f7;
 }
 
 html,
@@ -15,16 +16,58 @@ body {
 }
 
 body {
-  @apply bg-gray-50 text-ink antialiased;
+  @apply bg-canvas text-ink antialiased;
+  font-feature-settings: "ss01" 1, "cv02" 1, "cv03" 1;
 }
 
 * {
   box-sizing: border-box;
 }
 
+::selection {
+  background: #a7f3d0;
+  color: #10261f;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(15 159 110 / 0.22);
+  outline-offset: 2px;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .page-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .surface {
+    @apply rounded-3xl border border-ink-100 bg-white shadow-card;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em] text-brand-dark;
+  }
+  .soft-grid {
+    background-image:
+      linear-gradient(rgb(15 159 110 / 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(15 159 110 / 0.055) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+  .noise {
+    background-image: radial-gradient(rgb(255 255 255 / 0.15) 0.7px, transparent 0.7px);
+    background-size: 7px 7px;
   }
   .animate-fade-up {
     animation: fadeUp 0.6s ease-out both;
@@ -54,4 +97,15 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

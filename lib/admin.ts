@@ -8,6 +8,7 @@ import {
   updateDoc,
   query,
   limit,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Role } from "./auth-context";
@@ -119,4 +120,21 @@ export async function getAutoApprove(): Promise<boolean> {
 export async function setAutoApprove(value: boolean): Promise<void> {
   if (!db) return;
   await setDoc(doc(db, "settings", "platform"), { autoApprove: value }, { merge: true });
+}
+
+export async function findUserByEmail(email: string): Promise<{ uid: string; name: string; email: string } | null> {
+  if (!db) return null;
+  const snap = await getDocs(query(collection(db, "users"), where("email", "==", email.toLowerCase()), limit(1)));
+  if (snap.empty) return null;
+  const doc = snap.docs[0];
+  const data = doc.data();
+  return { uid: doc.id, name: data.name || "", email: data.email || email };
+}
+
+export async function setUserPrivateStatus(uid: string, isPrivate: boolean): Promise<void> {
+  if (!db) return;
+  await updateDoc(
+    doc(db, "users", uid),
+    isPrivate ? { isPrivate: true, isTasker: true } : { isPrivate: false }
+  );
 }

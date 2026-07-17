@@ -43,7 +43,7 @@ export async function notify(input: {
 
 export async function listNotifications(userId: string): Promise<AppNotification[]> {
   const database = needDb();
-  const snap = await getDocs(query(collection(database, "notifications"), limit(200)));
+  const snap = await getDocs(query(collection(database, "notifications"), where("userId", "==", userId), limit(200)));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as AppNotification)
     .filter((n) => n.userId === userId)

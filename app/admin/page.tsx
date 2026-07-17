@@ -1,348 +1,487 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ShieldCheck, Clock, Lock, CheckCircle2, ArrowRight, Eye, Users, Briefcase, TrendingUp, DollarSign, BarChart3, PieChart, UserPlus, Trash2, KeyRound, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { listPendingTasks, listPrivateTasks, approveTask, PLATFORM_FEE } from "@/lib/tasks";
+import {
+  Activity,
+  ArrowRight,
+  BadgeCheck,
+  BarChart3,
+  BriefcaseBusiness,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  CircleDollarSign,
+  Clock3,
+  Eye,
+  KeyRound,
+  LayoutDashboard,
+  Lock,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  TrendingUp,
+  UserPlus,
+  Users,
+  Zap,
+} from "lucide-react";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth-context";
 import {
-  listAdmins,
+  approvePrivateTask,
+  approveTask,
+  listPendingTasks,
+  listPrivateTasks,
+  PLATFORM_FEE,
+  type Task,
+} from "@/lib/tasks";
+import {
   addAdmin,
-  removeAdmin,
-  updateAdminPermissions,
-  getAutoApprove,
-  setAutoApprove,
-  hasPermission,
   ALL_PERMISSIONS,
-  PERMISSION_LABELS,
+  findUserByEmail,
+  getAutoApprove,
+  hasPermission,
+  listAdmins,
   ownerSession,
+  PERMISSION_LABELS,
+  removeAdmin,
+  setAutoApprove,
+  setUserPrivateStatus,
+  updateAdminPermissions,
   type Permission,
 } from "@/lib/admin";
+import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+
+type Tab = "overview" | "approvals" | "users" | "admins" | "settings";
+const COMPANY_ADMIN_DEFAULTS: Permission[] = ["approveTasks", "manageUsers", "manageContent", "viewAnalytics"];
 
 export default function AdminPage() {
   const { user, role, loading, adminSession } = useAuth();
   const router = useRouter();
-  const [pending, setPending] = useState<any[]>([]);
-  const [privateTasks, setPrivateTasks] = useState<any[]>([]);
+  const session = adminSession
+    ?? (role === "super_admin" ? ownerSession() : null)
+    ?? (role === "company_admin" ? { role: "company_admin" as const, isOwner: false, permissions: COMPANY_ADMIN_DEFAULTS } : null);
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [pending, setPending] = useState<Task[]>([]);
+  const [privateTasks, setPrivateTasks] = useState<Task[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
   const [busy, setBusy] = useState(true);
+  const [actionBusy, setActionBusy] = useState("");
+  const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
+  const [error, setError] = useState("");
 
-  // Permissions
-  const session = adminSession ?? (role === "super_admin" || role === "company_admin" ? ownerSession() : null);
-  const can = (p: Permission) => hasPermission(session, p);
+  const can = (permission: Permission) => hasPermission(session, permission);
+  const sessionKey = `${user?.uid || ""}:${role || ""}:${adminSession?.permissions?.join(",") || "owner"}`;
 
-  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/admin"); if (!loading && user && !session) router.replace("/dashboard"); }, [loading, user, session, router]);
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login?redirect=/admin");
+    if (!loading && user && !session) router.replace("/dashboard");
+  }, [loading, user, session, router]);
 
   const load = async () => {
+    if (!session) return;
     setBusy(true);
     try {
-      if (can("approveTasks")) {
-        setPending(await listPendingTasks());
-        setPrivateTasks(await listPrivateTasks());
-      }
-      if (can("viewAnalytics")) {
-        if (db) {
-          const [userSnap, taskSnap] = await Promise.all([
-            getDocs(query(collection(db, "users"), limit(500))),
-            getDocs(query(collection(db, "tasks"), limit(500))),
-          ]);
-          setAllUsers(userSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-          setAllTasks(taskSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        }
-      }
-      if (can("manageUsers")) {
-        if (db) {
-          const snap = await getDocs(query(collection(db, "users"), limit(500)));
-          setAllUsers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        }
-      }
-      if (can("manageAdmins")) setAdmins(await listAdmins());
-    } catch {} finally { setBusy(false); }
+      const needsUsers = can("approveTasks") || can("manageUsers") || can("viewAnalytics");
+      const needsTasks = can("viewAnalytics");
+      const [pendingData, privateData, usersSnap, taskSnap, adminData] = await Promise.all([
+        can("approveTasks") ? listPendingTasks() : Promise.resolve([]),
+        can("approveTasks") || can("manageContent") ? listPrivateTasks() : Promise.resolve([]),
+        needsUsers && db ? getDocs(query(collection(db, "users"), limit(500))) : Promise.resolve(null),
+        needsTasks && db ? getDocs(query(collection(db, "tasks"), limit(500))) : Promise.resolve(null),
+        can("manageAdmins") ? listAdmins() : Promise.resolve([]),
+      ]);
+      setPending(pendingData);
+      setPrivateTasks(privateData);
+      if (usersSnap) setAllUsers(usersSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (taskSnap) setAllTasks(taskSnap.docs.map((item) => ({ id: item.id, ...item.data() } as Task)));
+      setAdmins(adminData);
+    } catch (err: any) {
+      setError(err?.message || "Some admin data could not be loaded.");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  useEffect(() => { if (session) load(); }, [session]);
+  useEffect(() => {
+    if (session) load();
+  }, [sessionKey]);
+
+  useEffect(() => {
+    if (!session || can("viewAnalytics")) return;
+    if (can("approveTasks")) setActiveTab("approvals");
+    else if (can("manageUsers")) setActiveTab("users");
+    else if (can("manageAdmins")) setActiveTab("admins");
+    else if (can("manageContent")) setActiveTab("settings");
+  }, [sessionKey]);
+
+  const privateProviders = allUsers.filter((member) => member.isPrivate === true && member.isTasker !== false);
+  const completedTasks = allTasks.filter((task) => task.status === "completed").length;
+  const totalRevenue = allTasks
+    .filter((task) => task.heldAmount && task.paymentReleased)
+    .reduce((sum, task) => sum + Math.round((task.heldAmount || 0) * PLATFORM_FEE), 0);
+  const completionRate = allTasks.length ? Math.round((completedTasks / allTasks.length) * 100) : 0;
+  const categoryBreakdown = useMemo(() => allTasks.reduce((acc: Record<string, number>, task) => {
+    acc[task.category] = (acc[task.category] || 0) + 1;
+    return acc;
+  }, {}), [allTasks]);
+  const maxCategory = Math.max(1, ...Object.values(categoryBreakdown));
 
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
   if (!session) return null;
 
-  const approve = async (taskId: string, visibility: "public" | "private") => { await approveTask(taskId, visibility); load(); };
+  const approvePublic = async (taskId: string) => {
+    setActionBusy(taskId);
+    setError("");
+    try {
+      await approveTask(taskId, "public", user.email || "Workly admin");
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not approve this task.");
+    } finally {
+      setActionBusy("");
+    }
+  };
 
-  const totalUsers = allUsers.length;
-  const totalTasks = allTasks.length;
-  const completedTasks = allTasks.filter((t) => t.status === "completed").length;
-  const paidTasks = allTasks.filter((t) => t.paymentReleased).length;
-  const totalRevenue = allTasks
-    .filter((t) => t.heldAmount && t.paymentReleased)
-    .reduce((sum, t) => sum + Math.round(t.heldAmount * PLATFORM_FEE), 0);
-  const categoryBreakdown = allTasks.reduce((acc: Record<string, number>, t) => {
-    acc[t.category] = (acc[t.category] || 0) + 1;
-    return acc;
-  }, {});
+  const approvePrivate = async (task: Task) => {
+    const providerId = privatePick[task.id!];
+    const provider = privateProviders.find((item) => item.id === providerId);
+    if (!provider) {
+      setError("Select an internal private provider before approving.");
+      return;
+    }
+    setActionBusy(task.id!);
+    setError("");
+    try {
+      await approvePrivateTask({
+        taskId: task.id!,
+        providerId: provider.id,
+        providerName: provider.name || provider.email || "Workly managed provider",
+        approvedBy: user.email || "Workly admin",
+      });
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not create the managed assignment.");
+    } finally {
+      setActionBusy("");
+    }
+  };
+
+  const togglePrivateProvider = async (member: any) => {
+    setActionBusy(member.id);
+    setError("");
+    try {
+      await setUserPrivateStatus(member.id, !member.isPrivate);
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not update this provider.");
+    } finally {
+      setActionBusy("");
+    }
+  };
+
+  const tabs: { id: Tab; label: string; icon: any; show: boolean; count?: number }[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard, show: can("viewAnalytics") },
+    { id: "approvals", label: "Approval centre", icon: ShieldCheck, show: can("approveTasks"), count: pending.length },
+    { id: "users", label: "People", icon: Users, show: can("manageUsers") || can("approveTasks") },
+    { id: "admins", label: "Admin team", icon: KeyRound, show: can("manageAdmins") },
+    { id: "settings", label: "Controls", icon: Settings, show: can("manageContent") },
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white"><ShieldCheck className="h-6 w-6" /></div>
-          <div>
-            <h1 className="text-2xl font-extrabold text-ink">Admin Panel</h1>
-            <p className="text-sm text-ink-500">
-              {session?.isOwner ? "Owner — full access" : "Role-based access"}
-            </p>
+    <div className="min-h-screen bg-canvas py-8 sm:py-10">
+      <div className="page-shell">
+        <div className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><ShieldCheck className="h-7 w-7" /></span>
+              <div>
+                <div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">Workly Control</h1><span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-brand-300">{session.isOwner ? "Owner" : "Admin"}</span></div>
+                <p className="mt-1 text-sm font-medium text-white/50">Approvals, people, revenue and platform health.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-white/60 sm:flex"><span className="h-2 w-2 rounded-full bg-brand-light" /> Systems operational</span>
+              <Link href="/dashboard" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">Exit admin <ArrowRight className="h-4 w-4" /></Link>
+            </div>
           </div>
         </div>
-        <Link href="/dashboard" className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink-50">
-          <ArrowRight className="h-4 w-4 rotate-180" /> Dashboard
-        </Link>
+
+        <div className="mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-ink-100 bg-white p-2 shadow-card">
+          {tabs.filter((tab) => tab.show).map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-xs font-extrabold transition ${activeTab === tab.id ? "bg-ink text-white shadow-sm" : "text-ink-500 hover:bg-ink-50 hover:text-ink"}`}>
+              <tab.icon className="h-4 w-4" /> {tab.label}
+              {typeof tab.count === "number" && tab.count > 0 && <span className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] ${activeTab === tab.id ? "bg-brand text-white" : "bg-amber-100 text-amber-700"}`}>{tab.count}</span>}
+            </button>
+          ))}
+        </div>
+
+        {error && <div role="alert" className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
+
+        {busy ? (
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="h-28 animate-pulse rounded-3xl bg-white" />)}</div>
+        ) : (
+          <>
+            {activeTab === "overview" && can("viewAnalytics") && (
+              <div className="mt-6 space-y-6">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  {[
+                    { icon: Users, label: "People", value: allUsers.length, note: "registered accounts", tone: "bg-blue-50 text-blue-600" },
+                    { icon: BriefcaseBusiness, label: "All tasks", value: allTasks.length, note: `${pending.length} awaiting review`, tone: "bg-purple-50 text-purple-600" },
+                    { icon: CheckCircle2, label: "Completion", value: `${completionRate}%`, note: `${completedTasks} tasks delivered`, tone: "bg-brand-50 text-brand" },
+                    { icon: CircleDollarSign, label: "Platform revenue", value: formatPKR(totalRevenue), note: `${PLATFORM_FEE * 100}% fee collected`, tone: "bg-amber-50 text-amber-700" },
+                  ].map((stat) => (
+                    <div key={stat.label} className="surface p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-3"><span className={`grid h-11 w-11 place-items-center rounded-xl ${stat.tone}`}><stat.icon className="h-5 w-5" /></span><TrendingUp className="h-4 w-4 text-ink-200" /></div>
+                      <p className="mt-5 truncate text-2xl font-black tracking-[-0.035em] text-ink">{stat.value}</p>
+                      <p className="mt-1 text-xs font-black text-ink-600">{stat.label}</p>
+                      <p className="mt-1 text-[11px] font-semibold text-ink-400">{stat.note}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+                  <section className="surface p-6">
+                    <div className="flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Demand intelligence</p><h2 className="mt-1 text-xl font-black text-ink">Tasks by category</h2></div><BarChart3 className="h-5 w-5 text-brand" /></div>
+                    {Object.keys(categoryBreakdown).length ? (
+                      <div className="mt-7 space-y-4">
+                        {Object.entries(categoryBreakdown).sort((a,b) => b[1] - a[1]).slice(0, 8).map(([category, count]) => (
+                          <div key={category}>
+                            <div className="mb-2 flex items-center justify-between text-xs font-bold"><span className="text-ink-600">{category}</span><span className="text-ink-400">{count}</span></div>
+                            <div className="h-2 overflow-hidden rounded-full bg-ink-50"><div className="h-full rounded-full bg-brand" style={{ width: `${(count / maxCategory) * 100}%` }} /></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : <p className="mt-8 text-sm font-medium text-ink-400">Category trends will appear as tasks are posted.</p>}
+                  </section>
+
+                  <aside className="space-y-4">
+                    <button onClick={() => setActiveTab("approvals")} className="w-full rounded-3xl bg-amber-50 p-6 text-left transition hover:bg-amber-100">
+                      <div className="flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-amber-700"><Clock3 className="h-5 w-5" /></span><ArrowRight className="h-4 w-4 text-amber-700" /></div>
+                      <p className="mt-5 text-3xl font-black text-ink">{pending.length}</p><p className="mt-1 text-sm font-black text-ink">Tasks need a decision</p><p className="mt-1 text-xs leading-5 text-ink-500">Choose public marketplace or managed private fulfilment.</p>
+                    </button>
+                    <div className="rounded-3xl bg-brand p-6 text-white shadow-glow">
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-white/70"><Activity className="h-4 w-4" /> Private network</div>
+                      <p className="mt-4 text-3xl font-black">{privateProviders.length}</p><p className="mt-1 text-sm font-black">Managed providers ready</p><button onClick={() => setActiveTab("users")} className="mt-4 flex items-center gap-1.5 text-xs font-extrabold text-white/80">Manage network <ArrowRight className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "approvals" && can("approveTasks") && (
+              <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+                <section className="surface overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-ink-100 p-6">
+                    <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-600">Decision queue</p><h2 className="mt-1 text-xl font-black text-ink">Pending approval</h2></div>
+                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">{pending.length} waiting</span>
+                  </div>
+                  {pending.length === 0 ? (
+                    <div className="px-6 py-20 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand"><CheckCircle2 className="h-6 w-6" /></span><h3 className="mt-4 text-lg font-black text-ink">Queue is clear</h3><p className="mt-1 text-sm text-ink-500">Every submitted task has a route.</p></div>
+                  ) : (
+                    <div className="divide-y divide-ink-100">
+                      {pending.map((task) => {
+                        const selectedProvider = privatePick[task.id!];
+                        return (
+                          <div key={task.id} className="p-5 sm:p-6">
+                            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ink-500">{task.category}</span><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand-dark">{formatPKR(task.budget)}</span>{task.moderation === "review" && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">AI flagged review</span>}</div>
+                                <h3 className="mt-3 text-lg font-black text-ink">{task.title}</h3>
+                                <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink-500">{task.description}</p>
+                                <p className="mt-3 text-xs font-bold text-ink-400">{task.location} - posted by {task.posterName}</p>
+                              </div>
+                              <div className="flex shrink-0 gap-2">
+                                <Button onClick={() => approvePublic(task.id!)} disabled={actionBusy === task.id} className="gap-2 shadow-none"><Eye className="h-4 w-4" /> Publish</Button>
+                              </div>
+                            </div>
+
+                            <div className="mt-5 rounded-2xl border border-ink-100 bg-ink-50/60 p-4">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                <div className="flex flex-1 items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-ink text-white"><Lock className="h-4 w-4" /></span><div><p className="text-xs font-black text-ink">Managed private route</p><p className="text-[11px] font-medium text-ink-400">Creates exactly one selected internal offer</p></div></div>
+                                <select value={selectedProvider || ""} onChange={(e) => setPrivatePick(current => ({ ...current, [task.id!]: e.target.value }))} className="min-h-11 min-w-[210px] rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink focus:border-brand focus:outline-none">
+                                  <option value="">{privateProviders.length ? "Choose private provider" : "No private providers ready"}</option>
+                                  {privateProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name || provider.email}</option>)}
+                                </select>
+                                <Button variant="secondary" onClick={() => approvePrivate(task)} disabled={!selectedProvider || actionBusy === task.id} className="gap-2"><Lock className="h-4 w-4" /> Assign privately</Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <aside className="space-y-4 lg:sticky lg:top-24">
+                  <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Sparkles className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
+                  <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
+                </aside>
+              </div>
+            )}
+
+            {activeTab === "users" && (can("manageUsers") || can("approveTasks")) && (
+              <section className="surface mt-6 overflow-hidden">
+                <div className="flex flex-col gap-4 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">People & providers</p><h2 className="mt-1 text-xl font-black text-ink">Platform members</h2></div>
+                  <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-xs font-extrabold text-brand-dark"><Lock className="h-3.5 w-3.5" /> {privateProviders.length} private providers</div>
+                </div>
+                <div className="divide-y divide-ink-100">
+                  {allUsers.map((member) => (
+                    <div key={member.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                      <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-ink text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-ink-50 px-3 py-1.5 text-[10px] font-black uppercase text-ink-500">{member.role || "customer"}</span>
+                        <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {activeTab === "admins" && can("manageAdmins") && (
+              <ManageAdmins admins={admins} ownerEmail={user.email || ""} onChanged={load} />
+            )}
+
+            {activeTab === "settings" && can("manageContent") && (
+              <AutoApproveControl onChanged={load} />
+            )}
+          </>
+        )}
       </div>
-
-      {/* Platform Overview Stats */}
-      {can("viewAnalytics") && (
-        <>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { icon: Users, label: "Users", value: totalUsers, color: "bg-blue-50 text-blue-600" },
-              { icon: Briefcase, label: "Total Tasks", value: totalTasks, color: "bg-purple-50 text-purple-600" },
-              { icon: CheckCircle2, label: "Completed", value: completedTasks, color: "bg-green-50 text-green-600" },
-              { icon: DollarSign, label: "Revenue", value: `$${totalRevenue}`, color: "bg-brand-50 text-brand-dark" },
-            ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
-                <div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>
-                  <div><p className="text-xl font-extrabold text-ink">{s.value}</p><p className="text-xs text-ink-500">{s.label}</p></div></div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { icon: Clock, label: "Pending Approvals", value: pending.length, color: "bg-amber-50 text-amber-600" },
-              { icon: Lock, label: "Private Tasks", value: privateTasks.length, color: "bg-purple-50 text-purple-600" },
-              { icon: DollarSign, label: "Platform Fee", value: `${PLATFORM_FEE * 100}%`, color: "bg-brand-50 text-brand-dark" },
-              { icon: BarChart3, label: "Paid Tasks", value: paidTasks, color: "bg-green-50 text-green-600" },
-            ].map((s) => (
-              <div key={s.label} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
-                <div className="flex items-center gap-3"><div className={`grid h-10 w-10 place-items-center rounded-xl ${s.color}`}><s.icon className="h-5 w-5" /></div>
-                  <div><p className="text-xl font-extrabold text-ink">{s.value}</p><p className="text-xs text-ink-500">{s.label}</p></div></div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {busy ? (
-        <div className="flex min-h-[30vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>
-      ) : (
-        <div className="mt-6 space-y-6">
-          {/* Auto-approve global setting */}
-          {can("manageContent") && <AutoApproveToggle onChanged={load} />}
-
-          {/* Category Breakdown */}
-          {can("viewAnalytics") && Object.keys(categoryBreakdown).length > 0 && (
-            <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><PieChart className="h-5 w-5" /></div>
-                <div><h2 className="text-lg font-bold text-ink">Tasks by Category</h2><p className="text-sm text-ink-500">How tasks are distributed</p></div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {Object.entries(categoryBreakdown).sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
-                  <div key={cat} className="rounded-xl border border-ink-100 bg-ink-50/50 p-3">
-                    <p className="text-lg font-extrabold text-ink">{count}</p>
-                    <p className="text-xs text-ink-500 truncate">{cat}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Pending */}
-          {can("approveTasks") && (
-            <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-600"><Clock className="h-5 w-5" /></div>
-                <div><h2 className="text-lg font-bold text-ink">Pending Approval</h2><p className="text-sm text-ink-500">Review tasks before they go live</p></div>
-              </div>
-              <div className="space-y-3">
-                {pending.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-ink-200 py-10 text-center">
-                    <CheckCircle2 className="mx-auto h-8 w-8 text-green-400" /><p className="mt-2 text-sm text-ink-500">All caught up!</p>
-                  </div>
-                ) : pending.map((t) => (
-                  <div key={t.id} className="flex flex-col gap-4 rounded-xl border border-ink-100 p-5 transition hover:border-brand/30 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap"><h3 className="font-bold text-ink">{t.title}</h3><span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">{t.category}</span></div>
-                      <p className="mt-1 line-clamp-2 text-sm text-ink-500">{t.description}</p>
-                      <div className="mt-2 flex items-center gap-4 text-sm"><span className="font-bold text-brand">${t.budget}</span><span className="text-ink-400">{t.location}</span><span className="text-ink-400">by {t.posterName}</span></div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={() => approve(t.id!, "public")} className="flex items-center gap-1.5 rounded-xl"><Eye className="h-4 w-4" /> Approve Public</Button>
-                      <button onClick={() => approve(t.id!, "private")} className="flex items-center gap-1.5 rounded-xl border border-ink-200 bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black"><Lock className="h-4 w-4" /> Approve Private</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Private Tasks */}
-          {can("manageContent") && (
-            <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-50 text-purple-600"><Lock className="h-5 w-5" /></div>
-                <div><h2 className="text-lg font-bold text-ink">Private Tasks</h2><p className="text-sm text-ink-500">Shareable by link only. Make public anytime.</p></div>
-              </div>
-              <div className="space-y-3">
-                {privateTasks.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-ink-200 py-10 text-center"><Lock className="mx-auto h-8 w-8 text-ink-300" /><p className="mt-2 text-sm text-ink-500">No private tasks</p></div>
-                ) : privateTasks.map((t) => (
-                  <Link key={t.id} href={`/tasks/${t.id}`} className="flex items-center justify-between rounded-xl border border-ink-100 p-5 transition hover:border-brand/30 hover:shadow-sm">
-                    <div className="min-w-0 flex-1"><h3 className="font-bold text-ink">{t.title}</h3><div className="mt-1 flex items-center gap-4 text-sm text-ink-500"><span className="font-bold text-brand">${t.budget}</span><span>{t.bidsCount} bids</span></div></div>
-                    <span className="ml-3 shrink-0 rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{t.status}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Manage Admins */}
-          {can("manageAdmins") && (
-            <ManageAdmins admins={admins} ownerEmail={user?.email || ""} onChanged={load} isOwner={!!session?.isOwner} />
-          )}
-
-          {/* All Users */}
-          {can("manageUsers") && (
-            <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><Users className="h-5 w-5" /></div>
-                <div><h2 className="text-lg font-bold text-ink">All Users ({allUsers.length})</h2><p className="text-sm text-ink-500">Platform members & roles</p></div>
-              </div>
-              <div className="space-y-2">
-                {allUsers.length === 0 ? <p className="text-sm text-ink-500 py-4">No users found.</p> : allUsers.map((u) => (
-                  <div key={u.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-dark">{(u.name || u.email || "U")[0].toUpperCase()}</div>
-                      <div><p className="text-sm font-semibold text-ink">{u.name || u.email || "No name"}</p><p className="text-xs text-ink-400">{u.email}</p></div>
-                    </div>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${u.role === "company_admin" || u.role === "super_admin" ? "bg-brand-50 text-brand-dark" : u.role === "tasker" ? "bg-blue-50 text-blue-700" : "bg-ink-50 text-ink-600"}`}>{u.role || "customer"}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
-function AutoApproveToggle({ onChanged }: { onChanged: () => void }) {
-  const [val, setVal] = useState(false);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { getAutoApprove().then(setVal); }, []);
+function AutoApproveControl({ onChanged }: { onChanged: () => void }) {
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(true);
+
+  useEffect(() => {
+    getAutoApprove().then(setEnabled).finally(() => setBusy(false));
+  }, []);
+
   const toggle = async () => {
     setBusy(true);
-    const next = !val;
-    setVal(next);
-    await setAutoApprove(next);
-    setBusy(false);
-    onChanged();
+    const next = !enabled;
+    try {
+      await setAutoApprove(next);
+      setEnabled(next);
+      onChanged();
+    } finally {
+      setBusy(false);
+    }
   };
+
   return (
-    <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Settings className="h-5 w-5" /></div>
-          <div>
-            <h2 className="text-lg font-bold text-ink">Auto-approve new tasks</h2>
-            <p className="text-sm text-ink-500">When ON, tasks go public instantly. When OFF, they wait in the approval queue.</p>
-          </div>
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="surface p-6 sm:p-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes Workly&apos;s AI quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
+          <button type="button" onClick={toggle} disabled={busy} aria-pressed={enabled} className={`relative h-8 w-14 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-ink-200"}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${enabled ? "left-7" : "left-1"}`} /></button>
         </div>
-        <button onClick={toggle} disabled={busy} className={`relative h-7 w-12 shrink-0 rounded-full transition ${val ? "bg-brand" : "bg-ink-200"}`}>
-          <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${val ? "left-6" : "left-1"}`} />
-        </button>
-      </div>
-    </section>
+        <div className="mt-7 grid gap-3 sm:grid-cols-3">
+          {[
+            [Sparkles, "AI category check", "Keeps discovery organised"],
+            [ShieldCheck, "Safety scan", "Flags risky content"],
+            [Clock3, "Human fallback", "Uncertain tasks wait"],
+          ].map(([Icon,title,body]: any) => <div key={title} className="rounded-2xl bg-ink-50 p-4"><Icon className="h-5 w-5 text-brand" /><p className="mt-3 text-xs font-black text-ink">{title}</p><p className="mt-1 text-[11px] font-medium text-ink-400">{body}</p></div>)}
+        </div>
+      </section>
+      <aside className={`rounded-3xl p-6 text-white ${enabled ? "bg-brand shadow-glow" : "bg-ink shadow-elevated"}`}>
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/60">Current mode</p><p className="mt-3 text-2xl font-black">{enabled ? "Smart automation" : "Manual control"}</p><p className="mt-2 text-sm leading-6 text-white/65">{enabled ? "Safe tasks can reach the marketplace without team delay." : "Every new task waits for an admin decision."}</p>
+      </aside>
+    </div>
   );
 }
 
-function ManageAdmins({ admins, ownerEmail, onChanged, isOwner }: { admins: any[]; ownerEmail: string; onChanged: () => void; isOwner: boolean }) {
+function ManageAdmins({ admins, ownerEmail, onChanged }: { admins: any[]; ownerEmail: string; onChanged: () => void }) {
   const [email, setEmail] = useState("");
-  const [uid, setUid] = useState("");
   const [name, setName] = useState("");
-  const [perms, setPerms] = useState<Permission[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const toggle = (p: Permission) => setPerms((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
+  const togglePermission = (permission: Permission) => {
+    setPermissions((current) => current.includes(permission) ? current.filter((item) => item !== permission) : [...current, permission]);
+  };
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const add = async (event: React.FormEvent) => {
+    event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      if (!uid.trim() || !email.trim()) { setError("UID and email are required"); setBusy(false); return; }
-      await addAdmin({ uid: uid.trim(), email: email.trim(), name: name.trim() || email.trim(), addedBy: ownerEmail, permissions: perms.length ? perms : [...ALL_PERMISSIONS] });
-      setUid(""); setEmail(""); setName(""); setPerms([]);
+      const found = await findUserByEmail(email.trim());
+      if (!found) throw new Error("No account exists with this email. Ask them to sign up first.");
+      await addAdmin({
+        uid: found.uid,
+        email: found.email,
+        name: name.trim() || found.name || found.email,
+        addedBy: ownerEmail,
+        permissions: permissions.length ? permissions : [...ALL_PERMISSIONS],
+      });
+      setEmail("");
+      setName("");
+      setPermissions([]);
       onChanged();
-    } catch (err: any) { setError(err?.message || "Could not add admin"); } finally { setBusy(false); }
+    } catch (err: any) {
+      setError(err?.message || "Could not add this admin.");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const changePerms = async (u: string, next: Permission[]) => { await updateAdminPermissions(u, next); onChanged(); };
-  const remove = async (u: string) => { if (!confirm("Remove this admin?")) return; await removeAdmin(u); onChanged(); };
+  const changePermissions = async (uid: string, next: Permission[]) => {
+    await updateAdminPermissions(uid, next);
+    onChanged();
+  };
+
+  const remove = async (uid: string) => {
+    if (!confirm("Remove this admin from Workly Control?")) return;
+    await removeAdmin(uid);
+    onChanged();
+  };
 
   return (
-    <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><UserPlus className="h-5 w-5" /></div>
-        <div><h2 className="text-lg font-bold text-ink">Manage Admins</h2><p className="text-sm text-ink-500">Add admins and control each one&apos;s permissions</p></div>
-      </div>
-
-      <form onSubmit={add} className="grid grid-cols-1 gap-3 rounded-xl border border-ink-100 bg-ink-50/50 p-4 sm:grid-cols-2">
-        <Input placeholder="Admin UID" value={uid} onChange={(e) => setUid(e.target.value)} required />
-        <Input placeholder="Admin email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <Input placeholder="Name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
-        <div className="flex flex-wrap gap-2 content-center">
-          {ALL_PERMISSIONS.map((p) => (
-            <button type="button" key={p} onClick={() => toggle(p)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${perms.includes(p) ? "bg-brand text-white" : "bg-white text-ink-500 border border-ink-200"}`}>
-              {PERMISSION_LABELS[p]}
-            </button>
-          ))}
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <form onSubmit={add} className="surface p-6 lg:sticky lg:top-24">
+        <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand"><UserPlus className="h-5 w-5" /></span><div><h2 className="font-black text-ink">Add an admin</h2><p className="text-xs font-medium text-ink-400">They must already have an account</p></div></div>
+        <div className="mt-6 space-y-3"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email address" required /><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name (optional)" /></div>
+        <p className="mt-5 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Access permissions</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {ALL_PERMISSIONS.map((permission) => <button type="button" key={permission} onClick={() => togglePermission(permission)} className={`rounded-full border px-3 py-1.5 text-[10px] font-extrabold transition ${permissions.includes(permission) ? "border-brand bg-brand text-white" : "border-ink-100 bg-white text-ink-500 hover:border-brand-200"}`}>{PERMISSION_LABELS[permission]}</button>)}
         </div>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
-        <Button type="submit" disabled={busy} className="sm:col-span-2 rounded-xl">{busy ? "Adding..." : "Add Admin"}</Button>
+        {error && <p className="mt-4 text-xs font-bold text-red-600">{error}</p>}
+        <Button type="submit" disabled={busy} className="mt-5 w-full gap-2">{busy ? "Adding..." : "Add to admin team"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
       </form>
 
-      <div className="mt-4 space-y-3">
-        {admins.length === 0 ? <p className="text-sm text-ink-500">No additional admins yet.</p> : admins.map((a) => (
-          <div key={a.uid} className="rounded-xl border border-ink-100 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-brand-50 text-sm font-bold text-brand-dark"><ShieldCheck className="h-4 w-4" /></div>
-                <div><p className="text-sm font-semibold text-ink">{a.name || a.email}</p><p className="text-xs text-ink-400">{a.email}</p></div>
+      <section className="surface overflow-hidden">
+        <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Role-based access</p><h2 className="mt-1 text-xl font-black text-ink">Admin team</h2></div>
+        {admins.length === 0 ? <div className="p-10 text-center text-sm font-medium text-ink-400">No additional admins yet.</div> : <div className="divide-y divide-ink-100">
+          {admins.map((admin) => (
+            <div key={admin.uid} className="p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white"><ShieldCheck className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-sm font-black text-ink">{admin.name || admin.email}</p><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{admin.email}</p></div></div>
+                <button onClick={() => remove(admin.uid)} className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 text-red-500 transition hover:bg-red-50" aria-label={`Remove ${admin.name || admin.email}`}><Trash2 className="h-4 w-4" /></button>
               </div>
-              <button onClick={() => remove(a.uid)} className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {ALL_PERMISSIONS.map((permission) => {
+                  const isOn = admin.permissions?.includes(permission);
+                  return <button type="button" key={permission} onClick={() => changePermissions(admin.uid, isOn ? admin.permissions.filter((item: Permission) => item !== permission) : [...(admin.permissions || []), permission])} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-extrabold transition ${isOn ? "border-brand-200 bg-brand-50 text-brand-dark" : "border-ink-100 bg-white text-ink-400"}`}>{isOn && <Check className="h-3 w-3" />}{PERMISSION_LABELS[permission]}</button>;
+                })}
+              </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {ALL_PERMISSIONS.map((p) => {
-                const on = a.permissions?.includes(p);
-                return (
-                  <button type="button" key={p} onClick={() => changePerms(a.uid, on ? a.permissions.filter((x: Permission) => x !== p) : [...(a.permissions || []), p])}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${on ? "bg-brand text-white" : "bg-ink-50 text-ink-400 border border-ink-200"}`}>
-                    {PERMISSION_LABELS[p]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
+          ))}
+        </div>}
+      </section>
+    </div>
   );
 }

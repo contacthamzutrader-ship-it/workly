@@ -8,6 +8,13 @@ export async function POST(req: Request) {
   try {
     const { title, description } = await req.json();
     const text = `${title}. ${description}`.trim();
+    const riskyPatterns = [
+      /\b(whatsapp|telegram|direct transfer|crypto payment|password|otp|bank login)\b/i,
+      /\b\d{10,13}\b/,
+      /(.)\1{7,}/,
+    ];
+    const needsReview = text.length < 25 || riskyPatterns.some((pattern) => pattern.test(text));
+    const moderation = needsReview ? "review" : "approved";
 
     if (process.env.HUGGINGFACE_API_KEY && text) {
       try {
@@ -40,6 +47,8 @@ export async function POST(req: Request) {
             category,
             tags,
             improvedDescription: description?.trim() || `I need help with: ${title}.`,
+            moderation,
+            confidence: needsReview ? 0.42 : 0.91,
           });
         }
       } catch {
@@ -76,8 +85,16 @@ export async function POST(req: Request) {
       category,
       tags,
       improvedDescription: description?.trim() || `I need help with: ${title}.`,
+      moderation,
+      confidence: needsReview ? 0.42 : 0.82,
     });
   } catch {
-    return NextResponse.json({ category: "Other", tags: [], improvedDescription: "" });
+    return NextResponse.json({
+      category: "Other",
+      tags: [],
+      improvedDescription: "",
+      moderation: "review",
+      confidence: 0,
+    });
   }
 }

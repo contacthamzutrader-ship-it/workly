@@ -6,6 +6,7 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+
     function isAdmin() {
       return isSignedIn() && (
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -14,108 +15,141 @@ service cloud.firestore {
         || request.auth.token.email == 'contact.hamzutrader@gmail.com'
       );
     }
+
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
     }
-    // True when the only change is bidsCount incrementing by exactly 1.
+
+    function canManageAdmins() {
+      return isSignedIn() && (
+        request.auth.token.email == 'contact.hamzutrader@gmail.com'
+        || (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin'
+        )
+        || (
+          exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+          && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.permissions.hasAny(['manageAdmins'])
+        )
+      );
+    }
+
     function bidIncrementOnly() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bidsCount'])
         && request.resource.data.bidsCount == resource.data.bidsCount + 1;
     }
 
-    // -------- USERS --------
+    function assignedTaskerProgressOnly() {
+      return isSignedIn()
+        && resource.data.assignedTo == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'paymentRequested'])
+        && (
+          request.resource.data.status in ['in_progress', 'completed']
+          || (resource.data.status == 'completed' && request.resource.data.paymentRequested == true)
+        );
+    }
+
+    // Public profiles are discoverable. Internal provider profiles stay hidden.
     match /users/{uid} {
-      // Public profiles readable by anyone; private profiles only by admins.
-      // First check if doc exists before accessing resource.data
-      allow read: if !resource || !resource.data || resource.data.isPrivate != true || isAdmin();
+      allow read: if resource.data.isPrivate != true || isOwner(uid) || isAdmin();
       allow create: if isOwner(uid);
-      // Only the user can edit their own doc, except admins can edit any.
       allow update: if isOwner(uid) || isAdmin();
       allow delete: if isAdmin();
     }
 
-    // -------- TASKS --------
+    // Approved public tasks are browseable. Pending and private work is limited
+    // to the poster, assigned managed provider, and admins.
     match /tasks/{taskId} {
-      // Public (approved) tasks readable by all; owner can always read their own;
-      // private tasks are readable by any signed-in user (shared via link) but
-      // are never listed in public browse — only admins/owner see them in lists.
-      allow read: if isSignedIn() && (
-        resource.data.visibility == 'public'
-          ? (resource.data.status != 'pending' || isOwner(resource.data.posterId))
-          : (isAdmin() || isOwner(resource.data.posterId) || true)
+      allow read: if (
+        (resource.data.visibility == 'public' && resource.data.status != 'pending')
+        || (isSignedIn() && (
+          isOwner(resource.data.posterId)
+          || resource.data.assignedTo == request.auth.uid
+          || isAdmin()
+        ))
       );
-      // Creator must be the signed-in user.
       allow create: if isSignedIn() && request.resource.data.posterId == request.auth.uid;
-      // Poster, admin, or the assigned tasker can update (status/progress).
-      // Any signed-in user may increment bidsCount when placing a bid.
       allow update: if isOwner(resource.data.posterId)
                       || isAdmin()
-                      || (isSignedIn() && resource.data.assignedTo == request.auth.uid)
+                      || assignedTaskerProgressOnly()
                       || (isSignedIn() && bidIncrementOnly());
       allow delete: if isOwner(resource.data.posterId) || isAdmin();
     }
 
-    // -------- BIDS --------
     match /bids/{bidId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource.data.bidderId == request.auth.uid
+        || isAdmin()
+        || (
+          exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
+          && get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.posterId == request.auth.uid
+        )
+      );
       allow create: if isSignedIn()
-                      && request.resource.data.bidderId == request.auth.uid;
+                      && (request.resource.data.bidderId == request.auth.uid || isAdmin());
       allow update: if isAdmin()
                       || isOwner(resource.data.bidderId)
-                      || (isSignedIn()
-                          && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
-                          && get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.posterId == request.auth.uid);
+                      || (
+                        isSignedIn()
+                        && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
+                        && get(/databases/$(database)/documents/tasks/$(resource.data.taskId)).data.posterId == request.auth.uid
+                      );
       allow delete: if isAdmin();
     }
 
-    // -------- REVIEWS --------
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.fromId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
-    // -------- CONVERSATIONS --------
     match /conversations/{convId} {
       function participant() {
-        return isSignedIn() && resource != null && resource.data != null && request.auth.uid in resource.data.participants;
+        return isSignedIn() && resource != null && resource.data != null
+          && request.auth.uid in resource.data.participants;
       }
       allow read: if participant();
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       allow update: if participant();
       allow delete: if isAdmin();
+
       match /messages/{msgId} {
-        allow read: if participant();
-        allow create: if participant() && request.resource.data.fromId == request.auth.uid;
+        function conversationParticipant() {
+          return isSignedIn()
+            && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
+        }
+        allow read: if conversationParticipant();
+        allow create: if conversationParticipant() && request.resource.data.fromId == request.auth.uid;
         allow update, delete: if isAdmin();
       }
     }
 
-    // -------- NOTIFICATIONS --------
     match /notifications/{notifId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
-    // -------- WALLET TRANSACTIONS --------
     match /wallet_txs/{txId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && (
+        isAdmin()
+        request.resource.data.userId == request.auth.uid
+        || (
+          request.resource.data.type == 'release'
+          && exists(/databases/$(database)/documents/tasks/$(request.resource.data.taskId))
+          && get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.posterId == request.auth.uid
+          && get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.assignedTo == request.resource.data.userId
+        )
+      );
       allow update, delete: if isAdmin();
     }
 
-    // -------- ADMINS --------
     match /admins/{uid} {
-      // Only existing admins (or the platform owner) may manage the admins list.
-      function isPlatformOwner() {
-        return request.auth.token.email == 'contact.hamzutrader@gmail.com';
-      }
-      allow read: if isSignedIn() && (isAdmin() || isPlatformOwner());
-      allow create, update, delete: if isSignedIn() && (isAdmin() || isPlatformOwner());
+      allow read: if isAdmin();
+      allow create, update, delete: if canManageAdmins();
     }
 
-    // -------- SETTINGS --------
     match /settings/{docId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();

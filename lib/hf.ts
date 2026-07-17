@@ -1,15 +1,14 @@
-// Hugging Face integration helpers (Phase 4).
-// Kept as a ready-to-use client boundary so the rest of the app can call
-// these without changes later. The actual model calls happen server-side
-// (API route) to keep HUGGINGFACE_API_KEY secret.
+// Client boundary for Workly's AI task quality, moderation and categorisation.
+// Model calls stay server-side so HUGGINGFACE_API_KEY remains private.
 
 export type TaskSuggestion = {
   category: string;
   tags: string[];
   improvedDescription: string;
+  moderation: "approved" | "review";
+  confidence: number;
 };
 
-// Placeholder until Phase 4 wiring. Will POST to /api/hf/analyze.
 export async function analyzeTask(title: string, description: string): Promise<TaskSuggestion | null> {
   try {
     const res = await fetch("/api/hf/analyze", {
