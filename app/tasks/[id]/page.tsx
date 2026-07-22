@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, requestPayment, releasePayment, PLATFORM_FEE, type Task, type Bid, type Review } from "@/lib/tasks";
+import { getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, requestPayment, releasePayment, subscribeTask, PLATFORM_FEE, type Task, type Bid, type Review } from "@/lib/tasks";
 import { getOrCreateConversation } from "@/lib/chat";
 import { computeBidMatch, isFreshTalent, type BidMatch } from "@/lib/matching";
 import { getDoc, doc } from "firebase/firestore";
@@ -69,13 +69,20 @@ export default function TaskDetailPage() {
   };
 
   useEffect(() => { if (id) load(); }, [id]);
+  useEffect(() => {
+    if (!id) return;
+    return subscribeTask(id, (liveTask) => {
+      if (!liveTask) setNotFound(true);
+      else setTask(liveTask);
+    });
+  }, [id]);
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
   if (notFound || !task) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500">Task not found. <Link href="/tasks" className="font-semibold text-brand">Back to tasks</Link></div>;
 
   const isPoster = user?.uid === task.posterId;
   const isAssigned = user?.uid === task.assignedTo;
-  const canBid = !!user && task.status === "open" && task.visibility === "public" && !isPoster;
+  const canBid = !!user && role === "tasker" && task.status === "open" && task.visibility === "public" && !isPoster;
   const canSelect = (isPoster || isAdmin) && task.status === "open";
   const canManage = (isAssigned || isAdmin) && (task.status === "assigned" || task.status === "in_progress");
   const canRequestPayment = isAssigned && task.status === "completed" && !task.paymentRequested && !task.paymentReleased;

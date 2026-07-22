@@ -25,7 +25,7 @@ import {
 import { formatPKR } from "@/lib/format";
 
 export default function PostTaskPage() {
-  const { user, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,7 +41,8 @@ export default function PostTaskPage() {
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login?redirect=/post");
-  }, [loading, user, router]);
+    if (!loading && user && !["customer", "company_admin", "super_admin"].includes(role || "")) router.replace("/dashboard");
+  }, [loading, user, role, router]);
 
   useEffect(() => {
     if (user) getAutoApprove().then(setAutoMode).catch(() => setAutoMode(false));

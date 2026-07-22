@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles, Camera } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
+import { db, auth, storage } from "@/lib/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
 import Button from "@/components/ui/Button";
@@ -26,6 +27,11 @@ export default function ProfilePage() {
   const [tasksDone, setTasksDone] = useState(0);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [city, setCity] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [languages, setLanguages] = useState("");
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -38,7 +44,8 @@ export default function ProfilePage() {
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists()) {
         const d = snap.data();
-        setName(d.name ?? ""); setBio(d.bio ?? ""); setIsTasker(d.isTasker ?? true); setIsPrivate(d.isPrivate ?? false);
+        setName(d.name ?? ""); setBio(d.bio ?? ""); setIsTasker(role === "tasker"); setIsPrivate(d.isPrivate ?? false);
+        setAvatarUrl(d.avatarUrl ?? ""); setCity(d.city ?? ""); setHourlyRate(d.hourlyRate ? String(d.hourlyRate) : ""); setLanguages((d.languages || []).join(", "));
         setTrust(typeof d.trustScore === "number" ? d.trustScore : null); setSkills((d.skills || []).join(", "));
       }
       setReviews(await listReviewsForUser(user.uid));
@@ -60,7 +67,25 @@ export default function ProfilePage() {
   const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : "\u2014";
 
   const save = async (e: React.FormEvent) => { e.preventDefault(); setError(""); setSaved(false);
-    try { if (!db) throw new Error("Firebase not configured"); const data: any = { name, bio, isTasker }; data.skills = skills.split(",").map(s => s.trim()).filter(Boolean); if (isAdmin) data.isPrivate = isPrivate; await updateDoc(doc(db, "users", user.uid), data); setSaved(true); } catch (err: any) { setError(err?.message || "Could not save"); } };
+    try {
+      if (!db) throw new Error("Firebase not configured");
+      let uploadedAvatar = avatarUrl;
+      if (avatarFile) {
+        if (!storage) throw new Error("Profile image storage is not configured.");
+        if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
+        const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
+        await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
+        uploadedAvatar = await getDownloadURL(avatarRef);
+      }
+      const data: any = { name, bio, city, avatarUrl: uploadedAvatar, profileUpdatedAt: new Date().toISOString() };
+      if (role === "tasker") {
+        data.skills = skills.split(",").map(s => s.trim()).filter(Boolean);
+        data.languages = languages.split(",").map(s => s.trim()).filter(Boolean);
+        data.hourlyRate = Math.max(0, Number(hourlyRate) || 0);
+      }
+      if (isAdmin) data.isPrivate = isPrivate;
+      await updateDoc(doc(db, "users", user.uid), data); setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
+    } catch (err: any) { setError(err?.message || "Could not save"); } };
 
   const changePassword = async () => {
     if (!user?.email || !auth) return;
@@ -79,7 +104,7 @@ export default function ProfilePage() {
       <div className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>
+            {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>}
             <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Workly profile"}</h1><BadgeCheck className="h-5 w-5 text-brand-light" /></div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
           </div>
           <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
@@ -108,9 +133,10 @@ export default function ProfilePage() {
       <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
         <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink-200 p-4 text-sm font-semibold text-ink-500 hover:border-brand"><Camera className="h-5 w-5 text-brand" /><span>{avatarFile ? avatarFile.name : "Upload JPG, PNG or WebP (max 5 MB)"}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} /></label></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
-        <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={isTasker} onChange={(e) => setIsTasker(e.target.checked)} className="h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand" /> I want to <span className="font-semibold">do tasks</span> (bidding)</label>
-        {isTasker && <div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. Cleaning, Gardening, Delivery" /></div>}
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">City</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" /></div>
+        {role === "tasker" && <><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. Cleaning, Gardening, Delivery" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div></div></>}
         {isAdmin && <label className="flex items-start gap-3 rounded-2xl bg-ink p-4 text-sm text-white"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand" /><span><span className="block font-extrabold">Internal private provider</span><span className="mt-1 block text-xs leading-5 text-white/50">Hidden from public discovery and available for managed private assignments.</span></span></label>}
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}

@@ -23,15 +23,17 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function Navbar() {
   const { user, role, signOut } = useAuth();
-  const isAdmin = role === "company_admin" || role === "super_admin";
+  const isAdmin = role === "moderator" || role === "company_admin" || role === "super_admin";
+  const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
+  const canFindWork = !user || role === "tasker";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
   const primaryLinks = (
     <>
-      <Link href="/tasks" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
+      {canFindWork && <Link href="/tasks" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
         <LayoutGrid className="h-4 w-4" /> Find work
-      </Link>
+      </Link>}
       {user ? (
         <>
           <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
@@ -68,9 +70,9 @@ export default function Navbar() {
         <div className="hidden items-center gap-2 lg:flex">
           {user ? (
             <>
-              <Link href="/post" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-extrabold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-brand-dark">
+              {canPost && <Link href="/post" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-extrabold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-brand-dark">
                 <Plus className="h-4 w-4" /> Post a task
-              </Link>
+              </Link>}
               <Link href="/notifications" aria-label="Notifications" className="relative grid h-11 w-11 place-items-center rounded-xl border border-ink-100 bg-white text-ink-500 transition hover:bg-ink-50 hover:text-ink">
                 <Bell className="h-4 w-4" />
                 <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-brand" />
@@ -111,7 +113,7 @@ export default function Navbar() {
             {primaryLinks}
             {user ? (
               <>
-                <Link href="/post" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl bg-brand px-3 py-3 text-sm font-extrabold text-white"><Plus className="h-4 w-4" /> Post a task</Link>
+                {canPost && <Link href="/post" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl bg-brand px-3 py-3 text-sm font-extrabold text-white"><Plus className="h-4 w-4" /> Post a task</Link>}
                 <Link href="/wallet" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600"><Wallet className="h-4 w-4" /> Wallet</Link>
                 <Link href="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600"><User className="h-4 w-4" /> Profile</Link>
                 {isAdmin && <Link href="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600"><ShieldCheck className="h-4 w-4" /> Admin control</Link>}

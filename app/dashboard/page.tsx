@@ -36,6 +36,11 @@ export default function DashboardPage() {
   const [view, setView] = useState<View>("client");
 
   useEffect(() => {
+    if (role === "tasker") setView("tasker");
+    else setView("client");
+  }, [role]);
+
+  useEffect(() => {
     if (loading || !user) return;
     (async () => {
       try {
@@ -60,7 +65,8 @@ export default function DashboardPage() {
   }
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
-  const isAdmin = role === "company_admin" || role === "super_admin";
+  const isAdmin = role === "moderator" || role === "company_admin" || role === "super_admin";
+  const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
   const activePosted = posted.filter(t => ["open", "assigned", "in_progress"].includes(t.status));
   const selectedBids = myBids.filter(b => b.status === "selected");
   const clientSpent = posted.filter(t => t.paymentReleased).reduce((sum, task) => sum + (task.heldAmount || 0), 0);
@@ -92,13 +98,12 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {isAdmin && <Link href="/admin"><Button variant="ghost" className="gap-2"><ShieldCheck className="h-4 w-4" /> Admin control</Button></Link>}
-            <Link href="/post"><Button className="gap-2"><Plus className="h-4 w-4" /> Post a task</Button></Link>
+            {canPost && <Link href="/post"><Button className="gap-2"><Plus className="h-4 w-4" /> Post a task</Button></Link>}
           </div>
         </div>
 
-        <div className="mt-7 inline-flex rounded-2xl border border-ink-100 bg-white p-1.5 shadow-card">
-          <button onClick={() => setView("client")} className={`rounded-xl px-5 py-2.5 text-sm font-extrabold transition ${view === "client" ? "bg-ink text-white shadow-sm" : "text-ink-400 hover:text-ink"}`}>Hiring</button>
-          <button onClick={() => setView("tasker")} className={`rounded-xl px-5 py-2.5 text-sm font-extrabold transition ${view === "tasker" ? "bg-ink text-white shadow-sm" : "text-ink-400 hover:text-ink"}`}>Earning</button>
+        <div className="mt-7 inline-flex rounded-2xl border border-ink-100 bg-white px-5 py-3 text-sm font-extrabold text-ink shadow-card">
+          {isAdmin ? "Operations workspace" : view === "client" ? "Client workspace" : "Freelancer workspace"}
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">

@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, Clock, Banknote, Send, CheckCircle2, ShieldCheck, Landmark } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Banknote, Send, CheckCircle2, ShieldCheck, Landmark } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { doc, getDoc, updateDoc, increment, addDoc, collection, query, where, orderBy, getDocs, limit } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, orderBy, getDocs, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { listTasksByPoster } from "@/lib/tasks";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import { formatPKR } from "@/lib/format";
 
 type TxLog = { id: string; amount: number; type: "deposit" | "withdraw" | "release" | "payment" | "hold"; note: string; createdAt: string; taskId?: string };
@@ -22,9 +20,6 @@ export default function WalletPage() {
   const [pendingRelease, setPendingRelease] = useState<{ id: string; title: string; amount: number }[]>([]);
   const [txs, setTxs] = useState<TxLog[]>([]);
   const [busy, setBusy] = useState(true);
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/wallet"); }, [loading, user, router]);
 
@@ -51,18 +46,6 @@ export default function WalletPage() {
   };
 
   useEffect(() => { if (user) load(); }, [user]);
-
-  const addFunds = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !db || !amount) return;
-    setActionBusy(true);
-    try {
-      const val = Math.abs(Number(amount));
-      await updateDoc(doc(db, "users", user.uid), { wallet: increment(val) });
-      await addDoc(collection(db, "wallet_txs"), { userId: user.uid, amount: val, type: "deposit", note: note || "Added funds", createdAt: new Date().toISOString() });
-      setAmount(""); setNote(""); load();
-    } catch {} finally { setActionBusy(false); }
-  };
 
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
@@ -111,13 +94,8 @@ export default function WalletPage() {
         </div>
       )}
 
-      <div className="surface mb-6 p-6">
-        <div className="mb-4 flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Plus className="h-4 w-4" /></span><div><h2 className="text-sm font-black text-ink">Add funds</h2><p className="text-xs text-ink-400">Use this demo wallet to test escrow holds and releases.</p></div></div>
-        <form onSubmit={addFunds} className="flex flex-col gap-3 sm:flex-row">
-          <Input type="number" min={500} step={100} placeholder="Amount (PKR)" value={amount} onChange={(e) => setAmount(e.target.value)} required className="sm:max-w-[220px]" />
-          <Input placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} className="flex-1" />
-          <Button type="submit" disabled={actionBusy} className="flex items-center gap-1.5 rounded-xl"><Plus className="h-4 w-4" />{actionBusy ? "Adding..." : "Add"}</Button>
-        </form>
+      <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+        <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" /><div><h2 className="text-sm font-black text-ink">Live payment onboarding required</h2><p className="mt-1 text-sm leading-6 text-ink-600">Demo balance creation has been removed. Before accepting customer money, Workly must complete merchant and marketplace/escrow approval with a State Bank of Pakistan-regulated provider. The production flow is checkout → verified webhook → held funds → completion approval → provider payout; balances must never be editable in the browser.</p></div></div>
       </div>
 
       <div className="surface p-6">

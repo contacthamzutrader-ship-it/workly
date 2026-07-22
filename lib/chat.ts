@@ -15,7 +15,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { scanMessage } from "./fraud";
-import { applyTrustPenalty } from "./trust";
 import { notify } from "./notifications";
 
 export interface Conversation {
@@ -89,11 +88,6 @@ export async function sendMessage(
     updatedAt: serverTimestamp(),
   });
 
-  // Fraud Detection: off-platform contact sharing lowers trust score.
-  if (scan.flagged) {
-    await applyTrustPenalty(fromId, -20);
-  }
-
   // Notify the other participant.
   const conv = await getDoc(doc(database, "conversations", convId));
   if (conv.exists()) {
@@ -135,4 +129,14 @@ export async function listConversations(userId: string): Promise<Conversation[]>
     .map((d) => ({ id: d.id, ...d.data() }) as Conversation)
     .filter((c) => c.participants.includes(userId))
     .sort((a, b) => (b.updatedAt?.seconds ?? 0) - (a.updatedAt?.seconds ?? 0));
+}
+
+export function subscribeConversations(userId: string, callback: (items: Conversation[]) => void) {
+  const database = needDb();
+  const q = query(collection(database, "conversations"), where("participants", "array-contains", userId), limit(200));
+  return onSnapshot(q, (snapshot) => {
+    const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Conversation);
+    items.sort((a, b) => (b.updatedAt?.seconds ?? 0) - (a.updatedAt?.seconds ?? 0));
+    callback(items);
+  });
 }

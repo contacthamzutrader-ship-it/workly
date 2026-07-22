@@ -14,7 +14,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { OWNER_EMAIL, getAdminDoc, ownerSession, type AdminSession, type Permission } from "./admin";
 
-export type Role = "customer" | "tasker" | "company_admin" | "super_admin";
+export type Role = "customer" | "tasker" | "moderator" | "company_admin" | "super_admin";
 
 type AuthContextType = {
   user: User | null;
@@ -23,8 +23,8 @@ type AuthContextType = {
   adminSession: AdminSession | null;
   permissions: Permission[];
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name: string, role: "customer" | "tasker") => Promise<void>;
+  signInWithGoogle: (role?: "customer" | "tasker") => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -38,7 +38,7 @@ function assertConfig() {
   }
 }
 
-async function ensureUserDoc(u: User, name: string) {
+async function ensureUserDoc(u: User, name: string, selectedRole: "customer" | "tasker" = "customer") {
   if (!db) return;
   const ref = doc(db, "users", u.uid);
   const snap = await getDoc(ref);
@@ -47,8 +47,8 @@ async function ensureUserDoc(u: User, name: string) {
       uid: u.uid,
       name: name || u.displayName || "",
       email: u.email,
-      role: "customer",
-      isTasker: true,
+      role: selectedRole,
+      isTasker: selectedRole === "tasker",
       isPrivate: false,
       createdAt: serverTimestamp(),
     });
@@ -132,16 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithEmailAndPassword(auth!, email, password);
   };
 
-  const signUpWithEmail = async (email: string, password: string, name: string) => {
+  const signUpWithEmail = async (email: string, password: string, name: string, selectedRole: "customer" | "tasker") => {
     assertConfig();
     const cred = await createUserWithEmailAndPassword(auth!, email, password);
-    await ensureUserDoc(cred.user, name);
+    await ensureUserDoc(cred.user, name, selectedRole);
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (selectedRole: "customer" | "tasker" = "customer") => {
     assertConfig();
     const cred = await signInWithPopup(auth!, new GoogleAuthProvider());
-    await ensureUserDoc(cred.user, "");
+    await ensureUserDoc(cred.user, "", selectedRole);
   };
 
   const signOut = async () => {

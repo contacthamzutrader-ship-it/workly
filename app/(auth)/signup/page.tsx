@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Check, Eye, EyeOff, Sparkles } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, Sparkles, UserRoundSearch } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -17,13 +17,14 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [accountType, setAccountType] = useState<"customer" | "tasker">("customer");
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      await signUpWithEmail(email, password, name);
+      await signUpWithEmail(email, password, name, accountType);
       router.push("/dashboard");
     } catch (err: any) {
       setError(err?.message || "We could not create your account.");
@@ -36,7 +37,7 @@ export default function SignupPage() {
     setBusy(true);
     setError("");
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(accountType);
       router.push("/dashboard");
     } catch (err: any) {
       setError(err?.message || "Google sign-up failed.");
@@ -49,11 +50,19 @@ export default function SignupPage() {
     <div className="w-full max-w-md">
       <div className="mb-7">
         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white shadow-glow"><Sparkles className="h-5 w-5" /></span>
-        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Start with one account.</h1>
-        <p className="mt-2 text-sm font-medium text-ink-500">Hire professionals and earn from your own skills.</p>
+        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Choose how you use Workly.</h1>
+        <p className="mt-2 text-sm font-medium text-ink-500">Your workspace and permissions will match this account type.</p>
       </div>
 
       <div className="surface p-6 sm:p-8">
+        <div className="mb-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
+          <button type="button" role="radio" aria-checked={accountType === "customer"} onClick={() => setAccountType("customer")} className={`rounded-2xl border p-4 text-left transition ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-ink-200"}`}>
+            <BriefcaseBusiness className="h-5 w-5" /><span className="mt-2 block text-sm font-black">I want to hire</span><span className="mt-1 block text-[11px] leading-4">Post work and hire talent</span>
+          </button>
+          <button type="button" role="radio" aria-checked={accountType === "tasker"} onClick={() => setAccountType("tasker")} className={`rounded-2xl border p-4 text-left transition ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-ink-200"}`}>
+            <UserRoundSearch className="h-5 w-5" /><span className="mt-2 block text-sm font-black">I want to work</span><span className="mt-1 block text-[11px] leading-4">Build a profile and send offers</span>
+          </button>
+        </div>
         <button onClick={google} disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-ink-200 bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-ink-50 disabled:opacity-50">
           <GoogleMark /> Continue with Google
         </button>

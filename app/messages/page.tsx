@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MessageSquare, ArrowRight, Inbox, Search, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { listConversations, type Conversation } from "@/lib/chat";
+import { subscribeConversations, type Conversation } from "@/lib/chat";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -21,18 +21,17 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      try {
-        const data = await listConversations(user.uid);
+    try {
+      return subscribeConversations(user.uid, (data) => {
         setConvs(data);
         const nameMap: Record<string, string> = {};
-        await Promise.all(data.map(async c => {
+        Promise.all(data.map(async c => {
           const other = c.participants.find(p => p !== user.uid);
           if (other && !nameMap[other] && db) { const s = await getDoc(doc(db, "users", other)); nameMap[other] = s.exists() ? (s.data().name || "User") : "User"; }
-        }));
-        setNames(nameMap);
-      } catch {} finally { setBusy(false); }
-    })();
+        })).then(() => setNames(nameMap));
+        setBusy(false);
+      });
+    } catch { setBusy(false); }
   }, [user]);
 
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;

@@ -38,7 +38,7 @@ export default function PublicProfilePage() {
       <Link href="/tasks" className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink mb-6"><ArrowLeft className="h-4 w-4" /> Back</Link>
 
       <div className="rounded-[32px] border border-ink-100 bg-white p-8 text-center shadow-elevated sm:p-12">
-        <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>
+        {data.avatarUrl ? <img src={data.avatarUrl} alt={`${data.name || "User"} profile`} className="mx-auto h-24 w-24 rounded-3xl object-cover shadow-card" /> : <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>}
         <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>
         <p className="mt-2 text-sm text-ink-500">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-dark">
@@ -46,6 +46,11 @@ export default function PublicProfilePage() {
           </span>
         </p>
         {data.bio && <p className="mt-4 max-w-md mx-auto text-ink-600 leading-relaxed">{data.bio}</p>}
+        <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs font-semibold text-ink-500">
+          {data.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-brand" />{data.city}</span>}
+          {data.hourlyRate > 0 && <span className="inline-flex items-center gap-1"><Briefcase className="h-3.5 w-3.5 text-brand" />PKR {Number(data.hourlyRate).toLocaleString("en-PK")}/hour</span>}
+          {data.languages?.length > 0 && <span>{data.languages.join(" · ")}</span>}
+        </div>
 
         <div className="mt-6 flex justify-center gap-6">
           <div className="text-center"><div className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /><span className="font-bold">{avg}</span></div><p className="text-xs text-ink-500">{reviews.length} reviews</p></div>

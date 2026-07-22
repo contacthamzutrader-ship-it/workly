@@ -12,6 +12,7 @@ import {
   increment,
   limit,
   runTransaction,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { recalcTrust } from "./trust";
@@ -83,7 +84,7 @@ export interface Bid {
   bidderName: string;
   amount: number;
   message: string;
-  status: "pending" | "selected";
+  status: "pending" | "selected" | "withdrawn" | "rejected";
   createdAt: any;
 }
 
@@ -126,6 +127,13 @@ export async function getTask(id: string): Promise<Task | null> {
   const snap = await getDoc(doc(database, "tasks", id));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as Task;
+}
+
+export function subscribeTask(id: string, callback: (task: Task | null) => void) {
+  const database = needDb();
+  return onSnapshot(doc(database, "tasks", id), (snapshot) => {
+    callback(snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Task) : null);
+  });
 }
 
 export async function listPublicTasks(
@@ -235,6 +243,25 @@ export async function listBidsForTask(taskId: string): Promise<Bid[]> {
     .map((d) => ({ id: d.id, ...d.data() }) as Bid)
     .filter((b) => b.taskId === taskId)
     .sort(byNewest);
+}
+
+export function subscribeBidsForTask(taskId: string, callback: (bids: Bid[]) => void) {
+  const database = needDb();
+  const q = query(collection(database, "bids"), where("taskId", "==", taskId), limit(200));
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Bid).sort(byNewest));
+  });
+}
+
+export async function updateBid(bidId: string, amount: number, message: string): Promise<void> {
+  const database = needDb();
+  if (!Number.isFinite(amount) || amount < 500) throw new Error("Offer must be at least PKR 500.");
+  await updateDoc(doc(database, "bids", bidId), { amount, message: message.trim(), updatedAt: serverTimestamp() });
+}
+
+export async function withdrawBid(bidId: string): Promise<void> {
+  const database = needDb();
+  await updateDoc(doc(database, "bids", bidId), { status: "withdrawn", withdrawnAt: serverTimestamp() });
 }
 
 export async function listBidsByUser(bidderId: string): Promise<Bid[]> {

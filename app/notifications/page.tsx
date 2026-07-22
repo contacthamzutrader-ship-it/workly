@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { listNotifications, type AppNotification } from "@/lib/notifications";
+import { subscribeNotifications, type AppNotification } from "@/lib/notifications";
 
 export default function NotificationsPage() {
   const { user, loading } = useAuth();
@@ -15,7 +15,11 @@ export default function NotificationsPage() {
 
   useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/notifications"); }, [loading, user, router]);
 
-  useEffect(() => { if (!user) return; (async () => { try { setItems(await listNotifications(user.uid)); } catch {} finally { setBusy(false); } })(); }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    try { return subscribeNotifications(user.uid, (next) => { setItems(next); setBusy(false); }); }
+    catch { setBusy(false); }
+  }, [user]);
 
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
