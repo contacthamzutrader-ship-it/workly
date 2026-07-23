@@ -17,6 +17,7 @@ import {
   Eye,
   KeyRound,
   LayoutDashboard,
+  Link2,
   Lock,
   Settings,
   ShieldCheck,
@@ -76,6 +77,7 @@ export default function AdminPage() {
   const [actionBusy, setActionBusy] = useState("");
   const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
+  const [privateInviteLink, setPrivateInviteLink] = useState("");
 
   const can = (permission: Permission) => hasPermission(session, permission);
   const sessionKey = `${user?.uid || ""}:${role || ""}:${adminSession?.permissions?.join(",") || "owner"}`;
@@ -122,7 +124,7 @@ export default function AdminPage() {
     else if (can("manageContent")) setActiveTab("settings");
   }, [sessionKey]);
 
-  const privateProviders = allUsers.filter((member) => member.isPrivate === true && member.isTasker !== false);
+  const privateProviders = allUsers.filter((member) => member.isPrivate === true && member.role === "tasker");
   const completedTasks = allTasks.filter((task) => task.status === "completed").length;
   const totalRevenue = allTasks
     .filter((task) => task.heldAmount && task.paymentReleased)
@@ -169,6 +171,23 @@ export default function AdminPage() {
       await load();
     } catch (err: any) {
       setError(err?.message || "Could not create the managed assignment.");
+    } finally {
+      setActionBusy("");
+    }
+  };
+
+  const createPrivateInvite = async (task: Task) => {
+    setActionBusy(task.id!);
+    setError("");
+    try {
+      const token = await approveTask(task.id!, "private", user.email || "Workly admin");
+      if (!token) throw new Error("Private token could not be generated.");
+      const link = `${window.location.origin}/tasks/${task.id}?invite=${token}`;
+      setPrivateInviteLink(link);
+      try { await navigator.clipboard.writeText(link); } catch {}
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not create the private freelancer link.");
     } finally {
       setActionBusy("");
     }
@@ -224,6 +243,7 @@ export default function AdminPage() {
         </div>
 
         {error && <div role="alert" className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
+        {privateInviteLink && <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50 p-4"><p className="text-sm font-black text-brand-dark">Private freelancer link created and copied</p><div className="mt-2 flex gap-2"><Input readOnly value={privateInviteLink} className="bg-white" /><button onClick={() => navigator.clipboard.writeText(privateInviteLink)} className="shrink-0 rounded-xl bg-ink px-4 text-xs font-extrabold text-white">Copy link</button></div><p className="mt-2 text-xs font-medium text-ink-500">The first signed-in freelancer who opens this exact link can view and bid. It will not appear in the public feed.</p></div>}
 
         {busy ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="h-28 animate-pulse rounded-3xl bg-white" />)}</div>
@@ -300,6 +320,7 @@ export default function AdminPage() {
                               </div>
                               <div className="flex shrink-0 gap-2">
                                 <Button onClick={() => approvePublic(task.id!)} disabled={actionBusy === task.id} className="gap-2 shadow-none"><Eye className="h-4 w-4" /> Publish</Button>
+                                <Button variant="secondary" onClick={() => createPrivateInvite(task)} disabled={actionBusy === task.id} className="gap-2"><Link2 className="h-4 w-4" /> Private link</Button>
                               </div>
                             </div>
 
@@ -323,6 +344,7 @@ export default function AdminPage() {
                 <aside className="space-y-4 lg:sticky lg:top-24">
                   <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Sparkles className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
                   <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
+                  {privateTasks.some((task) => task.status === "open" && task.shareToken) && <div className="surface p-5"><p className="text-xs font-black text-ink">Active private links</p><div className="mt-3 space-y-2">{privateTasks.filter((task) => task.status === "open" && task.shareToken).slice(0, 8).map((task) => <button key={task.id} onClick={() => { const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`; setPrivateInviteLink(link); navigator.clipboard.writeText(link).catch(() => {}); }} className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 hover:bg-brand-50"><Link2 className="h-3.5 w-3.5 shrink-0 text-brand" /><span className="min-w-0 flex-1 truncate">{task.title}</span><span className="text-brand-dark">Copy</span></button>)}</div></div>}
                 </aside>
               </div>
             )}
@@ -339,7 +361,7 @@ export default function AdminPage() {
                       <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-ink text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
                       <div className="flex items-center gap-2">
                         <span className="rounded-full bg-ink-50 px-3 py-1.5 text-[10px] font-black uppercase text-ink-500">{member.role || "customer"}</span>
-                        <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>
+                        {member.role === "tasker" && <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>}
                       </div>
                     </div>
                   ))}

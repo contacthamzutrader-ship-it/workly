@@ -6,12 +6,15 @@ import { BriefcaseBusiness, Check, Plus, Search, ShieldCheck, SlidersHorizontal,
 import { listPublicTasks, CATEGORIES, type Task } from "@/lib/tasks";
 import TaskCard from "@/components/TaskCard";
 import Button from "@/components/ui/Button";
+import { useAuth } from "@/lib/auth-context";
 
 export default function TasksPage() {
+  const { role } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
 
   const load = async (cat?: string, q?: string) => {
     setLoading(true);
@@ -48,7 +51,7 @@ export default function TasksPage() {
               <h1 className="mt-5 text-4xl font-black tracking-[-0.045em] sm:text-5xl">Find work worth doing.</h1>
               <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/60">Explore approved tasks, send your best offer, and build a reputation that keeps paying back.</p>
             </div>
-            <Link href="/post"><Button className="gap-2 bg-white text-ink shadow-none hover:bg-brand-100 hover:text-ink"><Plus className="h-4 w-4" /> Post your own task</Button></Link>
+            {canPost && <Link href="/post"><Button className="gap-2 bg-white text-ink shadow-none hover:bg-brand-100 hover:text-ink"><Plus className="h-4 w-4" /> Post your own task</Button></Link>}
           </div>
         </div>
 

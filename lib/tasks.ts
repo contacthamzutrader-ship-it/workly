@@ -8,6 +8,7 @@ import {
   where,
   orderBy,
   serverTimestamp,
+  setDoc,
   updateDoc,
   increment,
   limit,
@@ -75,6 +76,7 @@ export interface Task {
   approvedBy?: string;
   approvalNote?: string;
   moderation?: "approved" | "review";
+  shareToken?: string;
 }
 
 export interface Bid {
@@ -203,7 +205,6 @@ export async function placeBid(input: {
   if (!taskSnap.exists()) throw new Error("This task is no longer available.");
   const task = taskSnap.data() as Task;
   if (task.status !== "open") throw new Error("This task is not accepting offers.");
-  if (task.visibility !== "public") throw new Error("Private tasks are assigned by the Workly team.");
   if (task.posterId === input.bidderId) throw new Error("You cannot bid on your own task.");
   const existing = await getDocs(query(
     collection(database, "bids"),
@@ -397,15 +398,17 @@ export async function approveTask(
   taskId: string,
   visibility: Visibility,
   approvedBy?: string
-): Promise<void> {
+): Promise<string | undefined> {
   const database = needDb();
+  const shareToken = visibility === "private" ? createShareToken() : undefined;
   await updateDoc(doc(database, "tasks", taskId), {
     status: "open",
     visibility,
     approvalMode: "manual",
     approvedAt: serverTimestamp(),
     approvedBy: approvedBy || "Workly team",
-    approvalNote: visibility === "public" ? "Approved for the public marketplace" : "Approved for managed fulfilment",
+    approvalNote: visibility === "public" ? "Approved for the public marketplace" : "Approved for private invitation",
+    ...(shareToken ? { shareToken } : {}),
   });
   const snap = await getDoc(doc(database, "tasks", taskId));
   if (snap.exists()) {
@@ -413,10 +416,35 @@ export async function approveTask(
       userId: snap.data().posterId,
       type: "task_approved",
       title: visibility === "public" ? "Your task is live" : "Your task is approved",
-      body: visibility === "public" ? "Professionals can now send offers." : "Workly is assigning a managed provider.",
+      body: visibility === "public" ? "Professionals can now send offers." : "Only a freelancer with the private invitation can view and bid.",
       link: `/tasks/${taskId}`,
     });
   }
+  return shareToken;
+}
+
+function createShareToken() {
+  const values = new Uint8Array(24);
+  crypto.getRandomValues(values);
+  return Array.from(values, (value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+export async function claimPrivateTask(taskId: string, token: string, userId: string): Promise<void> {
+  if (!token || token.length < 32) throw new Error("This private invitation link is invalid.");
+  const database = needDb();
+  const inviteRef = doc(database, "task_invites", taskId);
+  try {
+    const existing = await getDoc(inviteRef);
+    if (existing.exists() && existing.data().userId === userId) return;
+  } catch {
+    // An invitation claimed by somebody else is intentionally unreadable.
+  }
+  await setDoc(inviteRef, {
+    taskId,
+    userId,
+    token,
+    claimedAt: serverTimestamp(),
+  });
 }
 
 export async function approvePrivateTask(input: {

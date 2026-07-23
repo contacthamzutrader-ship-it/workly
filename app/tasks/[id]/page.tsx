@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, requestPayment, releasePayment, subscribeTask, PLATFORM_FEE, type Task, type Bid, type Review } from "@/lib/tasks";
+import { claimPrivateTask, getTask, listBidsForTask, placeBid, selectBid, setTaskStatus, addReview, listReviewsForUser, requestPayment, releasePayment, subscribeTask, PLATFORM_FEE, type Task, type Bid, type Review } from "@/lib/tasks";
 import { getOrCreateConversation } from "@/lib/chat";
 import { computeBidMatch, isFreshTalent, type BidMatch } from "@/lib/matching";
 import { getDoc, doc } from "firebase/firestore";
@@ -28,7 +28,9 @@ const STATUS_TAGS: Record<string, { label: string; color: string }> = {
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, role } = useAuth();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite") || "";
+  const { user, role, loading: authLoading } = useAuth();
   const [task, setTask] = useState<Task | null>(null);
   const [bids, setBids] = useState<BidView[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -39,6 +41,7 @@ export default function TaskDetailPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
+  const [inviteReady, setInviteReady] = useState(!inviteToken);
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -65,24 +68,60 @@ export default function TaskDetailPage() {
       withMatch.sort((a, b) => (b.match?.percent ?? 0) - (a.match?.percent ?? 0));
       setBids(withMatch);
       if (t.assignedTo) setReviews(await listReviewsForUser(t.assignedTo));
-    } catch { setNotFound(true); } finally { setLoading(false); }
+    } catch (err: any) {
+      setError(err?.message || "This task is not available to this account.");
+      setNotFound(true);
+    } finally { setLoading(false); }
   };
 
-  useEffect(() => { if (id) load(); }, [id]);
   useEffect(() => {
-    if (!id) return;
+    if (!id || authLoading) return;
+    let cancelled = false;
+    (async () => {
+      if (inviteToken) {
+        if (!user) {
+          router.replace(`/login?redirect=${encodeURIComponent(`/tasks/${id}?invite=${inviteToken}`)}`);
+          return;
+        }
+        if (role !== "tasker" && !isAdmin) {
+          setError("This private invitation can only be claimed by a freelancer account.");
+          setLoading(false);
+          return;
+        }
+        if (role === "tasker") {
+          try {
+            await claimPrivateTask(id, inviteToken, user.uid);
+          } catch (err: any) {
+            setError(err?.message || "This private invitation has already been claimed or is invalid.");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      if (!cancelled) {
+        setInviteReady(true);
+        await load();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, inviteToken, authLoading, user?.uid, role]);
+
+  useEffect(() => {
+    if (!id || !inviteReady) return;
     return subscribeTask(id, (liveTask) => {
       if (!liveTask) setNotFound(true);
       else setTask(liveTask);
     });
-  }, [id]);
+  }, [id, inviteReady]);
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-  if (notFound || !task) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500">Task not found. <Link href="/tasks" className="font-semibold text-brand">Back to tasks</Link></div>;
+  if (notFound || !task) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500"><p>{error || "Task not found."}</p> <Link href="/tasks" className="font-semibold text-brand">Back to tasks</Link></div>;
 
   const isPoster = user?.uid === task.posterId;
   const isAssigned = user?.uid === task.assignedTo;
-  const canBid = !!user && role === "tasker" && task.status === "open" && task.visibility === "public" && !isPoster;
+  const canBid = !!user && role === "tasker" && task.status === "open"
+    && (task.visibility === "public" || (task.visibility === "private" && inviteReady))
+    && !isPoster;
   const canSelect = (isPoster || isAdmin) && task.status === "open";
   const canManage = (isAssigned || isAdmin) && (task.status === "assigned" || task.status === "in_progress");
   const canRequestPayment = isAssigned && task.status === "completed" && !task.paymentRequested && !task.paymentReleased;

@@ -40,6 +40,8 @@ export default function PublicProfilePage() {
       <div className="rounded-[32px] border border-ink-100 bg-white p-8 text-center shadow-elevated sm:p-12">
         {data.avatarUrl ? <img src={data.avatarUrl} alt={`${data.name || "User"} profile`} className="mx-auto h-24 w-24 rounded-3xl object-cover shadow-card" /> : <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>}
         <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>
+        {data.professionalTitle && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.professionalTitle}</p>}
+        {data.organization && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.organization}</p>}
         <p className="mt-2 text-sm text-ink-500">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-dark">
             {data.isPrivate ? "Private - Team" : data.role || "Member"}
@@ -49,6 +51,8 @@ export default function PublicProfilePage() {
         <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs font-semibold text-ink-500">
           {data.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-brand" />{data.city}</span>}
           {data.hourlyRate > 0 && <span className="inline-flex items-center gap-1"><Briefcase className="h-3.5 w-3.5 text-brand" />PKR {Number(data.hourlyRate).toLocaleString("en-PK")}/hour</span>}
+          {data.experienceYears > 0 && <span>{data.experienceYears} years experience</span>}
+          {data.availability && data.role === "tasker" && <span>{data.availability}</span>}
           {data.languages?.length > 0 && <span>{data.languages.join(" · ")}</span>}
         </div>
 
@@ -62,6 +66,9 @@ export default function PublicProfilePage() {
             {data.skills.map((s: string) => <span key={s} className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600">{s}</span>)}
           </div>
         )}
+        {data.certifications?.length > 0 && <div className="mt-6"><p className="text-xs font-black uppercase tracking-wider text-ink-400">Certifications</p><p className="mt-2 text-sm font-semibold text-ink-600">{data.certifications.join(" · ")}</p></div>}
+        {data.portfolioUrl && <a href={data.portfolioUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex rounded-xl bg-ink px-4 py-2.5 text-sm font-extrabold text-white">View portfolio</a>}
+        {data.hiringNeeds && <div className="mx-auto mt-6 max-w-xl rounded-2xl bg-ink-50 p-5 text-left"><p className="text-xs font-black uppercase tracking-wider text-ink-400">Usually hiring for</p><p className="mt-2 text-sm leading-6 text-ink-600">{data.hiringNeeds}</p></div>}
       </div>
 
       {reviews.length > 0 && (

@@ -31,39 +31,56 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
           && permission in adminRecord().permissions);
     }
-    function sameIdentityFields() {
+    function publicRole(role) {
+      return role in ['customer', 'tasker'];
+    }
+    function sameProtectedUserFields() {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.isPrivate == resource.data.isPrivate
-        && request.resource.data.wallet == resource.data.wallet;
+        && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
+        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0);
     }
     function task(taskId) {
       return get(/databases/$(database)/documents/tasks/$(taskId)).data;
     }
+    function hasPrivateInvite(taskId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/task_invites/$(taskId))
+        && get(/databases/$(database)/documents/task_invites/$(taskId)).data.userId == request.auth.uid;
+    }
 
     match /users/{uid} {
       allow read: if resource.data.isPrivate != true || (signedIn() && request.auth.uid == uid) || isAdmin();
-      allow create: if signedIn() && request.auth.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.role in ['customer', 'tasker']
-        && request.resource.data.isPrivate == false;
+      allow create: if (ownerAccount() && request.auth.uid == uid
+          && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
+        || (signedIn() && request.auth.uid == uid
+          && request.resource.data.uid == uid
+          && publicRole(request.resource.data.role)
+          && request.resource.data.isPrivate == false);
       allow update: if isAdmin()
-        || (signedIn() && request.auth.uid == uid && sameIdentityFields());
+        || (signedIn() && request.auth.uid == uid
+          && sameProtectedUserFields()
+          && publicRole(resource.data.role)
+          && publicRole(request.resource.data.role));
       allow delete: if hasPermission('manageUsers');
     }
 
     match /tasks/{taskId} {
       allow read: if (resource.data.visibility == 'public' && resource.data.status != 'pending')
         || (signedIn() && (resource.data.posterId == request.auth.uid
-          || resource.data.assignedTo == request.auth.uid || isModerator()));
+          || resource.data.assignedTo == request.auth.uid || isModerator()))
+        || hasPrivateInvite(taskId);
       allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
         || (signedIn() && resource.data.posterId == request.auth.uid)
         || (signedIn() && resource.data.assignedTo == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']));
+            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']))
+        || (hasRole(['tasker']) && resource.data.status == 'open'
+          && (resource.data.visibility == 'public' || hasPrivateInvite(taskId))
+          && request.resource.data.bidsCount == resource.data.bidsCount + 1
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bidsCount']));
       allow delete: if (signedIn() && resource.data.posterId == request.auth.uid) || isAdmin();
     }
 
@@ -72,6 +89,8 @@ service cloud.firestore {
         || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
       allow create: if (hasRole(['tasker']) && request.resource.data.bidderId == request.auth.uid
           && task(request.resource.data.taskId).status == 'open'
+          && (task(request.resource.data.taskId).visibility == 'public'
+            || hasPrivateInvite(request.resource.data.taskId))
           && task(request.resource.data.taskId).posterId != request.auth.uid)
         || isAdmin();
       allow update: if isAdmin()
@@ -143,8 +162,20 @@ service cloud.firestore {
     }
 
     match /admins/{uid} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
       allow create, update, delete: if hasPermission('manageAdmins');
+    }
+
+    match /task_invites/{taskId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if hasRole(['tasker'])
+        && request.resource.data.taskId == taskId
+        && request.resource.data.userId == request.auth.uid
+        && task(taskId).visibility == 'private'
+        && task(taskId).status == 'open'
+        && request.resource.data.token == task(taskId).shareToken;
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     match /settings/{documentId} {

@@ -14,7 +14,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
 export default function ProfilePage() {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, setAccountType } = useAuth();
   const router = useRouter();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -32,6 +32,14 @@ export default function ProfilePage() {
   const [city, setCity] = useState("");
   const [hourlyRate, setHourlyRate] = useState("");
   const [languages, setLanguages] = useState("");
+  const [accountType, setProfileAccountType] = useState<"customer" | "tasker">("customer");
+  const [professionalTitle, setProfessionalTitle] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [availability, setAvailability] = useState("Available now");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [certifications, setCertifications] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [hiringNeeds, setHiringNeeds] = useState("");
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -44,9 +52,13 @@ export default function ProfilePage() {
       const snap = await getDoc(doc(db, "users", user.uid));
       if (snap.exists()) {
         const d = snap.data();
-        setName(d.name ?? ""); setBio(d.bio ?? ""); setIsTasker(role === "tasker"); setIsPrivate(d.isPrivate ?? false);
+        const publicRole = d.role === "tasker" ? "tasker" : "customer";
+        setName(d.name ?? ""); setBio(d.bio ?? ""); setIsTasker(publicRole === "tasker"); setProfileAccountType(publicRole); setIsPrivate(d.isPrivate ?? false);
         setAvatarUrl(d.avatarUrl ?? ""); setCity(d.city ?? ""); setHourlyRate(d.hourlyRate ? String(d.hourlyRate) : ""); setLanguages((d.languages || []).join(", "));
         setTrust(typeof d.trustScore === "number" ? d.trustScore : null); setSkills((d.skills || []).join(", "));
+        setProfessionalTitle(d.professionalTitle ?? ""); setExperienceYears(d.experienceYears ? String(d.experienceYears) : "");
+        setAvailability(d.availability ?? "Available now"); setPortfolioUrl(d.portfolioUrl ?? ""); setCertifications((d.certifications || []).join(", "));
+        setOrganization(d.organization ?? ""); setHiringNeeds(d.hiringNeeds ?? "");
       }
       setReviews(await listReviewsForUser(user.uid));
 
@@ -71,17 +83,34 @@ export default function ProfilePage() {
       if (!db) throw new Error("Firebase not configured");
       let uploadedAvatar = avatarUrl;
       if (avatarFile) {
-        if (!storage) throw new Error("Profile image storage is not configured.");
         if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
-        const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
-        await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
-        uploadedAvatar = await getDownloadURL(avatarRef);
+        try {
+          if (!storage) throw new Error("Storage unavailable");
+          const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
+          await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
+          uploadedAvatar = await getDownloadURL(avatarRef);
+        } catch {
+          uploadedAvatar = await compactProfileImage(avatarFile);
+        }
       }
-      const data: any = { name, bio, city, avatarUrl: uploadedAvatar, profileUpdatedAt: new Date().toISOString() };
-      if (role === "tasker") {
+      if ((role === "customer" || role === "tasker") && role !== accountType) await setAccountType(accountType);
+      const data: any = {
+        name, bio, city, avatarUrl: uploadedAvatar,
+        profileComplete: Boolean(name.trim() && bio.trim() && city.trim() && (accountType === "customer" || skills.trim())),
+        profileUpdatedAt: new Date().toISOString(),
+      };
+      if (accountType === "tasker") {
         data.skills = skills.split(",").map(s => s.trim()).filter(Boolean);
         data.languages = languages.split(",").map(s => s.trim()).filter(Boolean);
         data.hourlyRate = Math.max(0, Number(hourlyRate) || 0);
+        data.professionalTitle = professionalTitle.trim();
+        data.experienceYears = Math.max(0, Number(experienceYears) || 0);
+        data.availability = availability;
+        data.portfolioUrl = portfolioUrl.trim();
+        data.certifications = certifications.split(",").map(s => s.trim()).filter(Boolean);
+      } else {
+        data.organization = organization.trim();
+        data.hiringNeeds = hiringNeeds.trim();
       }
       if (isAdmin) data.isPrivate = isPrivate;
       await updateDoc(doc(db, "users", user.uid), data); setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
@@ -132,11 +161,12 @@ export default function ProfilePage() {
 
       <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
         <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
+        {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink-200 p-4 text-sm font-semibold text-ink-500 hover:border-brand"><Camera className="h-5 w-5 text-brand" /><span>{avatarFile ? avatarFile.name : "Upload JPG, PNG or WebP (max 5 MB)"}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} /></label></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">City</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" /></div>
-        {role === "tasker" && <><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. Cleaning, Gardening, Delivery" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div></div></>}
+        {accountType === "tasker" ? <><div><label className="mb-1.5 block text-sm font-medium text-ink">Professional title</label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} placeholder="e.g. Full-stack developer" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Shopify, Graphic Design" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Experience (years)</label><Input type="number" min="0" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} /></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Availability</label><select value={availability} onChange={(e) => setAvailability(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink"><option>Available now</option><option>Part-time</option><option>Weekends</option><option>Not available</option></select></div></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label><Input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://yourportfolio.com" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Certifications (comma separated)</label><Input value={certifications} onChange={(e) => setCertifications(e.target.value)} placeholder="Google UX, AWS, TEVTA" /></div></> : <><div><label className="mb-1.5 block text-sm font-medium text-ink">Company / organization (optional)</label><Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Your company or team" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">What do you usually hire for?</label><textarea value={hiringNeeds} onChange={(e) => setHiringNeeds(e.target.value)} rows={3} placeholder="Tell freelancers what kind of help you need..." className="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm text-ink" /></div></>}
         {isAdmin && <label className="flex items-start gap-3 rounded-2xl bg-ink p-4 text-sm text-white"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand" /><span><span className="block font-extrabold">Internal private provider</span><span className="mt-1 block text-xs leading-5 text-white/50">Hidden from public discovery and available for managed private assignments.</span></span></label>}
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}
@@ -164,4 +194,29 @@ export default function ProfilePage() {
       )}
     </div>
   );
+}
+
+async function compactProfileImage(file: File): Promise<string> {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const value = new Image();
+      value.onload = () => resolve(value);
+      value.onerror = () => reject(new Error("The selected image could not be read."));
+      value.src = objectUrl;
+    });
+    const maxSide = 512;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image processing is not supported in this browser.");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const encoded = canvas.toDataURL("image/jpeg", 0.76);
+    if (encoded.length > 700_000) throw new Error("Please choose a simpler or smaller profile image.");
+    return encoded;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }

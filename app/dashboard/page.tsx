@@ -18,7 +18,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { listTasksByPoster, listBidsByUser, getTask, type Task, type Bid } from "@/lib/tasks";
+import { listTasksByPoster, listBidsByUser, listPublicTasks, getTask, type Task, type Bid } from "@/lib/tasks";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
@@ -30,6 +30,7 @@ type View = "client" | "tasker";
 export default function DashboardPage() {
   const { user, role, loading } = useAuth();
   const [posted, setPosted] = useState<Task[]>([]);
+  const [opportunities, setOpportunities] = useState<Task[]>([]);
   const [myBids, setMyBids] = useState<BidWithTask[]>([]);
   const [wallet, setWallet] = useState(0);
   const [busy, setBusy] = useState(true);
@@ -41,14 +42,25 @@ export default function DashboardPage() {
   }, [role]);
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading || !user || !role) return;
     (async () => {
       try {
-        const [p, b] = await Promise.all([listTasksByPoster(user.uid), listBidsByUser(user.uid)]);
-        const withTasks = await Promise.all(b.map(async (bid) => ({ ...bid, task: await getTask(bid.taskId) })));
-        setPosted(p);
-        setMyBids(withTasks);
-      } catch {}
+        if (role === "tasker") {
+          const [available, bids] = await Promise.all([listPublicTasks(), listBidsByUser(user.uid)]);
+          const withTasks = await Promise.all(bids.map(async (bid) => ({ ...bid, task: await getTask(bid.taskId) })));
+          setOpportunities(available.filter((task) => task.status === "open"));
+          setMyBids(withTasks);
+          setPosted([]);
+        } else {
+          setPosted(await listTasksByPoster(user.uid));
+          setOpportunities([]);
+          setMyBids([]);
+        }
+      } catch {
+        setPosted([]);
+        setOpportunities([]);
+        setMyBids([]);
+      }
       try {
         if (db) {
           const s = await getDoc(doc(db, "users", user.uid));
@@ -57,7 +69,7 @@ export default function DashboardPage() {
       } catch {}
       setBusy(false);
     })();
-  }, [loading, user]);
+  }, [loading, user, role]);
 
   if (!loading && !user) {
     if (typeof window !== "undefined") window.location.href = "/login";
@@ -85,7 +97,7 @@ export default function DashboardPage() {
     { icon: Wallet, label: "Earned", value: formatPKR(taskerEarned), tone: "bg-amber-50 text-amber-700" },
   ];
   const stats = view === "client" ? clientStats : taskerStats;
-  const rows = view === "client" ? posted : myBids;
+  const rows = view === "client" ? posted : opportunities;
 
   return (
     <div className="bg-canvas py-8 sm:py-10">
@@ -120,7 +132,7 @@ export default function DashboardPage() {
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
           <section className="surface overflow-hidden">
             <div className="flex items-center justify-between border-b border-ink-100 p-5 sm:p-6">
-              <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">{view === "client" ? "Client workspace" : "Tasker workspace"}</p><h2 className="mt-1 text-xl font-black text-ink">{view === "client" ? "Your tasks" : "Your offers"}</h2></div>
+              <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">{view === "client" ? "Client workspace" : "Freelancer workspace"}</p><h2 className="mt-1 text-xl font-black text-ink">{view === "client" ? "Your tasks" : "Tasks you can bid on"}</h2></div>
               <Link href={view === "client" ? "/post" : "/tasks"} className="flex items-center gap-1.5 text-xs font-extrabold text-brand-dark">{view === "client" ? "Post new" : "Find work"} <ArrowRight className="h-3.5 w-3.5" /></Link>
             </div>
 
@@ -129,8 +141,8 @@ export default function DashboardPage() {
             ) : rows.length === 0 ? (
               <div className="px-6 py-16 text-center">
                 <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-ink-50 text-ink-300">{view === "client" ? <BriefcaseBusiness className="h-5 w-5" /> : <Search className="h-5 w-5" />}</span>
-                <h3 className="mt-4 font-black text-ink">{view === "client" ? "No tasks posted yet" : "No offers sent yet"}</h3>
-                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-ink-500">{view === "client" ? "Post your first task and let Workly route it to the right professionals." : "Browse approved work and send a focused, competitive offer."}</p>
+                <h3 className="mt-4 font-black text-ink">{view === "client" ? "No tasks posted yet" : "No open tasks right now"}</h3>
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-ink-500">{view === "client" ? "Post your first task and let Workly route it to the right professionals." : "New client tasks will appear here as soon as they are approved."}</p>
                 <Link href={view === "client" ? "/post" : "/tasks"} className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-dark">{view === "client" ? "Post a task" : "Browse work"} <ArrowRight className="h-4 w-4" /></Link>
               </div>
             ) : (
@@ -142,11 +154,11 @@ export default function DashboardPage() {
                     <span className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase ${task.status === "pending" ? "bg-amber-50 text-amber-700" : task.status === "completed" ? "bg-green-50 text-green-700" : "bg-brand-50 text-brand-dark"}`}>{task.status.replace("_", " ")}</span>
                     <ArrowRight className="hidden h-4 w-4 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand sm:block" />
                   </Link>
-                )) : myBids.slice(0, 8).map(bid => (
-                  <Link key={bid.id} href={`/tasks/${bid.taskId}`} className="group flex items-center gap-4 p-5 transition hover:bg-ink-50/70 sm:p-6">
+                )) : opportunities.slice(0, 8).map(task => (
+                  <Link key={task.id} href={`/tasks/${task.id}`} className="group flex items-center gap-4 p-5 transition hover:bg-ink-50/70 sm:p-6">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600"><Gavel className="h-5 w-5" /></span>
-                    <div className="min-w-0 flex-1"><p className="truncate font-black text-ink group-hover:text-brand-dark">{bid.task?.title || "Task"}</p><p className="mt-1 truncate text-xs font-semibold text-ink-400">{bid.message || "Offer submitted"}</p></div>
-                    <div className="text-right"><p className="text-sm font-black text-ink">{formatPKR(bid.amount)}</p><p className={`mt-1 text-[10px] font-black uppercase ${bid.status === "selected" ? "text-brand-dark" : "text-ink-400"}`}>{bid.status === "selected" ? "Won" : "Pending"}</p></div>
+                    <div className="min-w-0 flex-1"><p className="truncate font-black text-ink group-hover:text-brand-dark">{task.title}</p><p className="mt-1 truncate text-xs font-semibold text-ink-400">{task.category} · {task.location} · {task.bidsCount} offers</p></div>
+                    <div className="text-right"><p className="text-sm font-black text-ink">{formatPKR(task.budget)}</p><p className="mt-1 text-[10px] font-black uppercase text-brand-dark">Bid now</p></div>
                   </Link>
                 ))}
               </div>
@@ -167,6 +179,23 @@ export default function DashboardPage() {
             </Link>
           </aside>
         </div>
+
+        {view === "tasker" && (
+          <section className="surface mt-6 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-ink-100 p-5 sm:p-6">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Your activity</p><h2 className="mt-1 text-xl font-black text-ink">Offers you sent</h2></div>
+              <Link href="/tasks" className="flex items-center gap-1.5 text-xs font-extrabold text-brand-dark">Find more work <ArrowRight className="h-3.5 w-3.5" /></Link>
+            </div>
+            {myBids.length === 0 ? <p className="p-6 text-sm font-medium text-ink-500">You have not sent an offer yet.</p> : (
+              <div className="divide-y divide-ink-100">{myBids.slice(0, 8).map((bid) => (
+                <Link key={bid.id} href={`/tasks/${bid.taskId}`} className="flex items-center gap-4 p-5 transition hover:bg-ink-50 sm:px-6">
+                  <div className="min-w-0 flex-1"><p className="truncate font-black text-ink">{bid.task?.title || "Task"}</p><p className="mt-1 truncate text-xs text-ink-400">{bid.message || "Offer submitted"}</p></div>
+                  <div className="text-right"><p className="text-sm font-black text-ink">{formatPKR(bid.amount)}</p><p className="mt-1 text-[10px] font-black uppercase text-ink-400">{bid.status}</p></div>
+                </Link>
+              ))}</div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );

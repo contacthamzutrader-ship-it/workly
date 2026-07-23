@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   signInWithPopup,
   GoogleAuthProvider,
   signOut as fbSignOut,
@@ -25,6 +26,7 @@ type AuthContextType = {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name: string, role: "customer" | "tasker") => Promise<void>;
   signInWithGoogle: (role?: "customer" | "tasker") => Promise<void>;
+  setAccountType: (role: "customer" | "tasker") => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -38,20 +40,39 @@ function assertConfig() {
   }
 }
 
-async function ensureUserDoc(u: User, name: string, selectedRole: "customer" | "tasker" = "customer") {
+let pendingSignupRole: "customer" | "tasker" | null = null;
+
+function newUserProfile(u: User, name: string, selectedRole: "customer" | "tasker") {
+  return {
+    uid: u.uid,
+    name: name || u.displayName || "",
+    email: u.email,
+    role: selectedRole,
+    isTasker: selectedRole === "tasker",
+    isPrivate: false,
+    wallet: 0,
+    profileComplete: false,
+    createdAt: serverTimestamp(),
+  };
+}
+
+async function ensureUserDoc(
+  u: User,
+  name: string,
+  selectedRole: "customer" | "tasker" = "customer",
+  forcePublicRole = false
+) {
   if (!db) return;
   const ref = doc(db, "users", u.uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
+    await setDoc(ref, newUserProfile(u, name, selectedRole));
+  } else if (forcePublicRole) {
     await setDoc(ref, {
-      uid: u.uid,
-      name: name || u.displayName || "",
-      email: u.email,
       role: selectedRole,
       isTasker: selectedRole === "tasker",
-      isPrivate: false,
-      createdAt: serverTimestamp(),
-    });
+      ...(name ? { name } : {}),
+    }, { merge: true });
   }
 }
 
@@ -68,7 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      if (u && db) {
+      try {
+        if (u && db) {
         // 1) OWNER is always super_admin — deterministic, never flaky.
         if (u.email && u.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
           setRole("super_admin");
@@ -84,11 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: "super_admin",
                 isTasker: true,
                 isPrivate: false,
+                wallet: 0,
                 createdAt: serverTimestamp(),
               });
             }
           }
-          setLoading(false);
           return;
         }
 
@@ -98,16 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (snap.exists()) {
           setRole((snap.data().role as Role) || "customer");
         } else {
-          await setDoc(ref, {
-            uid: u.uid,
-            name: u.displayName || u.email || "",
-            email: u.email,
-            role: "customer",
-            isTasker: true,
-            isPrivate: false,
-            createdAt: serverTimestamp(),
-          });
-          setRole("customer");
+          const selectedRole = pendingSignupRole || "customer";
+          await setDoc(ref, newUserProfile(u, u.displayName || u.email || "", selectedRole));
+          setRole(selectedRole);
         }
 
         // 3) Check admins collection for permission-based admin.
@@ -118,11 +133,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setAdminSession(null);
         }
-      } else {
+        } else {
+          setRole(null);
+          setAdminSession(null);
+        }
+      } catch (error) {
+        console.error("Could not load the signed-in Workly profile", error);
         setRole(null);
         setAdminSession(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -134,14 +155,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUpWithEmail = async (email: string, password: string, name: string, selectedRole: "customer" | "tasker") => {
     assertConfig();
-    const cred = await createUserWithEmailAndPassword(auth!, email, password);
-    await ensureUserDoc(cred.user, name, selectedRole);
+    pendingSignupRole = selectedRole;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth!, email, password);
+      await ensureUserDoc(cred.user, name, selectedRole, true);
+      setRole(selectedRole);
+    } finally {
+      pendingSignupRole = null;
+    }
   };
 
   const signInWithGoogle = async (selectedRole: "customer" | "tasker" = "customer") => {
     assertConfig();
-    const cred = await signInWithPopup(auth!, new GoogleAuthProvider());
-    await ensureUserDoc(cred.user, "", selectedRole);
+    pendingSignupRole = selectedRole;
+    try {
+      const cred = await signInWithPopup(auth!, new GoogleAuthProvider());
+      const isNewUser = getAdditionalUserInfo(cred)?.isNewUser === true;
+      await ensureUserDoc(cred.user, "", selectedRole, isNewUser);
+      if (isNewUser) setRole(selectedRole);
+    } finally {
+      pendingSignupRole = null;
+    }
+  };
+
+  const setAccountType = async (selectedRole: "customer" | "tasker") => {
+    assertConfig();
+    const currentUser = auth!.currentUser;
+    if (!currentUser) throw new Error("Sign in before changing your account type.");
+    await setDoc(doc(db!, "users", currentUser.uid), {
+      role: selectedRole,
+      isTasker: selectedRole === "tasker",
+    }, { merge: true });
+    setRole(selectedRole);
   };
 
   const signOut = async () => {
@@ -160,6 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,
+        setAccountType,
         signOut,
       }}
     >

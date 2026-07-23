@@ -45,15 +45,45 @@ test("profiles use durable image storage with upload restrictions", async () => 
   const storageRules = await read("storage.rules");
   assert.match(profile, /profile-images\/\$\{user\.uid\}\/avatar/);
   assert.match(profile, /5 \* 1024 \* 1024/);
+  assert.match(profile, /compactProfileImage/);
+  assert.match(profile, /canvas\.toDataURL\("image\/jpeg"/);
   assert.match(storageRules, /request\.auth\.uid == uid/);
   assert.match(storageRules, /image\/\(jpeg\|png\|webp\)/);
 });
 
 test("security rules protect privileged collections", async () => {
   const rules = await read("firestore.rules");
-  assert.match(rules, /request\.resource\.data\.role in \['customer', 'tasker'\]/);
+  assert.match(rules, /function publicRole\(role\)/);
+  assert.match(rules, /return role in \['customer', 'tasker'\]/);
   assert.match(rules, /match \/admins\/\{uid\}/);
   assert.match(rules, /hasPermission\('manageAdmins'\)/);
   assert.match(rules, /match \/wallet_txs\/\{transactionId\}/);
   assert.match(rules, /match \/disputes\/\{disputeId\}/);
+});
+
+test("signup preserves the selected role without an auth-listener race", async () => {
+  const auth = await read("lib/auth-context.tsx");
+  assert.match(auth, /pendingSignupRole = selectedRole/);
+  assert.match(auth, /ensureUserDoc\(cred\.user, name, selectedRole, true\)/);
+  assert.match(auth, /isTasker: selectedRole === "tasker"/);
+  assert.match(auth, /wallet: 0/);
+});
+
+test("freelancers see opportunities but cannot post tasks", async () => {
+  const dashboard = await read("app/dashboard/page.tsx");
+  const tasksPage = await read("app/tasks/page.tsx");
+  assert.match(dashboard, /listPublicTasks\(\)/);
+  assert.match(dashboard, /Tasks you can bid on/);
+  assert.match(tasksPage, /\{canPost && <Link href="\/post"/);
+});
+
+test("private task links are token claimed by exactly one freelancer", async () => {
+  const tasks = await read("lib/tasks.ts");
+  const admin = await read("app/admin/page.tsx");
+  const rules = await read("firestore.rules");
+  assert.match(tasks, /export async function claimPrivateTask/);
+  assert.match(admin, /\/tasks\/\$\{task\.id\}\?invite=\$\{token\}/);
+  assert.match(rules, /match \/task_invites\/\{taskId\}/);
+  assert.match(rules, /request\.resource\.data\.token == task\(taskId\)\.shareToken/);
+  assert.match(rules, /allow update: if false/);
 });
