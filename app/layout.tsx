@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import AppShell from "@/components/AppShell";
+
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = headers();
@@ -19,6 +21,11 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s | Workly",
     },
     description,
+    icons: {
+      icon: "/workly-mark.png",
+      shortcut: "/workly-mark.png",
+      apple: "/workly-mark.png",
+    },
     openGraph: {
       type: "website",
       siteName: "Workly",
@@ -37,12 +44,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="flex min-h-screen flex-col bg-canvas font-sans text-ink">
+    <html lang="en" className={manrope.variable}>
+      <body className="min-h-screen bg-canvas font-sans text-ink">
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
     </html>

@@ -87,3 +87,25 @@ test("private task links are token claimed by exactly one freelancer", async () 
   assert.match(rules, /request\.resource\.data\.token == task\(taskId\)\.shareToken/);
   assert.match(rules, /allow update: if false/);
 });
+
+test("owner account is locked to the complete admin command centre", async () => {
+  const shell = await read("components/AppShell.tsx");
+  const admin = await read("app/admin/page.tsx");
+  const config = await read("lib/admin.ts");
+  assert.match(config, /contact\.hamzutrader@gmail\.com/);
+  assert.match(shell, /ownerMode && pathname !== "\/admin"/);
+  assert.match(shell, /router\.replace\("\/admin"\)/);
+  assert.match(admin, /All tasks/);
+  assert.match(admin, /Finance & disputes/);
+  assert.match(admin, /Every platform task/);
+});
+
+test("premium brand mark replaces the old tagline", async () => {
+  const layout = await read("app/layout.tsx");
+  const navbar = await read("components/Navbar.tsx");
+  const footer = await read("components/Footer.tsx");
+  const brand = await read("components/BrandLogo.tsx");
+  assert.match(layout, /workly-mark\.png/);
+  assert.match(brand, /src="\/workly-mark\.png"/);
+  assert.doesNotMatch(`${navbar}\n${footer}`, /Kaam\. Kamal/i);
+});

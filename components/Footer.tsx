@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, ShieldCheck } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 
 const columns = {
   Marketplace: [
     { label: "Browse tasks", href: "/tasks" },
     { label: "Post a task", href: "/post" },
-    { label: "Become a tasker", href: "/signup" },
+    { label: "Become a freelancer", href: "/signup" },
     { label: "Your dashboard", href: "/dashboard" },
   ],
   Support: [
@@ -22,10 +23,7 @@ export default function Footer() {
       <div className="page-shell">
         <div className="grid grid-cols-2 gap-10 py-14 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-brand text-white"><Sparkles className="h-5 w-5" /></span>
-              <span className="text-xl font-black tracking-[-0.04em]">Workly</span>
-            </Link>
+            <BrandLogo inverted compact />
             <p className="mt-5 max-w-xs text-sm leading-6 text-white/60">
               Pakistan&apos;s people-powered marketplace for getting local and digital work done safely.
             </p>
@@ -60,7 +58,7 @@ export default function Footer() {
 
         <div className="flex flex-col gap-2 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <span>&copy; {new Date().getFullYear()} Workly. All rights reserved.</span>
-          <span>Kaam. Kamal. Har dafa.</span>
+          <span>Pakistan&apos;s trusted work marketplace.</span>
         </div>
       </div>
     </footer>

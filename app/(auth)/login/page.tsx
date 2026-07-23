@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import BrandLogo from "@/components/BrandLogo";
+import { OWNER_EMAIL } from "@/lib/admin";
 
 export default function LoginPage() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
@@ -29,7 +31,7 @@ export default function LoginPage() {
     setError("");
     try {
       await signInWithEmail(email, password);
-      router.push(redirect);
+      router.push(email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase() ? "/admin" : redirect);
     } catch (err: any) {
       setError(err?.message || "We could not sign you in.");
     } finally {
@@ -53,7 +55,7 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-md">
       <div className="mb-8">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white shadow-glow"><Sparkles className="h-5 w-5" /></span>
+        <BrandLogo />
         <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Welcome back.</h1>
         <p className="mt-2 text-sm font-medium text-ink-500">Your tasks, offers and payments are waiting.</p>
       </div>

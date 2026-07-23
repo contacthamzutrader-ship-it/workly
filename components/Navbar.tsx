@@ -13,13 +13,13 @@ import {
   MessageSquare,
   Plus,
   ShieldCheck,
-  Sparkles,
   User,
   UserPlus,
   Wallet,
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Navbar() {
   const { user, role, signOut } = useAuth();
@@ -52,34 +52,25 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/90 backdrop-blur-2xl">
-      <div className="page-shell flex h-[72px] items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[14px] bg-ink text-white shadow-sm">
-            <span className="absolute -right-3 -top-3 h-7 w-7 rounded-full bg-brand" />
-            <Sparkles className="relative h-5 w-5" />
-          </span>
-          <span>
-            <span className="block text-xl font-black leading-none tracking-[-0.04em] text-ink">Workly</span>
-            <span className="mt-1 block text-[9px] font-extrabold uppercase tracking-[0.19em] text-brand">Kaam. Kamal.</span>
-          </span>
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-ink-100/70 bg-white/88 shadow-[0_1px_0_rgba(7,24,46,0.02)] backdrop-blur-2xl">
+      <div className="page-shell flex h-[76px] items-center justify-between">
+        <BrandLogo compact />
 
         <nav className="hidden items-center gap-1 lg:flex">{primaryLinks}</nav>
 
         <div className="hidden items-center gap-2 lg:flex">
           {user ? (
             <>
-              {canPost && <Link href="/post" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-extrabold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-brand-dark">
+              {canPost && <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-[14px] bg-brand px-5 text-sm font-bold text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-brand-dark">
                 <Plus className="h-4 w-4" /> Post a task
               </Link>}
-              <Link href="/notifications" aria-label="Notifications" className="relative grid h-11 w-11 place-items-center rounded-xl border border-ink-100 bg-white text-ink-500 transition hover:bg-ink-50 hover:text-ink">
+              <Link href="/notifications" aria-label="Notifications" className="relative grid h-12 w-12 place-items-center rounded-[14px] border border-ink-100 bg-white text-ink-500 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand">
                 <Bell className="h-4 w-4" />
                 <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-brand" />
               </Link>
               <div className="relative">
-                <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-11 items-center gap-2 rounded-xl border border-ink-100 bg-white px-2 pr-3 text-left transition hover:bg-ink-50">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-ink text-xs font-black text-white">
+                <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-12 items-center gap-2 rounded-[14px] border border-ink-100 bg-white px-2 pr-3 text-left transition hover:border-brand-200 hover:bg-brand-50">
+                  <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-ink text-xs font-black text-white">
                     {(user.displayName || user.email || "U")[0].toUpperCase()}
                   </span>
                   <span className="max-w-[100px] truncate text-xs font-extrabold text-ink">{user.displayName || "Account"}</span>

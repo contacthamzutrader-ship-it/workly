@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, Sparkles, UserRoundSearch } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, UserRoundSearch } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function SignupPage() {
   const { signUpWithEmail, signInWithGoogle } = useAuth();
@@ -49,7 +50,7 @@ export default function SignupPage() {
   return (
     <div className="w-full max-w-md">
       <div className="mb-7">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white shadow-glow"><Sparkles className="h-5 w-5" /></span>
+        <BrandLogo />
         <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Choose how you use Workly.</h1>
         <p className="mt-2 text-sm font-medium text-ink-500">Your workspace and permissions will match this account type.</p>
       </div>

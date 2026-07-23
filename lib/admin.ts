@@ -8,6 +8,7 @@ import {
   updateDoc,
   query,
   limit,
+  serverTimestamp,
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
@@ -137,4 +138,14 @@ export async function setUserPrivateStatus(uid: string, isPrivate: boolean): Pro
     doc(db, "users", uid),
     isPrivate ? { isPrivate: true, isTasker: true } : { isPrivate: false }
   );
+}
+
+export async function setUserPublicRole(uid: string, role: "customer" | "tasker"): Promise<void> {
+  if (!db) throw new Error("Firebase not configured");
+  await updateDoc(doc(db, "users", uid), {
+    role,
+    isTasker: role === "tasker",
+    isPrivate: false,
+    roleUpdatedAt: serverTimestamp(),
+  });
 }

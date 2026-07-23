@@ -18,7 +18,10 @@ import {
   KeyRound,
   LayoutDashboard,
   Link2,
+  ListChecks,
   Lock,
+  LogOut,
+  ReceiptText,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -51,6 +54,7 @@ import {
   removeAdmin,
   setAutoApprove,
   setUserPrivateStatus,
+  setUserPublicRole,
   updateAdminPermissions,
   type Permission,
 } from "@/lib/admin";
@@ -58,11 +62,11 @@ import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
-type Tab = "overview" | "approvals" | "users" | "admins" | "settings";
+type Tab = "overview" | "approvals" | "tasks" | "finance" | "users" | "admins" | "settings";
 const COMPANY_ADMIN_DEFAULTS: Permission[] = ["approveTasks", "manageUsers", "manageContent", "viewAnalytics"];
 
 export default function AdminPage() {
-  const { user, role, loading, adminSession } = useAuth();
+  const { user, role, loading, adminSession, signOut } = useAuth();
   const router = useRouter();
   const session = adminSession
     ?? (role === "super_admin" ? ownerSession() : null)
@@ -73,6 +77,8 @@ export default function AdminPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
   const [busy, setBusy] = useState(true);
   const [actionBusy, setActionBusy] = useState("");
   const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
@@ -92,19 +98,24 @@ export default function AdminPage() {
     setBusy(true);
     try {
       const needsUsers = can("approveTasks") || can("manageUsers") || can("viewAnalytics");
-      const needsTasks = can("viewAnalytics");
-      const [pendingData, privateData, usersSnap, taskSnap, adminData] = await Promise.all([
+      const needsTasks = can("viewAnalytics") || can("manageContent");
+      const needsFinance = can("managePayments");
+      const [pendingData, privateData, usersSnap, taskSnap, adminData, transactionSnap, disputeSnap] = await Promise.all([
         can("approveTasks") ? listPendingTasks() : Promise.resolve([]),
         can("approveTasks") || can("manageContent") ? listPrivateTasks() : Promise.resolve([]),
         needsUsers && db ? getDocs(query(collection(db, "users"), limit(500))) : Promise.resolve(null),
         needsTasks && db ? getDocs(query(collection(db, "tasks"), limit(500))) : Promise.resolve(null),
         can("manageAdmins") ? listAdmins() : Promise.resolve([]),
+        needsFinance && db ? getDocs(query(collection(db, "wallet_txs"), limit(500))) : Promise.resolve(null),
+        needsFinance && db ? getDocs(query(collection(db, "disputes"), limit(200))) : Promise.resolve(null),
       ]);
       setPending(pendingData);
       setPrivateTasks(privateData);
       if (usersSnap) setAllUsers(usersSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
       if (taskSnap) setAllTasks(taskSnap.docs.map((item) => ({ id: item.id, ...item.data() } as Task)));
       setAdmins(adminData);
+      if (transactionSnap) setTransactions(transactionSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (disputeSnap) setDisputes(disputeSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
     } catch (err: any) {
       setError(err?.message || "Some admin data could not be loaded.");
     } finally {
@@ -206,9 +217,24 @@ export default function AdminPage() {
     }
   };
 
+  const changeUserRole = async (member: any, nextRole: "customer" | "tasker") => {
+    setActionBusy(member.id);
+    setError("");
+    try {
+      await setUserPublicRole(member.id, nextRole);
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not change this account role.");
+    } finally {
+      setActionBusy("");
+    }
+  };
+
   const tabs: { id: Tab; label: string; icon: any; show: boolean; count?: number }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard, show: can("viewAnalytics") },
     { id: "approvals", label: "Approval centre", icon: ShieldCheck, show: can("approveTasks"), count: pending.length },
+    { id: "tasks", label: "All tasks", icon: ListChecks, show: can("viewAnalytics") || can("manageContent"), count: allTasks.length },
+    { id: "finance", label: "Finance & disputes", icon: ReceiptText, show: can("managePayments"), count: disputes.filter((item) => item.status !== "resolved").length },
     { id: "users", label: "People", icon: Users, show: can("manageUsers") || can("approveTasks") },
     { id: "admins", label: "Admin team", icon: KeyRound, show: can("manageAdmins") },
     { id: "settings", label: "Controls", icon: Settings, show: can("manageContent") },
@@ -228,7 +254,7 @@ export default function AdminPage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-white/60 sm:flex"><span className="h-2 w-2 rounded-full bg-brand-light" /> Systems operational</span>
-              <Link href="/dashboard" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">Exit admin <ArrowRight className="h-4 w-4" /></Link>
+              {session.isOwner ? <button onClick={async () => { await signOut(); router.replace("/login"); }} className="inline-flex min-h-12 items-center gap-2 rounded-[14px] bg-white px-5 text-sm font-bold text-ink transition hover:bg-brand-100">Sign out <LogOut className="h-4 w-4" /></button> : <Link href="/dashboard" className="inline-flex min-h-12 items-center gap-2 rounded-[14px] bg-white px-5 text-sm font-bold text-ink transition hover:bg-brand-100">Exit admin <ArrowRight className="h-4 w-4" /></Link>}
             </div>
           </div>
         </div>
@@ -349,6 +375,44 @@ export default function AdminPage() {
               </div>
             )}
 
+            {activeTab === "tasks" && (can("viewAnalytics") || can("manageContent")) && (
+              <section className="surface mt-6 overflow-hidden">
+                <div className="flex flex-col gap-3 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Marketplace inventory</p><h2 className="mt-1 text-xl font-black text-ink">Every platform task</h2></div>
+                  <span className="rounded-full bg-brand-50 px-3 py-1.5 text-xs font-black text-brand-dark">{allTasks.length} total</span>
+                </div>
+                {allTasks.length === 0 ? <p className="p-8 text-sm text-ink-500">No tasks have been created yet.</p> : <div className="divide-y divide-ink-100">{allTasks.map((task) => (
+                  <Link key={task.id} href={`/tasks/${task.id}`} className="grid gap-4 p-5 transition hover:bg-ink-50/70 sm:grid-cols-[minmax(0,1fr)_150px_130px_28px] sm:items-center sm:px-6">
+                    <div className="min-w-0"><p className="truncate text-sm font-black text-ink">{task.title}</p><p className="mt-1 truncate text-xs font-medium text-ink-400">{task.posterName} · {task.category} · {task.location}</p></div>
+                    <p className="text-sm font-black text-ink">{formatPKR(task.budget)}</p>
+                    <div className="flex flex-wrap gap-1.5"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase text-ink-500">{task.status.replace("_", " ")}</span><span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${task.visibility === "private" ? "bg-purple-50 text-purple-700" : "bg-brand-50 text-brand-dark"}`}>{task.visibility}</span></div>
+                    <ArrowRight className="h-4 w-4 text-ink-300" />
+                  </Link>
+                ))}</div>}
+              </section>
+            )}
+
+            {activeTab === "finance" && can("managePayments") && (
+              <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+                <section className="surface overflow-hidden">
+                  <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Money movement</p><h2 className="mt-1 text-xl font-black text-ink">Wallet transactions</h2></div>
+                  {transactions.length === 0 ? <p className="p-8 text-sm text-ink-500">No transactions recorded yet.</p> : <div className="divide-y divide-ink-100">{transactions.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 p-5 sm:px-6">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><CircleDollarSign className="h-5 w-5" /></span>
+                      <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-ink">{item.note || item.type || "Wallet transaction"}</p><p className="mt-1 truncate text-xs font-medium text-ink-400">User: {item.userId || "—"}{item.taskId ? ` · Task: ${item.taskId}` : ""}</p></div>
+                      <div className="text-right"><p className="text-sm font-black text-ink">{formatPKR(Number(item.amount) || 0)}</p><p className="mt-1 text-[10px] font-black uppercase text-ink-400">{item.type || "entry"}</p></div>
+                    </div>
+                  ))}</div>}
+                </section>
+                <section className="surface overflow-hidden">
+                  <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-red-600">Resolution desk</p><h2 className="mt-1 text-xl font-black text-ink">Disputes</h2></div>
+                  {disputes.length === 0 ? <div className="p-8 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-brand" /><p className="mt-3 text-sm font-bold text-ink">No disputes</p><p className="mt-1 text-xs text-ink-400">The resolution queue is clear.</p></div> : <div className="divide-y divide-ink-100">{disputes.map((item) => (
+                    <div key={item.id} className="p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black text-ink">{item.reason || item.title || "Task dispute"}</p><span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase text-red-700">{item.status || "open"}</span></div><p className="mt-2 text-xs leading-5 text-ink-500">{item.description || `Task ${item.taskId || "not specified"}`}</p></div>
+                  ))}</div>}
+                </section>
+              </div>
+            )}
+
             {activeTab === "users" && (can("manageUsers") || can("approveTasks")) && (
               <section className="surface mt-6 overflow-hidden">
                 <div className="flex flex-col gap-4 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -360,7 +424,7 @@ export default function AdminPage() {
                     <div key={member.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                       <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-ink text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-ink-50 px-3 py-1.5 text-[10px] font-black uppercase text-ink-500">{member.role || "customer"}</span>
+                        {member.role === "super_admin" ? <span className="rounded-full bg-ink px-3 py-1.5 text-[10px] font-black uppercase text-white">Owner</span> : <select value={member.role === "tasker" ? "tasker" : "customer"} onChange={(event) => changeUserRole(member, event.target.value as "customer" | "tasker")} disabled={actionBusy === member.id} className="min-h-9 rounded-xl border border-ink-200 bg-white px-3 text-[11px] font-extrabold text-ink focus:border-brand focus:outline-none"><option value="customer">Client</option><option value="tasker">Freelancer</option></select>}
                         {member.role === "tasker" && <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>}
                       </div>
                     </div>
