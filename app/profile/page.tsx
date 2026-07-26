@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles, Camera } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, Bot, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles, Camera, Clock3 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth, storage } from "@/lib/firebase";
@@ -12,6 +12,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { interviewStatusLabel, interviewStatusTone, type InterviewStatus } from "@/lib/interview";
 
 export default function ProfilePage() {
   const { user, role, loading, setAccountType } = useAuth();
@@ -40,6 +41,9 @@ export default function ProfilePage() {
   const [certifications, setCertifications] = useState("");
   const [organization, setOrganization] = useState("");
   const [hiringNeeds, setHiringNeeds] = useState("");
+  const [interviewStatus, setInterviewStatus] = useState<InterviewStatus>("not_started");
+  const [interviewScore, setInterviewScore] = useState<number | null>(null);
+  const [interviewSummary, setInterviewSummary] = useState("");
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -59,6 +63,7 @@ export default function ProfilePage() {
         setProfessionalTitle(d.professionalTitle ?? ""); setExperienceYears(d.experienceYears ? String(d.experienceYears) : "");
         setAvailability(d.availability ?? "Available now"); setPortfolioUrl(d.portfolioUrl ?? ""); setCertifications((d.certifications || []).join(", "));
         setOrganization(d.organization ?? ""); setHiringNeeds(d.hiringNeeds ?? "");
+        setInterviewStatus(d.interviewStatus ?? "not_started"); setInterviewScore(typeof d.interviewScore === "number" ? d.interviewScore : null); setInterviewSummary(d.interviewSummary ?? "");
       }
       setReviews(await listReviewsForUser(user.uid));
 
@@ -134,7 +139,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>}
-            <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Workly profile"}</h1><BadgeCheck className="h-5 w-5 text-brand-light" /></div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
+            <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Workly profile"}</h1>{interviewStatus === "verified" && <BadgeCheck className="h-5 w-5 text-emerald-300" aria-label="Workly interviewed" />}</div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? `${professionalTitle || "Freelancer"} · ` : ""}{role || "member"}</p></div>
           </div>
           <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
         </div>
@@ -158,6 +163,33 @@ export default function ProfilePage() {
             <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-xs text-ink-500">Tasks Done</p></div></div>
         </div>
       </div>
+
+      {role === "tasker" && (
+        <section className={`mt-6 overflow-hidden rounded-[30px] p-6 text-white shadow-elevated sm:p-8 ${interviewStatus === "verified" ? "bg-emerald-700" : "bg-ink"}`}>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${interviewStatus === "verified" ? "bg-white/15" : "bg-brand"}`}>
+                {interviewStatus === "verified" ? <BadgeCheck className="h-6 w-6" /> : interviewStatus === "awaiting_review" ? <Clock3 className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
+              </span>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-black">AI-assisted profile interview</h2>
+                  <span className={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${interviewStatusTone(interviewStatus)}`}>{interviewStatusLabel(interviewStatus)}</span>
+                </div>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60">
+                  {interviewStatus === "verified" ? interviewSummary || "Your role-relevant answers were reviewed by the Workly team." : interviewStatus === "awaiting_review" ? "Aira prepared your evidence summary. A human reviewer makes the badge decision." : interviewStatus === "in_progress" ? "Your previous answers are saved. Continue with the next structured question." : "Answer four role-specific questions, show real work evidence, and earn a human-reviewed profile badge."}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              {interviewScore !== null && <div className="hidden rounded-xl bg-white/10 px-4 py-2 text-center sm:block"><p className="text-xl font-black">{interviewScore}</p><p className="text-[9px] font-black uppercase text-white/45">Evidence</p></div>}
+              <Link href="/profile/interview" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">
+                {interviewStatus === "not_started" || interviewStatus === "needs_improvement" ? "Start interview" : interviewStatus === "in_progress" ? "Continue" : "View result"} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
         <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>

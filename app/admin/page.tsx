@@ -8,6 +8,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
+  Bot,
   BriefcaseBusiness,
   Check,
   CheckCircle2,
@@ -31,7 +32,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { collection, getDocs, limit, query } from "firebase/firestore";
+import { collection, doc, getDocs, limit, query, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -61,8 +62,10 @@ import {
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import type { InterviewRecord } from "@/lib/interview";
 
-type Tab = "overview" | "approvals" | "tasks" | "finance" | "users" | "admins" | "settings";
+type InterviewWithId = InterviewRecord & { id: string };
+type Tab = "overview" | "approvals" | "interviews" | "tasks" | "finance" | "users" | "admins" | "settings";
 const COMPANY_ADMIN_DEFAULTS: Permission[] = ["approveTasks", "manageUsers", "manageContent", "viewAnalytics"];
 
 export default function AdminPage() {
@@ -79,6 +82,7 @@ export default function AdminPage() {
   const [admins, setAdmins] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [interviews, setInterviews] = useState<InterviewWithId[]>([]);
   const [busy, setBusy] = useState(true);
   const [actionBusy, setActionBusy] = useState("");
   const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
@@ -100,7 +104,8 @@ export default function AdminPage() {
       const needsUsers = can("approveTasks") || can("manageUsers") || can("viewAnalytics");
       const needsTasks = can("viewAnalytics") || can("manageContent");
       const needsFinance = can("managePayments");
-      const [pendingData, privateData, usersSnap, taskSnap, adminData, transactionSnap, disputeSnap] = await Promise.all([
+      const needsInterviews = can("manageUsers") || can("approveTasks");
+      const [pendingData, privateData, usersSnap, taskSnap, adminData, transactionSnap, disputeSnap, interviewSnap] = await Promise.all([
         can("approveTasks") ? listPendingTasks() : Promise.resolve([]),
         can("approveTasks") || can("manageContent") ? listPrivateTasks() : Promise.resolve([]),
         needsUsers && db ? getDocs(query(collection(db, "users"), limit(500))) : Promise.resolve(null),
@@ -108,6 +113,7 @@ export default function AdminPage() {
         can("manageAdmins") ? listAdmins() : Promise.resolve([]),
         needsFinance && db ? getDocs(query(collection(db, "wallet_txs"), limit(500))) : Promise.resolve(null),
         needsFinance && db ? getDocs(query(collection(db, "disputes"), limit(200))) : Promise.resolve(null),
+        needsInterviews && db ? getDocs(query(collection(db, "interviews"), limit(200))) : Promise.resolve(null),
       ]);
       setPending(pendingData);
       setPrivateTasks(privateData);
@@ -116,6 +122,7 @@ export default function AdminPage() {
       setAdmins(adminData);
       if (transactionSnap) setTransactions(transactionSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
       if (disputeSnap) setDisputes(disputeSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (interviewSnap) setInterviews(interviewSnap.docs.map((item) => ({ id: item.id, ...item.data() } as InterviewWithId)));
     } catch (err: any) {
       setError(err?.message || "Some admin data could not be loaded.");
     } finally {
@@ -230,9 +237,40 @@ export default function AdminPage() {
     }
   };
 
+  const reviewInterview = async (record: InterviewWithId, decision: "verified" | "needs_improvement") => {
+    if (!db || !user || record.status !== "awaiting_review") return;
+    setActionBusy(`interview-${record.id}`);
+    setError("");
+    try {
+      await runTransaction(db, async (transaction) => {
+        const interviewRef = doc(db!, "interviews", record.id);
+        const userRef = doc(db!, "users", record.userId);
+        const latest = await transaction.get(interviewRef);
+        if (!latest.exists() || latest.data().status !== "awaiting_review") throw new Error("This interview was already reviewed.");
+        transaction.update(interviewRef, {
+          status: decision,
+          reviewedBy: user.email || user.uid,
+          reviewedAt: serverTimestamp(),
+          reviewNote: decision === "verified" ? "Evidence reviewed and badge approved." : "More concrete role evidence is needed before approval.",
+        });
+        transaction.update(userRef, {
+          interviewStatus: decision,
+          interviewUpdatedAt: serverTimestamp(),
+          ...(decision === "verified" ? { interviewVerifiedAt: serverTimestamp() } : {}),
+        });
+      });
+      await load();
+    } catch (err: any) {
+      setError(err?.message || "Could not review this interview.");
+    } finally {
+      setActionBusy("");
+    }
+  };
+
   const tabs: { id: Tab; label: string; icon: any; show: boolean; count?: number }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard, show: can("viewAnalytics") },
     { id: "approvals", label: "Approval centre", icon: ShieldCheck, show: can("approveTasks"), count: pending.length },
+    { id: "interviews", label: "Talent interviews", icon: Bot, show: can("manageUsers") || can("approveTasks"), count: interviews.filter((item) => item.status === "awaiting_review").length },
     { id: "tasks", label: "All tasks", icon: ListChecks, show: can("viewAnalytics") || can("manageContent"), count: allTasks.length },
     { id: "finance", label: "Finance & disputes", icon: ReceiptText, show: can("managePayments"), count: disputes.filter((item) => item.status !== "resolved").length },
     { id: "users", label: "People", icon: Users, show: can("manageUsers") || can("approveTasks") },
@@ -371,6 +409,52 @@ export default function AdminPage() {
                   <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Sparkles className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
                   <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
                   {privateTasks.some((task) => task.status === "open" && task.shareToken) && <div className="surface p-5"><p className="text-xs font-black text-ink">Active private links</p><div className="mt-3 space-y-2">{privateTasks.filter((task) => task.status === "open" && task.shareToken).slice(0, 8).map((task) => <button key={task.id} onClick={() => { const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`; setPrivateInviteLink(link); navigator.clipboard.writeText(link).catch(() => {}); }} className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 hover:bg-brand-50"><Link2 className="h-3.5 w-3.5 shrink-0 text-brand" /><span className="min-w-0 flex-1 truncate">{task.title}</span><span className="text-brand-dark">Copy</span></button>)}</div></div>}
+                </aside>
+              </div>
+            )}
+
+            {activeTab === "interviews" && (can("manageUsers") || can("approveTasks")) && (
+              <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+                <section className="surface overflow-hidden">
+                  <div className="flex flex-col gap-3 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Human-in-the-loop vetting</p><h2 className="mt-1 text-xl font-black text-ink">Freelancer interview review</h2></div>
+                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">{interviews.filter((item) => item.status === "awaiting_review").length} waiting</span>
+                  </div>
+                  {interviews.filter((item) => item.status === "awaiting_review").length === 0 ? (
+                    <div className="px-6 py-20 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-6 w-6" /></span><h3 className="mt-4 text-lg font-black text-ink">Interview queue is clear</h3><p className="mt-1 text-sm text-ink-500">Completed interviews will wait here for a human badge decision.</p></div>
+                  ) : (
+                    <div className="divide-y divide-ink-100">
+                      {interviews.filter((item) => item.status === "awaiting_review").map((record) => (
+                        <article key={record.id} className="p-5 sm:p-6">
+                          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase text-brand-dark">{record.profileSnapshot?.professionalTitle || "Freelancer"}</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">Review pending</span></div>
+                              <h3 className="mt-3 text-lg font-black text-ink">{record.profileSnapshot?.name || "Unnamed freelancer"}</h3>
+                              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-500">{record.assessment?.summary || "The structured interview is complete and ready for review."}</p>
+                              <div className="mt-3 flex flex-wrap gap-2">{record.profileSnapshot?.skills?.slice(0, 6).map((skill) => <span key={skill} className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-bold text-ink-500">{skill}</span>)}</div>
+                            </div>
+                            <div className="shrink-0 rounded-2xl bg-ink p-4 text-center text-white"><p className="text-3xl font-black">{record.assessment?.score ?? "—"}</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-white/45">AI evidence</p></div>
+                          </div>
+
+                          {record.assessment?.dimensions?.length ? <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">{record.assessment.dimensions.map((dimension) => <div key={dimension.key} className="rounded-xl bg-ink-50 p-3"><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-black text-ink-500">{dimension.label}</p><span className="text-xs font-black text-brand-dark">{dimension.score}</span></div><p className="mt-1.5 text-[10px] leading-4 text-ink-400">{dimension.evidence}</p></div>)}</div> : null}
+
+                          <details className="mt-4 rounded-2xl border border-ink-100 bg-white">
+                            <summary className="cursor-pointer list-none px-4 py-3 text-xs font-extrabold text-ink-600">Read complete question-and-answer evidence</summary>
+                            <div className="space-y-4 border-t border-ink-100 p-4">{record.answers?.map((item, index) => <div key={`${record.id}-${index}`}><p className="text-xs font-black leading-5 text-ink">{index + 1}. {item.question}</p><p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-500">{item.answer}</p></div>)}</div>
+                          </details>
+
+                          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="max-w-lg text-[11px] font-semibold leading-5 text-ink-500">Confirm that the answers contain relevant, concrete evidence and align with the profile. Do not approve from the score alone.</p>
+                            <div className="flex shrink-0 gap-2"><button onClick={() => reviewInterview(record, "needs_improvement")} disabled={actionBusy === `interview-${record.id}`} className="min-h-10 rounded-xl border border-ink-200 bg-white px-4 text-xs font-extrabold text-ink-600 disabled:opacity-50">Request stronger evidence</button><Button onClick={() => reviewInterview(record, "verified")} disabled={actionBusy === `interview-${record.id}`} className="min-h-10 gap-2 shadow-none"><BadgeCheck className="h-4 w-4" /> Approve badge</Button></div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+                <aside className="space-y-4 lg:sticky lg:top-24">
+                  <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Bot className="h-5 w-5 text-brand-300" /><h3 className="mt-4 text-lg font-black">Review, don&apos;t rubber-stamp</h3><p className="mt-2 text-xs leading-5 text-white/55">AI creates consistent questions and an evidence summary. A person reads the actual answers and owns the badge decision.</p></div>
+                  <div className="surface p-5"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Interview outcomes</p><div className="mt-4 space-y-3"><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">Verified</span><span className="text-emerald-700">{interviews.filter((item) => item.status === "verified").length}</span></div><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">Needs improvement</span><span className="text-rose-700">{interviews.filter((item) => item.status === "needs_improvement").length}</span></div><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">In progress</span><span className="text-brand-dark">{interviews.filter((item) => item.status === "in_progress").length}</span></div></div></div>
                 </aside>
               </div>
             )}

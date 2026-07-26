@@ -56,7 +56,7 @@ export default function WalletPage() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Wallet className="h-7 w-7" /></div>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Protected wallet</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Payments, holds and releases</h1><p className="mt-1 text-sm text-white/55">Money is reserved when an offer is selected, then released after completion.</p></div>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Payment operations</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Payments, holds and releases</h1><p className="mt-1 text-sm text-white/55">Read-only contract records while Workly completes regulated payment-provider onboarding.</p></div>
           </div>
           <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">Back to dashboard <ArrowUpRight className="h-4 w-4" /></Link>
         </div>
@@ -69,9 +69,9 @@ export default function WalletPage() {
           <p className="mt-1 text-xs text-ink-400">Funds ready to use</p>
         </div>
         <div className="surface bg-brand-50 p-6">
-          <div className="flex items-center justify-between"><p className="text-sm font-bold text-brand-dark">Held in escrow</p><ShieldCheck className="h-5 w-5 text-brand" /></div>
+          <div className="flex items-center justify-between"><p className="text-sm font-bold text-brand-dark">Recorded task holds</p><ShieldCheck className="h-5 w-5 text-brand" /></div>
           <p className="mt-1 text-4xl font-black tracking-[-0.04em] text-brand-dark">{formatPKR(heldBalance)}</p>
-          <p className="mt-1 text-xs text-brand-600">Held for active tasks</p>
+          <p className="mt-1 text-xs text-brand-600">Not live escrow or a bank balance</p>
         </div>
         <div className="surface p-6">
           <div className="flex items-center justify-between"><p className="text-sm font-bold text-ink-500">Release requests</p><Send className="h-5 w-5 text-blue-600" /></div>

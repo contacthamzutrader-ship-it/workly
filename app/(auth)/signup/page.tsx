@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, UserRoundSearch } from "lucide-react";
@@ -20,13 +20,19 @@ export default function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [accountType, setAccountType] = useState<"customer" | "tasker">("customer");
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("role") === "tasker") setAccountType("tasker");
+  }, []);
+
+  const nextRoute = accountType === "tasker" ? "/profile?setup=1" : "/dashboard";
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError("");
     try {
       await signUpWithEmail(email, password, name, accountType);
-      router.push("/dashboard");
+      router.push(nextRoute);
     } catch (err: any) {
       setError(err?.message || "We could not create your account.");
     } finally {
@@ -39,7 +45,7 @@ export default function SignupPage() {
     setError("");
     try {
       await signInWithGoogle(accountType);
-      router.push("/dashboard");
+      router.push(nextRoute);
     } catch (err: any) {
       setError(err?.message || "Google sign-up failed.");
     } finally {

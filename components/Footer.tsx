@@ -10,6 +10,7 @@ const columns = {
     { label: "Your dashboard", href: "/dashboard" },
   ],
   Support: [
+    { label: "AI talent interviews", href: "/#interview" },
     { label: "Safety & trust", href: "/#protect" },
     { label: "Workly Protect", href: "/#protect" },
     { label: "Private fulfilment", href: "/#managed" },
@@ -28,7 +29,7 @@ export default function Footer() {
               Pakistan&apos;s people-powered marketplace for getting local and digital work done safely.
             </p>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/70">
-              <ShieldCheck className="h-4 w-4 text-brand-light" /> Escrow-protected payments
+              <ShieldCheck className="h-4 w-4 text-brand-light" /> Moderated, traceable workflows
             </div>
           </div>
 

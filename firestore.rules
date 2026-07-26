@@ -38,7 +38,14 @@ service cloud.firestore {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
         && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
-        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0);
+        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0)
+        && request.resource.data.get('interviewStatus', 'not_started') == resource.data.get('interviewStatus', 'not_started')
+        && request.resource.data.get('interviewScore', -1) == resource.data.get('interviewScore', -1)
+        && request.resource.data.get('interviewSummary', '') == resource.data.get('interviewSummary', '')
+        && request.resource.data.get('interviewTopSkills', []) == resource.data.get('interviewTopSkills', [])
+        && request.resource.data.get('interviewAttemptNumber', 0) == resource.data.get('interviewAttemptNumber', 0)
+        && request.resource.data.get('interviewVerifiedAt', '') == resource.data.get('interviewVerifiedAt', '')
+        && request.resource.data.get('interviewUpdatedAt', '') == resource.data.get('interviewUpdatedAt', '');
     }
     function task(taskId) {
       return get(/databases/$(database)/documents/tasks/$(taskId)).data;
@@ -56,7 +63,11 @@ service cloud.firestore {
         || (signedIn() && request.auth.uid == uid
           && request.resource.data.uid == uid
           && publicRole(request.resource.data.role)
-          && request.resource.data.isPrivate == false);
+          && request.resource.data.isPrivate == false
+          && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
+          && request.resource.data.get('interviewScore', -1) == -1
+          && request.resource.data.get('interviewSummary', '') == ''
+          && request.resource.data.get('interviewTopSkills', []).size() == 0);
       allow update: if isAdmin()
         || (signedIn() && request.auth.uid == uid
           && sameProtectedUserFields()
@@ -176,6 +187,19 @@ service cloud.firestore {
         && request.resource.data.token == task(taskId).shareToken;
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    // Interview transcripts are private and server-authored. The API verifies a
+    // Firebase ID token, writes with the Admin SDK, and exposes only a reviewed
+    // badge summary on the public user profile.
+    match /interviews/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create, update, delete: if isAdmin();
+
+      match /history/{attemptId} {
+        allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+        allow write: if isAdmin();
+      }
     }
 
     match /settings/{documentId} {

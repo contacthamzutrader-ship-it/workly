@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Bell,
+  Bot,
   ChevronDown,
   LayoutDashboard,
   LayoutGrid,
@@ -31,6 +32,9 @@ export default function Navbar() {
 
   const primaryLinks = (
     <>
+      <Link href="/#interview" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
+        <Bot className="h-4 w-4" /> AI vetting
+      </Link>
       {canFindWork && <Link href="/tasks" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
         <LayoutGrid className="h-4 w-4" /> Find work
       </Link>}

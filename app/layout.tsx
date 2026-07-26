@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import AppShell from "@/components/AppShell";
 
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
-
 export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = headers();
+  const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host") || "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
-  const description = "Post local or digital work, compare verified professionals, and pay safely through protected milestones.";
+  const description = "Post local or digital work, compare evidence-backed professionals, and manage delivery in one trusted workspace.";
 
   return {
     metadataBase: new URL(origin),
@@ -44,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en">
       <body className="min-h-screen bg-canvas font-sans text-ink">
         <AuthProvider>
           <AppShell>{children}</AppShell>

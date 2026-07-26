@@ -1,0 +1,88 @@
+export const INTERVIEW_QUESTION_COUNT = 4;
+export const INTERVIEW_MIN_ANSWER_LENGTH = 60;
+export const INTERVIEW_MAX_ANSWER_LENGTH = 2400;
+export const INTERVIEW_CONSENT_VERSION = "2026-07-26";
+
+export type InterviewStatus =
+  | "not_started"
+  | "in_progress"
+  | "awaiting_review"
+  | "verified"
+  | "needs_improvement";
+
+export type InterviewCompetency =
+  | "experience"
+  | "expertise"
+  | "problemSolving"
+  | "communication";
+
+export type InterviewQuestion = {
+  question: string;
+  competency: InterviewCompetency;
+};
+
+export type InterviewAnswer = InterviewQuestion & {
+  answer: string;
+  answeredAt?: unknown;
+};
+
+export type InterviewDimension = {
+  key: "expertise" | "problemSolving" | "communication" | "professionalism";
+  label: string;
+  score: number;
+  evidence: string;
+};
+
+export type InterviewAssessment = {
+  score: number;
+  summary: string;
+  strengths: string[];
+  developmentAreas: string[];
+  verifiedSkills: string[];
+  dimensions: InterviewDimension[];
+  assessmentMode: "ai" | "structured_fallback";
+};
+
+export type InterviewRecord = {
+  userId: string;
+  attemptId: string;
+  attemptNumber: number;
+  status: InterviewStatus;
+  consentVersion: string;
+  profileSnapshot: {
+    name: string;
+    professionalTitle: string;
+    skills: string[];
+    experienceYears: number;
+    languages: string[];
+  };
+  questions: InterviewQuestion[];
+  answers: InterviewAnswer[];
+  assessment?: InterviewAssessment;
+  startedAt?: unknown;
+  updatedAt?: unknown;
+  completedAt?: unknown;
+  reviewedAt?: unknown;
+  reviewedBy?: string;
+  reviewNote?: string;
+};
+
+export function interviewStatusLabel(status?: string) {
+  switch (status) {
+    case "in_progress": return "Interview in progress";
+    case "awaiting_review": return "Human review pending";
+    case "verified": return "Workly interviewed";
+    case "needs_improvement": return "Retake available";
+    default: return "Interview not started";
+  }
+}
+
+export function interviewStatusTone(status?: string) {
+  switch (status) {
+    case "verified": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "awaiting_review": return "bg-amber-50 text-amber-700 border-amber-200";
+    case "in_progress": return "bg-blue-50 text-blue-700 border-blue-200";
+    case "needs_improvement": return "bg-rose-50 text-rose-700 border-rose-200";
+    default: return "bg-ink-50 text-ink-500 border-ink-100";
+  }
+}
