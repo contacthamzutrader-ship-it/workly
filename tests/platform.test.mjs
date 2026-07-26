@@ -228,6 +228,22 @@ test("profiles use durable image storage with upload restrictions", async () => 
   assert.match(storageRules, /image\/\(jpeg\|png\|webp\)/);
 });
 
+test("deployment guide and Firestore indexes stay in sync", async () => {
+  const guide = await read("README.md");
+  const indexConfig = JSON.parse(await read("firestore.indexes.json"));
+  const hasIndex = (collectionGroup, expectedFields) =>
+    indexConfig.indexes.some((item) => {
+      const fields = item.fields.map((field) => `${field.fieldPath}:${field.order || field.arrayConfig}`);
+      return item.collectionGroup === collectionGroup && expectedFields.every((field, index) => fields[index] === field);
+    });
+
+  assert.match(guide, /firebase deploy --only firestore:rules,firestore:indexes,storage/);
+  assert.match(guide, /review dedupe on `reviews\(taskId, fromId\)`/);
+  assert.ok(hasIndex("reviews", ["taskId:ASCENDING", "fromId:ASCENDING"]));
+  assert.ok(hasIndex("wallet_txs", ["userId:ASCENDING", "createdAt:DESCENDING"]));
+  assert.ok(hasIndex("conversations", ["participants:CONTAINS", "updatedAt:DESCENDING"]));
+});
+
 // ---------------------------------------------------------------------------
 // Interviews
 // ---------------------------------------------------------------------------
