@@ -5,6 +5,7 @@ import {
   ArrowRight,
   BadgeCheck,
   Banknote,
+  Bot,
   BriefcaseBusiness,
   Check,
   ChevronRight,
@@ -54,7 +55,7 @@ export default function Home() {
               The right person for <span className="relative whitespace-nowrap text-brand">every task.<span className="absolute -bottom-1 left-0 h-2 w-full -rotate-1 rounded-full bg-sun/55" /></span>
             </h1>
             <p className="mt-7 max-w-xl text-lg font-medium leading-8 text-ink-500">
-              Post local or digital work, compare verified professionals, and pay only when the job is done right.
+              Post local or digital work, compare evidence-backed professionals, and manage every decision in one trusted workspace.
             </p>
 
             <div className="mt-9 flex max-w-xl flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-2.5 shadow-elevated sm:flex-row">
@@ -68,8 +69,8 @@ export default function Home() {
 
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-extrabold text-ink-500">
               <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-brand" /> Free to post</span>
-              <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand" /> Protected payments</span>
-              <span className="flex items-center gap-1.5"><UserRoundCheck className="h-4 w-4 text-brand" /> Verified talent</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand" /> Moderated marketplace</span>
+              <span className="flex items-center gap-1.5"><UserRoundCheck className="h-4 w-4 text-brand" /> Human-reviewed talent</span>
             </div>
           </div>
 
@@ -119,7 +120,7 @@ export default function Home() {
         <div className="page-shell grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
             ["15%", "clear platform fee"],
-            ["4 layers", "of trust & safety"],
+            ["4 steps", "in structured vetting"],
             ["PKR", "local-first pricing"],
             ["24/7", "task discovery"],
           ].map(([value, label]) => (
@@ -156,7 +157,7 @@ export default function Home() {
               {[
                 [UserRoundCheck, "Trust scores that mean something", "Reviews, completion history and platform behaviour contribute to every profile."],
                 [Sparkles, "Smarter shortlists", "Offers are ranked using skill fit, reliability and successful delivery, not who clicks first."],
-                [Banknote, "Protected money flow", "Funds stay held until the agreed work is completed and approved."],
+                [Banknote, "Transparent commercial terms", "Offer value, platform fee and delivery status stay visible before either side commits."],
               ].map(([Icon, title, body]: any) => (
                 <div key={title} className="flex gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-card"><Icon className="h-5 w-5" /></span><div><h3 className="font-black text-ink">{title}</h3><p className="mt-1 text-sm leading-6 text-ink-500">{body}</p></div></div>
               ))}
@@ -168,9 +169,37 @@ export default function Home() {
               {[["92","Trust"],["98%","Success"],["4.9","Rating"]].map(([value,label]) => <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4"><p className="text-xl font-black">{value}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/40">{label}</p></div>)}
             </div>
             <div className="mt-4 rounded-2xl bg-white p-5 text-ink">
-              <div className="flex items-center gap-2"><BadgeCheck className="h-5 w-5 text-brand" /><p className="font-black">Identity & skills verified</p></div>
-              <p className="mt-3 text-sm leading-6 text-ink-500">Strong fit for web performance, Shopify and ecommerce projects. 18 similar tasks completed.</p>
+              <div className="flex items-center gap-2"><BadgeCheck className="h-5 w-5 text-emerald-600" /><p className="font-black">Workly interviewed</p></div>
+              <p className="mt-3 text-sm leading-6 text-ink-500">Role-specific answers, delivery evidence and client communication reviewed by the Workly team.</p>
               <div className="mt-4 flex flex-wrap gap-2">{["Shopify","Performance","JavaScript"].map(skill => <span key={skill} className="rounded-full bg-ink-50 px-3 py-1.5 text-xs font-bold text-ink-600">{skill}</span>)}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="interview" className="bg-ink py-24 text-white">
+        <div className="page-shell grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><Bot className="h-3.5 w-3.5" /> Meet Aira</span>
+            <h2 className="mt-6 text-4xl font-black tracking-[-0.045em] sm:text-5xl">Profiles with proof behind the pitch.</h2>
+            <p className="mt-5 max-w-xl text-base font-medium leading-7 text-white/60">Every freelancer can complete a structured, role-specific interview. Aira gathers evidence; a Workly reviewer owns the badge decision.</p>
+            <div className="mt-8 space-y-4">
+              {[
+                ["01", "Questions adapt to the service", "A developer, designer and local tasker are not judged by the same generic script."],
+                ["02", "Evidence over buzzwords", "Candidates explain real projects, trade-offs, recovery plans and client communication."],
+                ["03", "Humans stay accountable", "AI summarizes job-related evidence. It never auto-rejects, suspends or publishes a badge."],
+              ].map(([number, title, body]) => <div key={number} className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand text-xs font-black">{number}</span><div><h3 className="text-sm font-black">{title}</h3><p className="mt-1 text-xs leading-5 text-white/45">{body}</p></div></div>)}
+            </div>
+            <Link href="/signup?role=tasker" className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-ink transition hover:bg-brand-100">Build an interviewed profile <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-8 rounded-full bg-brand/20 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white p-5 text-ink shadow-elevated sm:p-7">
+              <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white"><Bot className="h-6 w-6" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-400" /></span><div><p className="font-black">Aira · Interview agent</p><p className="text-xs font-semibold text-ink-400">Question 3 of 4 · Problem solving</p></div></div>
+              <div className="mt-6 rounded-2xl bg-ink p-5 text-white"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-brand-300">Scenario</p><p className="mt-3 text-base font-black leading-7">A project is slipping two days before launch. How do you diagnose the cause and reset expectations with the client?</p></div>
+              <div className="mt-4 rounded-2xl border border-ink-100 bg-canvas p-5"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Evidence summary</p><div className="mt-4 space-y-3">{[["Role expertise", 86], ["Problem solving", 92], ["Client communication", 89]].map(([label, score]) => <div key={String(label)}><div className="mb-1.5 flex justify-between text-[11px] font-extrabold"><span>{label}</span><span className="text-brand-dark">{score}</span></div><div className="h-1.5 overflow-hidden rounded-full bg-ink-100"><div className="h-full rounded-full bg-brand" style={{ width: `${score}%` }} /></div></div>)}</div></div>
+              <div className="mt-4 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><div className="flex items-center gap-3"><BadgeCheck className="h-6 w-6 text-emerald-600" /><div><p className="text-xs font-black text-emerald-900">Human review required</p><p className="mt-0.5 text-[10px] font-semibold text-emerald-700">No automatic hiring decision</p></div></div><ChevronRight className="h-4 w-4 text-emerald-600" /></div>
             </div>
           </div>
         </div>

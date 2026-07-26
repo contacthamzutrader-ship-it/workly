@@ -39,7 +39,7 @@ const config: Config = {
         sun: "#F6B94A",
       },
       fontFamily: {
-        sans: ["var(--font-manrope)", "Manrope", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["Inter", "Manrope", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 2px rgb(7 24 46 / 0.04), 0 10px 30px rgb(7 24 46 / 0.06)",

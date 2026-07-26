@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
-import { User, Star, Shield, MapPin, Briefcase, ArrowLeft } from "lucide-react";
+import { User, Star, Shield, MapPin, Briefcase, ArrowLeft, BadgeCheck, Bot } from "lucide-react";
 
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +39,7 @@ export default function PublicProfilePage() {
 
       <div className="rounded-[32px] border border-ink-100 bg-white p-8 text-center shadow-elevated sm:p-12">
         {data.avatarUrl ? <img src={data.avatarUrl} alt={`${data.name || "User"} profile`} className="mx-auto h-24 w-24 rounded-3xl object-cover shadow-card" /> : <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>}
-        <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2"><h1 className="text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>{data.interviewStatus === "verified" && <BadgeCheck className="h-6 w-6 text-emerald-600" aria-label="Workly interviewed" />}</div>
         {data.professionalTitle && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.professionalTitle}</p>}
         {data.organization && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.organization}</p>}
         <p className="mt-2 text-sm text-ink-500">
@@ -60,6 +60,20 @@ export default function PublicProfilePage() {
           <div className="text-center"><div className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /><span className="font-bold">{avg}</span></div><p className="text-xs text-ink-500">{reviews.length} reviews</p></div>
           {typeof data.trustScore === "number" && <div className="text-center"><div className="flex items-center gap-1"><Shield className="h-4 w-4 text-brand" /><span className="font-bold">{data.trustScore}</span></div><p className="text-xs text-ink-500">Trust score</p></div>}
         </div>
+
+        {data.interviewStatus === "verified" && (
+          <div className="mx-auto mt-7 max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-left">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><Bot className="h-5 w-5" /></span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-black text-emerald-900">Workly interviewed</p>{typeof data.interviewScore === "number" && <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase text-emerald-700">Evidence {data.interviewScore}/100</span>}</div>
+                <p className="mt-2 text-sm leading-6 text-emerald-900/70">{data.interviewSummary || "Structured role interview reviewed by the Workly team."}</p>
+                {data.interviewTopSkills?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{data.interviewTopSkills.map((skill: string) => <span key={skill} className="rounded-full bg-white px-2.5 py-1 text-[10px] font-extrabold text-emerald-700">{skill}</span>)}</div>}
+                <p className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-emerald-700"><BadgeCheck className="h-3.5 w-3.5" /> AI-assisted evidence review · Human-approved badge</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {data.skills?.length > 0 && (
           <div className="mt-6 flex flex-wrap justify-center gap-2">

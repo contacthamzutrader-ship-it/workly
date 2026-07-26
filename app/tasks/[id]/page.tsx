@@ -14,7 +14,7 @@ import Input from "@/components/ui/Input";
 import { MapPin, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Tag } from "lucide-react";
 import { formatDate, formatPKR } from "@/lib/format";
 
-type BidView = Bid & { match?: BidMatch; fresh?: boolean };
+type BidView = Bid & { match?: BidMatch; fresh?: boolean; interviewed?: boolean };
 
 const STATUS_TAGS: Record<string, { label: string; color: string }> = {
   pending: { label: "Pending Approval", color: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -54,16 +54,17 @@ export default function TaskDetailPage() {
       const canReadBids = !!user && (user.uid === t.posterId || isAdmin);
       const rawBids = canReadBids ? await listBidsForTask(id) : [];
       const withMatch = await Promise.all(rawBids.map(async (b) => {
-        let match: BidMatch | undefined; let fresh = false;
+        let match: BidMatch | undefined; let fresh = false; let interviewed = false;
         if (db) {
           const s = await getDoc(doc(db, "users", b.bidderId));
           if (s.exists()) {
             const d = s.data();
             match = computeBidMatch(t, { trust: d.trustScore ?? 70, success: d.successRate ?? 80, skills: d.skills ?? [] });
             fresh = isFreshTalent(d.createdAt);
+            interviewed = d.interviewStatus === "verified";
           }
         }
-        return { ...b, match, fresh };
+        return { ...b, match, fresh, interviewed };
       }));
       withMatch.sort((a, b) => (b.match?.percent ?? 0) - (a.match?.percent ?? 0));
       setBids(withMatch);
@@ -213,6 +214,7 @@ export default function TaskDetailPage() {
                     <p className="mt-0.5 text-sm text-ink-500">{b.message}</p>
                     <div className="mt-1.5 flex gap-2 flex-wrap">
                       {b.match && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-dark">Match {b.match.percent}%</span>}
+                      {b.interviewed && <Link href={`/u/${b.bidderId}`} className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="mr-1 inline-block h-3 w-3" /> Workly interviewed</Link>}
                       {b.fresh && <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700"><Zap className="mr-1 inline-block h-3 w-3" /> Fresh</span>}
                     </div>
                   </div>

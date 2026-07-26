@@ -109,3 +109,19 @@ test("premium brand mark replaces the old tagline", async () => {
   assert.match(brand, /src="\/workly-mark\.png"/);
   assert.doesNotMatch(`${navbar}\n${footer}`, /Kaam\. Kamal/i);
 });
+
+test("freelancer interviews are authenticated, private, and human-reviewed", async () => {
+  const route = await read("app/api/interview/route.ts");
+  const engine = await read("lib/interview-engine.ts");
+  const rules = await read("firestore.rules");
+  const admin = await read("app/admin/page.tsx");
+  assert.match(route, /requireFirebaseUser\(request\)/);
+  assert.match(route, /update\.status = "awaiting_review"/);
+  assert.match(engine, /Never infer emotion or personality/);
+  assert.match(engine, /human reviewer decides the badge/i);
+  assert.match(rules, /match \/interviews\/\{uid\}/);
+  assert.match(rules, /request\.auth\.uid == uid \|\| isAdmin\(\)/);
+  assert.match(rules, /interviewStatus.*sameProtectedUserFields/s);
+  assert.match(admin, /Approve badge/);
+  assert.match(admin, /Do not approve from the score alone/);
+});

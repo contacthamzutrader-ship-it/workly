@@ -52,6 +52,7 @@ function newUserProfile(u: User, name: string, selectedRole: "customer" | "taske
     isPrivate: false,
     wallet: 0,
     profileComplete: false,
+    interviewStatus: "not_started",
     createdAt: serverTimestamp(),
   };
 }
