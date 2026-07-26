@@ -48,16 +48,18 @@ export default function AccountBanner() {
         <span>Confirm your email address to keep your account secure.</span>
         <button
           onClick={async () => {
+            if (sent) return;
             try {
               await resendVerification();
               setSent(true);
-            } catch {
-              setSent(false);
+              setTimeout(() => setSent(false), 5000);
+            } catch (err: any) {
+              alert(err.message || "Failed to send verification email.");
             }
           }}
           className="font-black underline underline-offset-2"
         >
-          {sent ? "Verification email sent" : "Resend verification email"}
+          {sent ? "Check your inbox!" : "Resend verification email"}
         </button>
       </Strip>
     );

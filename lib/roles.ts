@@ -157,10 +157,10 @@ export interface Capabilities {
 
 export function capabilitiesFor(role: MemberRole, staff: StaffSession | null): Capabilities {
   return {
-    canPostTask: role === "client" || !!staff,
-    canSendOffer: role === "freelancer",
-    canBrowseTalent: true,
+    canPostTask: role === "client" && !staff,
+    canSendOffer: role === "freelancer" && !staff,
+    canBrowseTalent: !staff,
     canUseAdmin: !!staff,
-    canSwitchRole: true,
+    canSwitchRole: !staff,
   };
 }

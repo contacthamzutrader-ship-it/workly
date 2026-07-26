@@ -143,8 +143,8 @@ test("posting and bidding stay role-gated", async () => {
   const roles = await read("lib/roles.ts");
   assert.match(post, /capabilities\.canPostTask/);
   assert.match(detail, /role === "freelancer" && task\.status === "open"/);
-  assert.match(roles, /canPostTask: role === "client" \|\| !!staff/);
-  assert.match(roles, /canSendOffer: role === "freelancer"/);
+  assert.match(roles, /canPostTask: role === "client" && !staff/);
+  assert.match(roles, /canSendOffer: role === "freelancer" && !staff/);
 });
 
 test("freelancers see their exact take-home before sending an offer", async () => {

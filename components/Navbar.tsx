@@ -197,31 +197,33 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    <div className="border-b border-ink-100 p-3">
-                      <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">
-                        Using Workly as
-                      </p>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        {(["client", "freelancer"] as MemberRole[]).map((option) => (
-                          <button
-                            key={option}
-                            onClick={() => handleSwitch(option)}
-                            disabled={switching}
-                            className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-black transition disabled:opacity-60 ${
-                              role === option
-                                ? "bg-brand text-white"
-                                : "border border-ink-100 text-ink-500 hover:border-brand-200 hover:text-brand-dark"
-                            }`}
-                          >
-                            {role === option ? <Check className="h-3.5 w-3.5" /> : <ArrowLeftRight className="h-3.5 w-3.5" />}
-                            {MEMBER_ROLE_LABELS[option]}
-                          </button>
-                        ))}
+                    {!isStaff && (
+                      <div className="border-b border-ink-100 p-3">
+                        <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">
+                          Using Workly as
+                        </p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {(["client", "freelancer"] as MemberRole[]).map((option) => (
+                            <button
+                              key={option}
+                              onClick={() => handleSwitch(option)}
+                              disabled={switching}
+                              className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-black transition disabled:opacity-60 ${
+                                role === option
+                                  ? "bg-brand text-white"
+                                  : "border border-ink-100 text-ink-500 hover:border-brand-200 hover:text-brand-dark"
+                              }`}
+                            >
+                              {role === option ? <Check className="h-3.5 w-3.5" /> : <ArrowLeftRight className="h-3.5 w-3.5" />}
+                              {MEMBER_ROLE_LABELS[option]}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="px-1 pt-2 text-[11px] leading-4 text-ink-400">
+                          Switch any time. Your history stays on one account.
+                        </p>
                       </div>
-                      <p className="px-1 pt-2 text-[11px] leading-4 text-ink-400">
-                        Switch any time. Your history stays on one account.
-                      </p>
-                    </div>
+                    )}
 
                     <div className="p-2">
                       <MenuLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" />
@@ -317,19 +319,21 @@ export default function Navbar() {
                     <ShieldCheck className="h-4 w-4" /> Control centre
                   </Link>
                 )}
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {(["client", "freelancer"] as MemberRole[]).map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => handleSwitch(option)}
-                      className={`rounded-xl px-3 py-3 text-xs font-black ${
-                        role === option ? "bg-brand text-white" : "border border-ink-200 text-ink-500"
-                      }`}
-                    >
-                      {MEMBER_ROLE_LABELS[option]} mode
-                    </button>
-                  ))}
-                </div>
+                {!isStaff && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {(["client", "freelancer"] as MemberRole[]).map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleSwitch(option)}
+                        className={`rounded-xl px-3 py-3 text-xs font-black ${
+                          role === option ? "bg-brand text-white" : "border border-ink-200 text-ink-500"
+                        }`}
+                      >
+                        {MEMBER_ROLE_LABELS[option]} mode
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button
                   onClick={async () => {
                     await signOut();
