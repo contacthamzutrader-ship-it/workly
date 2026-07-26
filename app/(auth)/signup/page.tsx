@@ -1,55 +1,86 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, UserRoundSearch } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, HardHat, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { authErrorMessage, checkPassword } from "@/lib/auth-errors";
+import { MEMBER_ROLE_BLURB, MEMBER_ROLE_LABELS, type MemberRole } from "@/lib/roles";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import Input, { Field } from "@/components/ui/Input";
+import { Alert } from "@/components/ui/Feedback";
+import GoogleButton from "@/components/GoogleButton";
 import BrandLogo from "@/components/BrandLogo";
 
+const ROLE_CARDS: { value: MemberRole; icon: typeof BriefcaseBusiness; perks: string[] }[] = [
+  {
+    value: "client",
+    icon: BriefcaseBusiness,
+    perks: ["Post tasks free", "Compare offers", "Pay when approved"],
+  },
+  {
+    value: "freelancer",
+    icon: HardHat,
+    perks: ["Browse open work", "Send offers", "Build a verified profile"],
+  },
+];
+
 export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const { signUpWithEmail, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [role, setRole] = useState<MemberRole>("client");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [accountType, setAccountType] = useState<"customer" | "tasker">("customer");
+  const [busy, setBusy] = useState<"email" | "google" | null>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("role") === "tasker") setAccountType("tasker");
-  }, []);
+    const requested = searchParams.get("role");
+    if (requested === "freelancer" || requested === "tasker") setRole("freelancer");
+  }, [searchParams]);
 
-  const nextRoute = accountType === "tasker" ? "/profile?setup=1" : "/dashboard";
+  const strength = checkPassword(password);
+  const canSubmit = name.trim().length > 1 && email.includes("@") && password.length >= 8 && agreed;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setBusy(true);
+    if (!canSubmit) return;
+    setBusy("email");
     setError("");
     try {
-      await signUpWithEmail(email, password, name, accountType);
-      router.push(nextRoute);
-    } catch (err: any) {
-      setError(err?.message || "We could not create your account.");
+      await signUpWithEmail({ email, password, name, role });
+      router.push("/onboarding");
+    } catch (caught) {
+      setError(authErrorMessage(caught, "We could not create your account."));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
   const google = async () => {
-    setBusy(true);
+    setBusy("google");
     setError("");
     try {
-      await signInWithGoogle(accountType);
-      router.push(nextRoute);
-    } catch (err: any) {
-      setError(err?.message || "Google sign-up failed.");
+      const { isNewUser } = await signInWithGoogle(role);
+      router.push(isNewUser ? "/onboarding" : "/dashboard");
+    } catch (caught) {
+      setError(authErrorMessage(caught, "Google sign-up did not complete."));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
@@ -57,39 +88,169 @@ export default function SignupPage() {
     <div className="w-full max-w-md">
       <div className="mb-7">
         <BrandLogo />
-        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Choose how you use Workly.</h1>
-        <p className="mt-2 text-sm font-medium text-ink-500">Your workspace and permissions will match this account type.</p>
+        <h1 className="mt-6 text-[32px] font-black leading-tight tracking-[-0.04em] text-ink">
+          Create your Workly account.
+        </h1>
+        <p className="mt-2 text-sm font-medium text-ink-500">
+          Pick how you want to start. You can switch modes any time from your account menu.
+        </p>
       </div>
 
       <div className="surface p-6 sm:p-8">
-        <div className="mb-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
-          <button type="button" role="radio" aria-checked={accountType === "customer"} onClick={() => setAccountType("customer")} className={`rounded-2xl border p-4 text-left transition ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-ink-200"}`}>
-            <BriefcaseBusiness className="h-5 w-5" /><span className="mt-2 block text-sm font-black">I want to hire</span><span className="mt-1 block text-[11px] leading-4">Post work and hire talent</span>
-          </button>
-          <button type="button" role="radio" aria-checked={accountType === "tasker"} onClick={() => setAccountType("tasker")} className={`rounded-2xl border p-4 text-left transition ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-ink-200"}`}>
-            <UserRoundSearch className="h-5 w-5" /><span className="mt-2 block text-sm font-black">I want to work</span><span className="mt-1 block text-[11px] leading-4">Build a profile and send offers</span>
-          </button>
-        </div>
-        <button onClick={google} disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-ink-200 bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-ink-50 disabled:opacity-50">
-          <GoogleMark /> Continue with Google
-        </button>
-        <div className="my-5 flex items-center gap-3"><span className="h-px flex-1 bg-ink-100" /><span className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-300">or email</span><span className="h-px flex-1 bg-ink-100" /></div>
+        <fieldset className="mb-6">
+          <legend className="mb-3 text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">
+            I am joining to
+          </legend>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {ROLE_CARDS.map((card) => {
+              const selected = role === card.value;
+              return (
+                <button
+                  key={card.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setRole(card.value)}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    selected
+                      ? "border-brand bg-brand-50 shadow-[0_0_0_3px_rgba(23,107,255,0.1)]"
+                      : "border-ink-100 hover:border-ink-200 hover:bg-ink-50/60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`grid h-9 w-9 place-items-center rounded-xl ${
+                        selected ? "bg-brand text-white" : "bg-ink-50 text-ink-400"
+                      }`}
+                    >
+                      <card.icon className="h-4 w-4" />
+                    </span>
+                    {selected && <Check className="h-4 w-4 text-brand" />}
+                  </div>
+                  <p className={`mt-3 text-sm font-black ${selected ? "text-brand-dark" : "text-ink"}`}>
+                    {card.value === "client" ? "Hire for tasks" : "Work and earn"}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-4 text-ink-500">{MEMBER_ROLE_BLURB[card.value]}</p>
+                  <ul className="mt-3 space-y-1">
+                    {card.perks.map((perk) => (
+                      <li key={perk} className="flex items-center gap-1.5 text-[11px] font-bold text-ink-500">
+                        <Check className="h-3 w-3 text-brand" /> {perk}
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div><label className="mb-2 block text-sm font-extrabold text-ink">Full name</label><Input value={name} onChange={(event) => setName(event.target.value)} required placeholder="Your name" autoComplete="name" /></div>
-          <div><label className="mb-2 block text-sm font-extrabold text-ink">Email address</label><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="you@example.com" autoComplete="email" /></div>
-          <div><label className="mb-2 block text-sm font-extrabold text-ink">Create password</label><div className="relative"><Input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} placeholder="At least 6 characters" autoComplete="new-password" className="pr-11" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-ink-400 hover:text-ink" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
-          {error && <div role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</div>}
-          <Button type="submit" disabled={busy} className="w-full gap-2">{busy ? "Creating account..." : "Create free account"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
+        <GoogleButton
+          onClick={google}
+          disabled={busy !== null}
+          label={`Sign up with Google as ${MEMBER_ROLE_LABELS[role]}`}
+        />
+
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-ink-100" />
+          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-300">or use email</span>
+          <span className="h-px flex-1 bg-ink-100" />
+        </div>
+
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          <Field label="Full name" required>
+            <Input
+              placeholder="Ayesha Khan"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="name"
+              required
+            />
+          </Field>
+
+          <Field label="Email address" required>
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+          </Field>
+
+          <Field label="Password" hint="Minimum 8 characters" required>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a strong password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                className="pr-12"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-50 hover:text-ink"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {password.length > 0 && (
+              <div className="mt-2.5">
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3].map((index) => (
+                    <span
+                      key={index}
+                      className={`h-1.5 flex-1 rounded-full transition ${
+                        index < strength.score ? strength.tone : "bg-ink-100"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[11px] font-bold text-ink-400">
+                  {strength.label}
+                  {strength.problems.length > 0 && ` · ${strength.problems[0]}`}
+                </p>
+              </div>
+            )}
+          </Field>
+
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-ink-50 p-3.5">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(event) => setAgreed(event.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand"
+            />
+            <span className="text-[12px] font-semibold leading-5 text-ink-600">
+              I agree to Workly&apos;s marketplace terms, and I understand that all payments and communication must stay
+              on the platform.
+            </span>
+          </label>
+
+          {error && <Alert tone="error">{error}</Alert>}
+
+          <Button type="submit" loading={busy === "email"} disabled={!canSubmit || busy !== null} fullWidth>
+            {busy === "email" ? "Creating account" : `Create ${MEMBER_ROLE_LABELS[role].toLowerCase()} account`}
+            {busy !== "email" && <ArrowRight className="h-4 w-4" />}
+          </Button>
         </form>
-        <div className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] font-bold text-ink-400"><span className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-brand" /> Free to join</span><span className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-brand" /> Hire or earn</span><span className="flex items-center gap-1"><Check className="h-3.5 w-3.5 text-brand" /> Secure payments</span></div>
+
+        <p className="mt-5 flex items-start gap-2 text-[11px] font-semibold leading-5 text-ink-400">
+          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+          Staff and admin access is never granted at signup. It is invitation-only, controlled by the platform owner.
+        </p>
       </div>
 
-      <p className="mt-6 text-center text-sm font-medium text-ink-500">Already a member? <Link href="/login" className="font-extrabold text-brand-dark hover:text-brand">Sign in</Link></p>
+      <p className="mt-6 text-center text-sm font-medium text-ink-500">
+        Already have an account?{" "}
+        <Link href="/login" className="font-extrabold text-brand-dark hover:text-brand">
+          Log in
+        </Link>
+      </p>
     </div>
   );
-}
-
-function GoogleMark() {
-  return <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full border border-ink-200 text-xs font-black text-blue-600">G</span>;
 }

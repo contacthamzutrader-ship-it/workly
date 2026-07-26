@@ -39,6 +39,10 @@ service cloud.firestore {
         && request.resource.data.email == resource.data.email
         && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
         && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0)
+        // A member can never mark themselves verified or lift their own suspension.
+        && request.resource.data.get('verified', false) == resource.data.get('verified', false)
+        && request.resource.data.get('suspended', false) == resource.data.get('suspended', false)
+        && request.resource.data.get('trustScore', -1) == resource.data.get('trustScore', -1)
         && request.resource.data.get('interviewStatus', 'not_started') == resource.data.get('interviewStatus', 'not_started')
         && request.resource.data.get('interviewScore', -1) == resource.data.get('interviewScore', -1)
         && request.resource.data.get('interviewSummary', '') == resource.data.get('interviewSummary', '')
@@ -77,7 +81,10 @@ service cloud.firestore {
     }
 
     match /tasks/{taskId} {
-      allow read: if (resource.data.visibility == 'public' && resource.data.status != 'pending')
+      // Only tasks that actually reached the marketplace are publicly readable.
+      // Drafts, review-queue items and rejected tasks stay with their owner.
+      allow read: if (resource.data.visibility == 'public'
+          && !(resource.data.status in ['draft', 'pending', 'rejected']))
         || (signedIn() && (resource.data.posterId == request.auth.uid
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
@@ -85,9 +92,13 @@ service cloud.firestore {
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
         || (signedIn() && resource.data.posterId == request.auth.uid)
+        // The hired freelancer may only advance the delivery fields of their
+        // own contract: start work, submit a delivery, and request payment.
         || (signedIn() && resource.data.assignedTo == request.auth.uid
+          && request.resource.data.status in ['in_progress', 'submitted']
           && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']))
+            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission',
+                      'startedAt', 'updatedAt']))
         || (hasRole(['tasker']) && resource.data.status == 'open'
           && (resource.data.visibility == 'public' || hasPrivateInvite(taskId))
           && request.resource.data.bidsCount == resource.data.bidsCount + 1
@@ -129,7 +140,8 @@ service cloud.firestore {
       }
       allow read: if participant(resource.data);
       allow create: if participant(request.resource.data)
-        && task(request.resource.data.taskId).status in ['assigned', 'in_progress', 'completed'];
+        && task(request.resource.data.taskId).status in
+          ['assigned', 'in_progress', 'submitted', 'changes_requested', 'completed', 'disputed'];
       allow update: if participant(resource.data);
       allow delete: if isAdmin();
 
@@ -156,7 +168,7 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
       allow create: if isAdmin()
         || (signedIn() && request.resource.data.userId == request.auth.uid
-          && request.resource.data.type in ['hold', 'payment'])
+          && request.resource.data.type in ['hold', 'payment', 'refund'])
         || (signedIn() && request.resource.data.type == 'release'
           && task(request.resource.data.taskId).posterId == request.auth.uid
           && task(request.resource.data.taskId).assignedTo == request.resource.data.userId);
@@ -203,8 +215,24 @@ service cloud.firestore {
     }
 
     match /settings/{documentId} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
+      // Platform settings drive public behaviour (auto-approval, signup gate),
+      // so they are readable by anyone but writable only by content staff.
+      allow read: if true;
+      allow write: if hasPermission('manageContent');
+    }
+
+    // Append-only accountability trail for privileged actions. Staff can read
+    // and append; nobody can edit or erase history from the client.
+    match /audit_logs/{entryId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // A freelancer's private shortlist of tasks. Owner-only, never public.
+    match /users/{uid}/saved_tasks/{taskId} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
     }
   }
 }

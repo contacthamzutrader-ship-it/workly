@@ -64,11 +64,11 @@ export default function FreelancerInterviewPage() {
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/login?redirect=/profile/interview");
-    if (!authLoading && user && role && role !== "tasker") router.replace("/profile");
+    if (!authLoading && user && role && role !== "freelancer") router.replace("/profile");
   }, [authLoading, user, role, router]);
 
   useEffect(() => {
-    if (!user || !db || role !== "tasker") return;
+    if (!user || !db || role !== "freelancer") return;
     let active = true;
     (async () => {
       try {
@@ -156,7 +156,7 @@ export default function FreelancerInterviewPage() {
     }
   };
 
-  if (authLoading || loading || !user || role !== "tasker") {
+  if (authLoading || loading || !user || role !== "freelancer") {
     return <div className="grid min-h-[70vh] place-items-center bg-canvas"><div className="h-9 w-9 animate-spin rounded-full border-[3px] border-brand border-t-transparent" /></div>;
   }
 

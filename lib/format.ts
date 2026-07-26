@@ -20,3 +20,35 @@ export function formatDate(value: any) {
     year: "numeric",
   }).format(date);
 }
+
+export function timeAgo(value: any) {
+  if (!value) return "just now";
+  const raw = value?.toDate?.() ?? (typeof value?.seconds === "number" ? new Date(value.seconds * 1000) : value);
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "recently";
+  const seconds = Math.max(1, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+export function formatPercent(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return `${Math.round(value)}%`;
+}
+
+export function initialsOf(name: string | null | undefined) {
+  return (name || "W")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+}

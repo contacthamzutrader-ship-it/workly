@@ -1,27 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Activity,
   ArrowRight,
-  BadgeCheck,
   BarChart3,
   Bot,
   BriefcaseBusiness,
-  Check,
   CheckCircle2,
-  ChevronDown,
   CircleDollarSign,
   Clock3,
   Eye,
+  History,
   KeyRound,
   LayoutDashboard,
   Link2,
   ListChecks,
   Lock,
-  LogOut,
   ReceiptText,
   Settings,
   ShieldCheck,
@@ -30,300 +27,327 @@ import {
   TrendingUp,
   UserPlus,
   Users,
-  Zap,
+  X,
 } from "lucide-react";
 import { collection, doc, getDocs, limit, query, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import {
+  DEFAULT_SETTINGS,
+  addAdmin,
+  findUserByEmail,
+  getPlatformSettings,
+  listAdmins,
+  listAudit,
+  recordAudit,
+  removeAdmin,
+  savePlatformSettings,
+  setUserPrivateStatus,
+  setUserRole,
+  setUserSuspended,
+  setUserVerified,
+  updateAdmin,
+  type AdminDoc,
+  type AuditEntry,
+  type PlatformSettings,
+} from "@/lib/admin";
+import {
+  ALL_PERMISSIONS,
+  PERMISSION_HINTS,
+  PERMISSION_LABELS,
+  STAFF_ROLE_BLURB,
+  STAFF_ROLE_LABELS,
+  STAFF_ROLE_PERMISSIONS,
+  hasPermission,
+  normalizeRole,
+  type MemberRole,
+  type Permission,
+  type StaffRole,
+} from "@/lib/roles";
+import {
+  PLATFORM_FEE,
   approvePrivateTask,
   approveTask,
   listPendingTasks,
   listPrivateTasks,
-  PLATFORM_FEE,
+  rejectTask,
   type Task,
 } from "@/lib/tasks";
-import {
-  addAdmin,
-  ALL_PERMISSIONS,
-  findUserByEmail,
-  getAutoApprove,
-  hasPermission,
-  listAdmins,
-  ownerSession,
-  PERMISSION_LABELS,
-  removeAdmin,
-  setAutoApprove,
-  setUserPrivateStatus,
-  setUserPublicRole,
-  updateAdminPermissions,
-  type Permission,
-} from "@/lib/admin";
-import { formatPKR } from "@/lib/format";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
+import { formatPKR, timeAgo } from "@/lib/format";
 import type { InterviewRecord } from "@/lib/interview";
+import Button from "@/components/ui/Button";
+import Input, { Field, Select, Textarea } from "@/components/ui/Input";
+import Avatar from "@/components/ui/Avatar";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
+import { Alert, EmptyState, PageLoader, Skeleton } from "@/components/ui/Feedback";
+import { AdminHeader, AdminTabs, Panel, type TabDefinition, type TabId } from "./components/AdminChrome";
 
 type InterviewWithId = InterviewRecord & { id: string };
-type Tab = "overview" | "approvals" | "interviews" | "tasks" | "finance" | "users" | "admins" | "settings";
-const COMPANY_ADMIN_DEFAULTS: Permission[] = ["approveTasks", "manageUsers", "manageContent", "viewAnalytics"];
+type MemberRecord = Record<string, any> & { id: string };
+
+const ASSIGNABLE_STAFF_ROLES: StaffRole[] = ["editor", "moderator", "admin"];
 
 export default function AdminPage() {
-  const { user, role, loading, adminSession, signOut } = useAuth();
+  const { user, staff, isOwner, loading, signOut, refreshStaff } = useAuth();
   const router = useRouter();
-  const session = adminSession
-    ?? (role === "super_admin" ? ownerSession() : null)
-    ?? (role === "company_admin" ? { role: "company_admin" as const, isOwner: false, permissions: COMPANY_ADMIN_DEFAULTS } : null);
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+
+  const [tab, setTab] = useState<TabId>("overview");
+  const [busy, setBusy] = useState(true);
+  const [action, setAction] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
   const [pending, setPending] = useState<Task[]>([]);
   const [privateTasks, setPrivateTasks] = useState<Task[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [admins, setAdmins] = useState<any[]>([]);
+  const [members, setMembers] = useState<MemberRecord[]>([]);
+  const [admins, setAdmins] = useState<AdminDoc[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [disputes, setDisputes] = useState<any[]>([]);
   const [interviews, setInterviews] = useState<InterviewWithId[]>([]);
-  const [busy, setBusy] = useState(true);
-  const [actionBusy, setActionBusy] = useState("");
-  const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
-  const [error, setError] = useState("");
-  const [privateInviteLink, setPrivateInviteLink] = useState("");
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [settings, setSettings] = useState<PlatformSettings>(DEFAULT_SETTINGS);
 
-  const can = (permission: Permission) => hasPermission(session, permission);
-  const sessionKey = `${user?.uid || ""}:${role || ""}:${adminSession?.permissions?.join(",") || "owner"}`;
+  const [privatePick, setPrivatePick] = useState<Record<string, string>>({});
+  const [rejectFor, setRejectFor] = useState<string>("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  const [memberSearch, setMemberSearch] = useState("");
+
+  const can = useCallback((permission: Permission) => hasPermission(staff, permission), [staff]);
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/login?redirect=/admin");
-    if (!loading && user && !session) router.replace("/dashboard");
-  }, [loading, user, session, router]);
+    if (loading) return;
+    if (!user) router.replace("/login?redirect=/admin");
+    else if (!staff) router.replace("/dashboard");
+  }, [loading, user, staff, router]);
 
-  const load = async () => {
-    if (!session) return;
+  const load = useCallback(async () => {
+    if (!staff) return;
     setBusy(true);
+    setError("");
     try {
-      const needsUsers = can("approveTasks") || can("manageUsers") || can("viewAnalytics");
-      const needsTasks = can("viewAnalytics") || can("manageContent");
-      const needsFinance = can("managePayments");
-      const needsInterviews = can("manageUsers") || can("approveTasks");
-      const [pendingData, privateData, usersSnap, taskSnap, adminData, transactionSnap, disputeSnap, interviewSnap] = await Promise.all([
+      const [
+        pendingData,
+        privateData,
+        taskSnapshot,
+        memberSnapshot,
+        adminData,
+        transactionSnapshot,
+        disputeSnapshot,
+        interviewSnapshot,
+        settingsData,
+        auditData,
+      ] = await Promise.all([
         can("approveTasks") ? listPendingTasks() : Promise.resolve([]),
         can("approveTasks") || can("manageContent") ? listPrivateTasks() : Promise.resolve([]),
-        needsUsers && db ? getDocs(query(collection(db, "users"), limit(500))) : Promise.resolve(null),
-        needsTasks && db ? getDocs(query(collection(db, "tasks"), limit(500))) : Promise.resolve(null),
+        db && (can("viewAnalytics") || can("manageContent"))
+          ? getDocs(query(collection(db, "tasks"), limit(500)))
+          : Promise.resolve(null),
+        db && (can("manageUsers") || can("viewAnalytics") || can("approveTasks"))
+          ? getDocs(query(collection(db, "users"), limit(500)))
+          : Promise.resolve(null),
         can("manageAdmins") ? listAdmins() : Promise.resolve([]),
-        needsFinance && db ? getDocs(query(collection(db, "wallet_txs"), limit(500))) : Promise.resolve(null),
-        needsFinance && db ? getDocs(query(collection(db, "disputes"), limit(200))) : Promise.resolve(null),
-        needsInterviews && db ? getDocs(query(collection(db, "interviews"), limit(200))) : Promise.resolve(null),
+        db && can("managePayments") ? getDocs(query(collection(db, "wallet_txs"), limit(500))) : Promise.resolve(null),
+        db && can("managePayments") ? getDocs(query(collection(db, "disputes"), limit(200))) : Promise.resolve(null),
+        db && (can("manageUsers") || can("approveTasks"))
+          ? getDocs(query(collection(db, "interviews"), limit(200)))
+          : Promise.resolve(null),
+        getPlatformSettings(),
+        can("manageAdmins") || can("manageUsers") ? listAudit(60) : Promise.resolve([]),
       ]);
+
       setPending(pendingData);
       setPrivateTasks(privateData);
-      if (usersSnap) setAllUsers(usersSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
-      if (taskSnap) setAllTasks(taskSnap.docs.map((item) => ({ id: item.id, ...item.data() } as Task)));
+      if (taskSnapshot) setAllTasks(taskSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Task));
+      if (memberSnapshot) setMembers(memberSnapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
       setAdmins(adminData);
-      if (transactionSnap) setTransactions(transactionSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
-      if (disputeSnap) setDisputes(disputeSnap.docs.map((item) => ({ id: item.id, ...item.data() })));
-      if (interviewSnap) setInterviews(interviewSnap.docs.map((item) => ({ id: item.id, ...item.data() } as InterviewWithId)));
-    } catch (err: any) {
-      setError(err?.message || "Some admin data could not be loaded.");
+      if (transactionSnapshot) setTransactions(transactionSnapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (disputeSnapshot) setDisputes(disputeSnapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (interviewSnapshot)
+        setInterviews(interviewSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as InterviewWithId));
+      setSettings(settingsData);
+      setAudit(auditData);
+    } catch (caught) {
+      setError((caught as Error)?.message || "Some control-centre data could not be loaded.");
     } finally {
       setBusy(false);
     }
-  };
+  }, [staff, can]);
 
   useEffect(() => {
-    if (session) load();
-  }, [sessionKey]);
+    if (staff) load();
+  }, [staff, load]);
 
+  // Land on the first tab this operator is actually allowed to see.
   useEffect(() => {
-    if (!session || can("viewAnalytics")) return;
-    if (can("approveTasks")) setActiveTab("approvals");
-    else if (can("manageUsers")) setActiveTab("users");
-    else if (can("manageAdmins")) setActiveTab("admins");
-    else if (can("manageContent")) setActiveTab("settings");
-  }, [sessionKey]);
+    if (!staff || can("viewAnalytics")) return;
+    if (can("approveTasks")) setTab("approvals");
+    else if (can("manageUsers")) setTab("people");
+    else if (can("manageAdmins")) setTab("staff");
+    else if (can("managePayments")) setTab("finance");
+    else setTab("settings");
+  }, [staff, can]);
 
-  const privateProviders = allUsers.filter((member) => member.isPrivate === true && member.role === "tasker");
-  const completedTasks = allTasks.filter((task) => task.status === "completed").length;
-  const totalRevenue = allTasks
-    .filter((task) => task.heldAmount && task.paymentReleased)
-    .reduce((sum, task) => sum + Math.round((task.heldAmount || 0) * PLATFORM_FEE), 0);
-  const completionRate = allTasks.length ? Math.round((completedTasks / allTasks.length) * 100) : 0;
-  const categoryBreakdown = useMemo(() => allTasks.reduce((acc: Record<string, number>, task) => {
-    acc[task.category] = (acc[task.category] || 0) + 1;
-    return acc;
-  }, {}), [allTasks]);
-  const maxCategory = Math.max(1, ...Object.values(categoryBreakdown));
+  const privateProviders = useMemo(
+    () => members.filter((member) => member.isPrivate === true),
+    [members]
+  );
+  const pendingInterviews = interviews.filter((item) => item.status === "awaiting_review");
+  const openDisputes = disputes.filter((item) => item.status !== "resolved");
 
-  if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-  if (!session) return null;
+  const analytics = useMemo(() => {
+    const completed = allTasks.filter((task) => task.status === "completed");
+    const revenue = allTasks
+      .filter((task) => task.paymentReleased)
+      .reduce((total, task) => total + Math.round((task.heldAmount || 0) * PLATFORM_FEE), 0);
+    const volume = allTasks
+      .filter((task) => task.paymentReleased)
+      .reduce((total, task) => total + (task.heldAmount || 0), 0);
+    const categories = allTasks.reduce<Record<string, number>>((accumulator, task) => {
+      accumulator[task.category] = (accumulator[task.category] || 0) + 1;
+      return accumulator;
+    }, {});
+    return {
+      completed: completed.length,
+      completionRate: allTasks.length ? Math.round((completed.length / allTasks.length) * 100) : 0,
+      revenue,
+      volume,
+      categories,
+      maxCategory: Math.max(1, ...Object.values(categories)),
+      clients: members.filter((member) => normalizeRole(member.role) === "client").length,
+      freelancers: members.filter((member) => normalizeRole(member.role) === "freelancer").length,
+    };
+  }, [allTasks, members]);
 
-  const approvePublic = async (taskId: string) => {
-    setActionBusy(taskId);
+  if (loading || !user) return <PageLoader label="Verifying your access" />;
+  if (!staff) return null;
+
+  const run = async (key: string, work: () => Promise<void>, success?: string) => {
+    setAction(key);
     setError("");
+    setNotice("");
     try {
-      await approveTask(taskId, "public", user.email || "Workly admin");
+      await work();
+      if (success) setNotice(success);
       await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not approve this task.");
+    } catch (caught) {
+      setError((caught as Error)?.message || "That action could not be completed.");
     } finally {
-      setActionBusy("");
+      setAction("");
     }
   };
 
-  const approvePrivate = async (task: Task) => {
-    const providerId = privatePick[task.id!];
-    const provider = privateProviders.find((item) => item.id === providerId);
-    if (!provider) {
-      setError("Select an internal private provider before approving.");
-      return;
-    }
-    setActionBusy(task.id!);
-    setError("");
-    try {
-      await approvePrivateTask({
-        taskId: task.id!,
-        providerId: provider.id,
-        providerName: provider.name || provider.email || "Workly managed provider",
-        approvedBy: user.email || "Workly admin",
-      });
-      await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not create the managed assignment.");
-    } finally {
-      setActionBusy("");
-    }
-  };
+  const audited = (entry: { action: string; target: string; detail?: string }) =>
+    recordAudit({ actorId: user.uid, actorEmail: user.email || "", ...entry });
 
-  const createPrivateInvite = async (task: Task) => {
-    setActionBusy(task.id!);
-    setError("");
-    try {
-      const token = await approveTask(task.id!, "private", user.email || "Workly admin");
-      if (!token) throw new Error("Private token could not be generated.");
-      const link = `${window.location.origin}/tasks/${task.id}?invite=${token}`;
-      setPrivateInviteLink(link);
-      try { await navigator.clipboard.writeText(link); } catch {}
-      await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not create the private freelancer link.");
-    } finally {
-      setActionBusy("");
-    }
-  };
-
-  const togglePrivateProvider = async (member: any) => {
-    setActionBusy(member.id);
-    setError("");
-    try {
-      await setUserPrivateStatus(member.id, !member.isPrivate);
-      await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not update this provider.");
-    } finally {
-      setActionBusy("");
-    }
-  };
-
-  const changeUserRole = async (member: any, nextRole: "customer" | "tasker") => {
-    setActionBusy(member.id);
-    setError("");
-    try {
-      await setUserPublicRole(member.id, nextRole);
-      await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not change this account role.");
-    } finally {
-      setActionBusy("");
-    }
-  };
-
-  const reviewInterview = async (record: InterviewWithId, decision: "verified" | "needs_improvement") => {
-    if (!db || !user || record.status !== "awaiting_review") return;
-    setActionBusy(`interview-${record.id}`);
-    setError("");
-    try {
-      await runTransaction(db, async (transaction) => {
-        const interviewRef = doc(db!, "interviews", record.id);
-        const userRef = doc(db!, "users", record.userId);
-        const latest = await transaction.get(interviewRef);
-        if (!latest.exists() || latest.data().status !== "awaiting_review") throw new Error("This interview was already reviewed.");
-        transaction.update(interviewRef, {
-          status: decision,
-          reviewedBy: user.email || user.uid,
-          reviewedAt: serverTimestamp(),
-          reviewNote: decision === "verified" ? "Evidence reviewed and badge approved." : "More concrete role evidence is needed before approval.",
-        });
-        transaction.update(userRef, {
-          interviewStatus: decision,
-          interviewUpdatedAt: serverTimestamp(),
-          ...(decision === "verified" ? { interviewVerifiedAt: serverTimestamp() } : {}),
-        });
-      });
-      await load();
-    } catch (err: any) {
-      setError(err?.message || "Could not review this interview.");
-    } finally {
-      setActionBusy("");
-    }
-  };
-
-  const tabs: { id: Tab; label: string; icon: any; show: boolean; count?: number }[] = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard, show: can("viewAnalytics") },
-    { id: "approvals", label: "Approval centre", icon: ShieldCheck, show: can("approveTasks"), count: pending.length },
-    { id: "interviews", label: "Talent interviews", icon: Bot, show: can("manageUsers") || can("approveTasks"), count: interviews.filter((item) => item.status === "awaiting_review").length },
-    { id: "tasks", label: "All tasks", icon: ListChecks, show: can("viewAnalytics") || can("manageContent"), count: allTasks.length },
-    { id: "finance", label: "Finance & disputes", icon: ReceiptText, show: can("managePayments"), count: disputes.filter((item) => item.status !== "resolved").length },
-    { id: "users", label: "People", icon: Users, show: can("manageUsers") || can("approveTasks") },
-    { id: "admins", label: "Admin team", icon: KeyRound, show: can("manageAdmins") },
-    { id: "settings", label: "Controls", icon: Settings, show: can("manageContent") },
-  ];
+  const tabs: TabDefinition[] = (
+    [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, permission: "viewAnalytics" },
+      { id: "approvals", label: "Approvals", icon: ShieldCheck, permission: "approveTasks", count: pending.length },
+      { id: "tasks", label: "All tasks", icon: ListChecks, permission: "viewAnalytics", count: allTasks.length },
+      { id: "interviews", label: "Interviews", icon: Bot, permission: "manageUsers", count: pendingInterviews.length },
+      { id: "finance", label: "Finance", icon: ReceiptText, permission: "managePayments", count: openDisputes.length },
+      { id: "people", label: "People", icon: Users, permission: "manageUsers" },
+      { id: "staff", label: "Staff & roles", icon: KeyRound, permission: "manageAdmins", count: admins.length },
+      { id: "settings", label: "Platform", icon: Settings, permission: "manageContent" },
+      { id: "audit", label: "Audit log", icon: History, permission: "manageAdmins" },
+    ] as TabDefinition[]
+  ).filter((item) => item.permission === null || can(item.permission));
 
   return (
     <div className="min-h-screen bg-canvas py-8 sm:py-10">
       <div className="page-shell">
-        <div className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><ShieldCheck className="h-7 w-7" /></span>
-              <div>
-                <div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">Workly Control</h1><span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-brand-300">{session.isOwner ? "Owner" : "Admin"}</span></div>
-                <p className="mt-1 text-sm font-medium text-white/50">Approvals, people, revenue and platform health.</p>
-              </div>
+        <AdminHeader
+          session={staff}
+          email={user.email || ""}
+          onSignOut={async () => {
+            await signOut();
+            router.replace("/login");
+          }}
+        />
+        <AdminTabs tabs={tabs} active={tab} onSelect={setTab} />
+
+        {error && (
+          <Alert tone="error" className="mt-5">
+            {error}
+          </Alert>
+        )}
+        {notice && (
+          <Alert tone="success" className="mt-5">
+            {notice}
+          </Alert>
+        )}
+        {inviteLink && (
+          <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-black text-brand-dark">Private invitation link created and copied</p>
+              <button onClick={() => setInviteLink("")} aria-label="Dismiss" className="text-brand-dark">
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold text-white/60 sm:flex"><span className="h-2 w-2 rounded-full bg-brand-light" /> Systems operational</span>
-              {session.isOwner ? <button onClick={async () => { await signOut(); router.replace("/login"); }} className="inline-flex min-h-12 items-center gap-2 rounded-[14px] bg-white px-5 text-sm font-bold text-ink transition hover:bg-brand-100">Sign out <LogOut className="h-4 w-4" /></button> : <Link href="/dashboard" className="inline-flex min-h-12 items-center gap-2 rounded-[14px] bg-white px-5 text-sm font-bold text-ink transition hover:bg-brand-100">Exit admin <ArrowRight className="h-4 w-4" /></Link>}
+            <div className="mt-2 flex gap-2">
+              <Input readOnly value={inviteLink} className="bg-white" />
+              <Button size="sm" variant="secondary" onClick={() => navigator.clipboard.writeText(inviteLink)}>
+                Copy
+              </Button>
             </div>
+            <p className="mt-2 text-xs font-medium text-ink-500">
+              The first signed-in freelancer who opens this exact link can view and bid. It never appears in the public
+              feed.
+            </p>
           </div>
-        </div>
-
-        <div className="mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-ink-100 bg-white p-2 shadow-card">
-          {tabs.filter((tab) => tab.show).map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-xs font-extrabold transition ${activeTab === tab.id ? "bg-ink text-white shadow-sm" : "text-ink-500 hover:bg-ink-50 hover:text-ink"}`}>
-              <tab.icon className="h-4 w-4" /> {tab.label}
-              {typeof tab.count === "number" && tab.count > 0 && <span className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] ${activeTab === tab.id ? "bg-brand text-white" : "bg-amber-100 text-amber-700"}`}>{tab.count}</span>}
-            </button>
-          ))}
-        </div>
-
-        {error && <div role="alert" className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
-        {privateInviteLink && <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50 p-4"><p className="text-sm font-black text-brand-dark">Private freelancer link created and copied</p><div className="mt-2 flex gap-2"><Input readOnly value={privateInviteLink} className="bg-white" /><button onClick={() => navigator.clipboard.writeText(privateInviteLink)} className="shrink-0 rounded-xl bg-ink px-4 text-xs font-extrabold text-white">Copy link</button></div><p className="mt-2 text-xs font-medium text-ink-500">The first signed-in freelancer who opens this exact link can view and bid. It will not appear in the public feed.</p></div>}
+        )}
 
         {busy ? (
-          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="h-28 animate-pulse rounded-3xl bg-white" />)}</div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((index) => (
+              <Skeleton key={index} className="h-28" />
+            ))}
+          </div>
         ) : (
-          <>
-            {activeTab === "overview" && can("viewAnalytics") && (
-              <div className="mt-6 space-y-6">
+          <div className="mt-6">
+            {/* ------------------------------------------------ Overview */}
+            {tab === "overview" && can("viewAnalytics") && (
+              <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   {[
-                    { icon: Users, label: "People", value: allUsers.length, note: "registered accounts", tone: "bg-blue-50 text-blue-600" },
-                    { icon: BriefcaseBusiness, label: "All tasks", value: allTasks.length, note: `${pending.length} awaiting review`, tone: "bg-purple-50 text-purple-600" },
-                    { icon: CheckCircle2, label: "Completion", value: `${completionRate}%`, note: `${completedTasks} tasks delivered`, tone: "bg-brand-50 text-brand" },
-                    { icon: CircleDollarSign, label: "Platform revenue", value: formatPKR(totalRevenue), note: `${PLATFORM_FEE * 100}% fee collected`, tone: "bg-amber-50 text-amber-700" },
+                    {
+                      icon: Users,
+                      label: "People",
+                      value: members.length,
+                      note: `${analytics.clients} clients · ${analytics.freelancers} freelancers`,
+                      tone: "bg-blue-50 text-blue-600",
+                    },
+                    {
+                      icon: BriefcaseBusiness,
+                      label: "All tasks",
+                      value: allTasks.length,
+                      note: `${pending.length} awaiting review`,
+                      tone: "bg-violet-50 text-violet-600",
+                    },
+                    {
+                      icon: CheckCircle2,
+                      label: "Completion rate",
+                      value: `${analytics.completionRate}%`,
+                      note: `${analytics.completed} tasks delivered`,
+                      tone: "bg-brand-50 text-brand",
+                    },
+                    {
+                      icon: CircleDollarSign,
+                      label: "Platform revenue",
+                      value: formatPKR(analytics.revenue),
+                      note: `${Math.round(PLATFORM_FEE * 100)}% of ${formatPKR(analytics.volume)} volume`,
+                      tone: "bg-amber-50 text-amber-700",
+                    },
                   ].map((stat) => (
                     <div key={stat.label} className="surface p-4 sm:p-5">
-                      <div className="flex items-start justify-between gap-3"><span className={`grid h-11 w-11 place-items-center rounded-xl ${stat.tone}`}><stat.icon className="h-5 w-5" /></span><TrendingUp className="h-4 w-4 text-ink-200" /></div>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className={`grid h-11 w-11 place-items-center rounded-xl ${stat.tone}`}>
+                          <stat.icon className="h-5 w-5" />
+                        </span>
+                        <TrendingUp className="h-4 w-4 text-ink-200" />
+                      </div>
                       <p className="mt-5 truncate text-2xl font-black tracking-[-0.035em] text-ink">{stat.value}</p>
                       <p className="mt-1 text-xs font-black text-ink-600">{stat.label}</p>
                       <p className="mt-1 text-[11px] font-semibold text-ink-400">{stat.note}</p>
@@ -332,326 +356,1225 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-                  <section className="surface p-6">
-                    <div className="flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Demand intelligence</p><h2 className="mt-1 text-xl font-black text-ink">Tasks by category</h2></div><BarChart3 className="h-5 w-5 text-brand" /></div>
-                    {Object.keys(categoryBreakdown).length ? (
-                      <div className="mt-7 space-y-4">
-                        {Object.entries(categoryBreakdown).sort((a,b) => b[1] - a[1]).slice(0, 8).map(([category, count]) => (
-                          <div key={category}>
-                            <div className="mb-2 flex items-center justify-between text-xs font-bold"><span className="text-ink-600">{category}</span><span className="text-ink-400">{count}</span></div>
-                            <div className="h-2 overflow-hidden rounded-full bg-ink-50"><div className="h-full rounded-full bg-brand" style={{ width: `${(count / maxCategory) * 100}%` }} /></div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : <p className="mt-8 text-sm font-medium text-ink-400">Category trends will appear as tasks are posted.</p>}
-                  </section>
+                  <Panel title="Tasks by category" eyebrow="Demand intelligence" action={<BarChart3 className="h-5 w-5 text-brand" />}>
+                    <div className="p-6">
+                      {Object.keys(analytics.categories).length ? (
+                        <div className="space-y-4">
+                          {Object.entries(analytics.categories)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 9)
+                            .map(([category, count]) => (
+                              <div key={category}>
+                                <div className="mb-2 flex items-center justify-between text-xs font-bold">
+                                  <span className="text-ink-600">{category}</span>
+                                  <span className="text-ink-400">{count}</span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded-full bg-ink-50">
+                                  <div
+                                    className="h-full rounded-full bg-brand transition-all"
+                                    style={{ width: `${(count / analytics.maxCategory) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-ink-400">Category trends appear as tasks are posted.</p>
+                      )}
+                    </div>
+                  </Panel>
 
                   <aside className="space-y-4">
-                    <button onClick={() => setActiveTab("approvals")} className="w-full rounded-3xl bg-amber-50 p-6 text-left transition hover:bg-amber-100">
-                      <div className="flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-amber-700"><Clock3 className="h-5 w-5" /></span><ArrowRight className="h-4 w-4 text-amber-700" /></div>
-                      <p className="mt-5 text-3xl font-black text-ink">{pending.length}</p><p className="mt-1 text-sm font-black text-ink">Tasks need a decision</p><p className="mt-1 text-xs leading-5 text-ink-500">Choose public marketplace or managed private fulfilment.</p>
-                    </button>
+                    {can("approveTasks") && (
+                      <button
+                        onClick={() => setTab("approvals")}
+                        className="w-full rounded-3xl bg-amber-50 p-6 text-left transition hover:bg-amber-100"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-amber-700">
+                            <Clock3 className="h-5 w-5" />
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-amber-700" />
+                        </div>
+                        <p className="mt-5 text-3xl font-black text-ink">{pending.length}</p>
+                        <p className="mt-1 text-sm font-black text-ink">Tasks need a decision</p>
+                        <p className="mt-1 text-xs leading-5 text-ink-500">
+                          Publish publicly, invite privately, or reject with a reason.
+                        </p>
+                      </button>
+                    )}
+
                     <div className="rounded-3xl bg-brand p-6 text-white shadow-glow">
-                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-white/70"><Activity className="h-4 w-4" /> Private network</div>
-                      <p className="mt-4 text-3xl font-black">{privateProviders.length}</p><p className="mt-1 text-sm font-black">Managed providers ready</p><button onClick={() => setActiveTab("users")} className="mt-4 flex items-center gap-1.5 text-xs font-extrabold text-white/80">Manage network <ArrowRight className="h-3.5 w-3.5" /></button>
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-white/70">
+                        <Activity className="h-4 w-4" /> Private network
+                      </div>
+                      <p className="mt-4 text-3xl font-black">{privateProviders.length}</p>
+                      <p className="mt-1 text-sm font-black">Managed providers ready</p>
+                      {can("manageUsers") && (
+                        <button
+                          onClick={() => setTab("people")}
+                          className="mt-4 flex items-center gap-1.5 text-xs font-black text-white/85"
+                        >
+                          Manage network <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
+
+                    {can("manageUsers") && pendingInterviews.length > 0 && (
+                      <button
+                        onClick={() => setTab("interviews")}
+                        className="surface w-full p-5 text-left transition hover:border-brand-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                            <Bot className="h-5 w-5" />
+                          </span>
+                          <div>
+                            <p className="text-lg font-black text-ink">{pendingInterviews.length}</p>
+                            <p className="text-xs font-bold text-ink-400">Interviews awaiting review</p>
+                          </div>
+                        </div>
+                      </button>
+                    )}
                   </aside>
                 </div>
               </div>
             )}
 
-            {activeTab === "approvals" && can("approveTasks") && (
-              <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-                <section className="surface overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-ink-100 p-6">
-                    <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-amber-600">Decision queue</p><h2 className="mt-1 text-xl font-black text-ink">Pending approval</h2></div>
-                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">{pending.length} waiting</span>
-                  </div>
+            {/* ------------------------------------------------ Approvals */}
+            {tab === "approvals" && can("approveTasks") && (
+              <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+                <Panel
+                  title="Pending approval"
+                  eyebrow="Decision queue"
+                  action={
+                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">
+                      {pending.length} waiting
+                    </span>
+                  }
+                >
                   {pending.length === 0 ? (
-                    <div className="px-6 py-20 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand"><CheckCircle2 className="h-6 w-6" /></span><h3 className="mt-4 text-lg font-black text-ink">Queue is clear</h3><p className="mt-1 text-sm text-ink-500">Every submitted task has a route.</p></div>
+                    <EmptyState icon={CheckCircle2} title="Queue is clear" description="Every submitted task has a route." />
                   ) : (
-                    <div className="divide-y divide-ink-100">
-                      {pending.map((task) => {
-                        const selectedProvider = privatePick[task.id!];
-                        return (
-                          <div key={task.id} className="p-5 sm:p-6">
-                            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ink-500">{task.category}</span><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand-dark">{formatPKR(task.budget)}</span>{task.moderation === "review" && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">AI flagged review</span>}</div>
-                                <h3 className="mt-3 text-lg font-black text-ink">{task.title}</h3>
-                                <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink-500">{task.description}</p>
-                                <p className="mt-3 text-xs font-bold text-ink-400">{task.location} - posted by {task.posterName}</p>
+                    <ul className="divide-y divide-ink-100">
+                      {pending.map((task) => (
+                        <li key={task.id} className="p-5 sm:p-6">
+                          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge>{task.category}</Badge>
+                                <Badge tone="bg-brand-50 text-brand-dark border-brand-200">{formatPKR(task.budget)}</Badge>
+                                {task.moderation === "review" && (
+                                  <Badge tone="bg-amber-50 text-amber-700 border-amber-200">AI flagged</Badge>
+                                )}
                               </div>
-                              <div className="flex shrink-0 gap-2">
-                                <Button onClick={() => approvePublic(task.id!)} disabled={actionBusy === task.id} className="gap-2 shadow-none"><Eye className="h-4 w-4" /> Publish</Button>
-                                <Button variant="secondary" onClick={() => createPrivateInvite(task)} disabled={actionBusy === task.id} className="gap-2"><Link2 className="h-4 w-4" /> Private link</Button>
-                              </div>
+                              <h3 className="mt-3 text-lg font-black text-ink">{task.title}</h3>
+                              <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink-500">{task.description}</p>
+                              <p className="mt-3 text-xs font-bold text-ink-400">
+                                {task.location} · posted by {task.posterName} · {timeAgo(task.createdAt)}
+                              </p>
                             </div>
+                            <div className="flex shrink-0 flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                loading={action === `publish-${task.id}`}
+                                onClick={() =>
+                                  run(
+                                    `publish-${task.id}`,
+                                    async () => {
+                                      await approveTask(task.id!, "public", user.email || "Workly admin");
+                                      await audited({ action: "task.publish", target: task.id!, detail: task.title });
+                                    },
+                                    "Task published to the public marketplace."
+                                  )
+                                }
+                              >
+                                <Eye className="h-4 w-4" /> Publish
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                loading={action === `invite-${task.id}`}
+                                onClick={() =>
+                                  run(`invite-${task.id}`, async () => {
+                                    const token = await approveTask(task.id!, "private", user.email || "Workly admin");
+                                    if (!token) throw new Error("A private token could not be generated.");
+                                    const link = `${window.location.origin}/tasks/${task.id}?invite=${token}`;
+                                    setInviteLink(link);
+                                    await navigator.clipboard.writeText(link).catch(() => undefined);
+                                    await audited({ action: "task.private_link", target: task.id!, detail: task.title });
+                                  })
+                                }
+                              >
+                                <Link2 className="h-4 w-4" /> Private link
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setRejectFor(rejectFor === task.id ? "" : task.id!);
+                                  setRejectReason("");
+                                }}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          </div>
 
-                            <div className="mt-5 rounded-2xl border border-ink-100 bg-ink-50/60 p-4">
-                              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <div className="flex flex-1 items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-ink text-white"><Lock className="h-4 w-4" /></span><div><p className="text-xs font-black text-ink">Managed private route</p><p className="text-[11px] font-medium text-ink-400">Creates exactly one selected internal offer</p></div></div>
-                                <select value={selectedProvider || ""} onChange={(e) => setPrivatePick(current => ({ ...current, [task.id!]: e.target.value }))} className="min-h-11 min-w-[210px] rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink focus:border-brand focus:outline-none">
-                                  <option value="">{privateProviders.length ? "Choose private provider" : "No private providers ready"}</option>
-                                  {privateProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name || provider.email}</option>)}
-                                </select>
-                                <Button variant="secondary" onClick={() => approvePrivate(task)} disabled={!selectedProvider || actionBusy === task.id} className="gap-2"><Lock className="h-4 w-4" /> Assign privately</Button>
+                          {rejectFor === task.id && (
+                            <form
+                              className="mt-4 space-y-3 rounded-2xl border border-rose-200 bg-rose-50 p-4"
+                              onSubmit={(event) => {
+                                event.preventDefault();
+                                run(
+                                  `reject-${task.id}`,
+                                  async () => {
+                                    await rejectTask(task.id!, rejectReason, user.email || "Workly admin");
+                                    await audited({ action: "task.reject", target: task.id!, detail: rejectReason });
+                                  },
+                                  "Task rejected and the client has been told why."
+                                ).then(() => setRejectFor(""));
+                              }}
+                            >
+                              <Textarea
+                                rows={2}
+                                required
+                                value={rejectReason}
+                                onChange={(event) => setRejectReason(event.target.value)}
+                                placeholder="Tell the client exactly what needs to change."
+                                className="text-sm"
+                              />
+                              <div className="flex gap-2">
+                                <Button type="submit" size="sm" variant="danger" loading={action === `reject-${task.id}`}>
+                                  Confirm rejection
+                                </Button>
+                                <Button type="button" size="sm" variant="ghost" onClick={() => setRejectFor("")}>
+                                  Cancel
+                                </Button>
                               </div>
+                            </form>
+                          )}
+
+                          <div className="mt-5 rounded-2xl border border-ink-100 bg-ink-50/60 p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                              <div className="flex flex-1 items-center gap-3">
+                                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink text-white">
+                                  <Lock className="h-4 w-4" />
+                                </span>
+                                <div>
+                                  <p className="text-xs font-black text-ink">Managed private fulfilment</p>
+                                  <p className="text-[11px] font-medium text-ink-400">
+                                    Creates exactly one selected internal offer
+                                  </p>
+                                </div>
+                              </div>
+                              <Select
+                                value={privatePick[task.id!] || ""}
+                                onChange={(event) =>
+                                  setPrivatePick((current) => ({ ...current, [task.id!]: event.target.value }))
+                                }
+                                className="min-h-11 py-2 text-xs sm:min-w-[210px]"
+                              >
+                                <option value="">
+                                  {privateProviders.length ? "Choose provider" : "No private providers ready"}
+                                </option>
+                                {privateProviders.map((provider) => (
+                                  <option key={provider.id} value={provider.id}>
+                                    {provider.name || provider.email}
+                                  </option>
+                                ))}
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                disabled={!privatePick[task.id!]}
+                                loading={action === `assign-${task.id}`}
+                                onClick={() => {
+                                  const provider = privateProviders.find((item) => item.id === privatePick[task.id!]);
+                                  if (!provider) return;
+                                  run(
+                                    `assign-${task.id}`,
+                                    async () => {
+                                      await approvePrivateTask({
+                                        taskId: task.id!,
+                                        providerId: provider.id,
+                                        providerName: provider.name || provider.email || "Workly provider",
+                                        approvedBy: user.email || "Workly admin",
+                                      });
+                                      await audited({
+                                        action: "task.private_assign",
+                                        target: task.id!,
+                                        detail: provider.email || provider.id,
+                                      });
+                                    },
+                                    "Task assigned to a managed provider."
+                                  );
+                                }}
+                              >
+                                Assign privately
+                              </Button>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+
+                <aside className="space-y-4 lg:sticky lg:top-6">
+                  <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated">
+                    <Sparkles className="h-5 w-5 text-brand-light" />
+                    <h3 className="mt-4 text-lg font-black">Three routes</h3>
+                    <div className="mt-5 space-y-4">
+                      {[
+                        [Eye, "Public", "Visible to everyone. Multiple freelancers can offer."],
+                        [Lock, "Private managed", "Hidden from browse. One internal provider auto-assigned."],
+                        [Link2, "Private invite", "One shareable link. First freelancer to open it can bid."],
+                      ].map(([Icon, title, body]) => {
+                        const Component = Icon as React.ComponentType<{ className?: string }>;
+                        return (
+                          <div key={String(title)} className="flex gap-3">
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10">
+                              <Component className="h-3.5 w-3.5 text-brand-light" />
+                            </span>
+                            <div>
+                              <p className="text-xs font-black">{String(title)}</p>
+                              <p className="mt-1 text-[11px] leading-4 text-white/50">{String(body)}</p>
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                  )}
-                </section>
-
-                <aside className="space-y-4 lg:sticky lg:top-24">
-                  <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Sparkles className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
-                  <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
-                  {privateTasks.some((task) => task.status === "open" && task.shareToken) && <div className="surface p-5"><p className="text-xs font-black text-ink">Active private links</p><div className="mt-3 space-y-2">{privateTasks.filter((task) => task.status === "open" && task.shareToken).slice(0, 8).map((task) => <button key={task.id} onClick={() => { const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`; setPrivateInviteLink(link); navigator.clipboard.writeText(link).catch(() => {}); }} className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 hover:bg-brand-50"><Link2 className="h-3.5 w-3.5 shrink-0 text-brand" /><span className="min-w-0 flex-1 truncate">{task.title}</span><span className="text-brand-dark">Copy</span></button>)}</div></div>}
-                </aside>
-              </div>
-            )}
-
-            {activeTab === "interviews" && (can("manageUsers") || can("approveTasks")) && (
-              <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-                <section className="surface overflow-hidden">
-                  <div className="flex flex-col gap-3 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Human-in-the-loop vetting</p><h2 className="mt-1 text-xl font-black text-ink">Freelancer interview review</h2></div>
-                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">{interviews.filter((item) => item.status === "awaiting_review").length} waiting</span>
                   </div>
-                  {interviews.filter((item) => item.status === "awaiting_review").length === 0 ? (
-                    <div className="px-6 py-20 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-700"><CheckCircle2 className="h-6 w-6" /></span><h3 className="mt-4 text-lg font-black text-ink">Interview queue is clear</h3><p className="mt-1 text-sm text-ink-500">Completed interviews will wait here for a human badge decision.</p></div>
-                  ) : (
-                    <div className="divide-y divide-ink-100">
-                      {interviews.filter((item) => item.status === "awaiting_review").map((record) => (
-                        <article key={record.id} className="p-5 sm:p-6">
-                          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase text-brand-dark">{record.profileSnapshot?.professionalTitle || "Freelancer"}</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">Review pending</span></div>
-                              <h3 className="mt-3 text-lg font-black text-ink">{record.profileSnapshot?.name || "Unnamed freelancer"}</h3>
-                              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-500">{record.assessment?.summary || "The structured interview is complete and ready for review."}</p>
-                              <div className="mt-3 flex flex-wrap gap-2">{record.profileSnapshot?.skills?.slice(0, 6).map((skill) => <span key={skill} className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-bold text-ink-500">{skill}</span>)}</div>
-                            </div>
-                            <div className="shrink-0 rounded-2xl bg-ink p-4 text-center text-white"><p className="text-3xl font-black">{record.assessment?.score ?? "—"}</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-white/45">AI evidence</p></div>
-                          </div>
 
-                          {record.assessment?.dimensions?.length ? <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">{record.assessment.dimensions.map((dimension) => <div key={dimension.key} className="rounded-xl bg-ink-50 p-3"><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-black text-ink-500">{dimension.label}</p><span className="text-xs font-black text-brand-dark">{dimension.score}</span></div><p className="mt-1.5 text-[10px] leading-4 text-ink-400">{dimension.evidence}</p></div>)}</div> : null}
+                  <div className="surface p-5">
+                    <p className="text-xs font-black text-ink">Private assignments</p>
+                    <p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p>
+                    <p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p>
+                  </div>
 
-                          <details className="mt-4 rounded-2xl border border-ink-100 bg-white">
-                            <summary className="cursor-pointer list-none px-4 py-3 text-xs font-extrabold text-ink-600">Read complete question-and-answer evidence</summary>
-                            <div className="space-y-4 border-t border-ink-100 p-4">{record.answers?.map((item, index) => <div key={`${record.id}-${index}`}><p className="text-xs font-black leading-5 text-ink">{index + 1}. {item.question}</p><p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-500">{item.answer}</p></div>)}</div>
-                          </details>
-
-                          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-brand-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="max-w-lg text-[11px] font-semibold leading-5 text-ink-500">Confirm that the answers contain relevant, concrete evidence and align with the profile. Do not approve from the score alone.</p>
-                            <div className="flex shrink-0 gap-2"><button onClick={() => reviewInterview(record, "needs_improvement")} disabled={actionBusy === `interview-${record.id}`} className="min-h-10 rounded-xl border border-ink-200 bg-white px-4 text-xs font-extrabold text-ink-600 disabled:opacity-50">Request stronger evidence</button><Button onClick={() => reviewInterview(record, "verified")} disabled={actionBusy === `interview-${record.id}`} className="min-h-10 gap-2 shadow-none"><BadgeCheck className="h-4 w-4" /> Approve badge</Button></div>
-                          </div>
-                        </article>
-                      ))}
+                  {privateTasks.some((task) => task.status === "open" && task.shareToken) && (
+                    <div className="surface p-5">
+                      <p className="text-xs font-black text-ink">Active private links</p>
+                      <div className="mt-3 space-y-2">
+                        {privateTasks
+                          .filter((task) => task.status === "open" && task.shareToken)
+                          .slice(0, 8)
+                          .map((task) => (
+                            <button
+                              key={task.id}
+                              onClick={() => {
+                                const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`;
+                                setInviteLink(link);
+                                navigator.clipboard.writeText(link).catch(() => undefined);
+                              }}
+                              className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 transition hover:bg-brand-50"
+                            >
+                              <Link2 className="h-3.5 w-3.5 shrink-0 text-brand" />
+                              <span className="min-w-0 flex-1 truncate">{task.title}</span>
+                              <span className="text-brand-dark">Copy</span>
+                            </button>
+                          ))}
+                      </div>
                     </div>
                   )}
-                </section>
-                <aside className="space-y-4 lg:sticky lg:top-24">
-                  <div className="rounded-3xl bg-ink p-6 text-white shadow-elevated"><Bot className="h-5 w-5 text-brand-300" /><h3 className="mt-4 text-lg font-black">Review, don&apos;t rubber-stamp</h3><p className="mt-2 text-xs leading-5 text-white/55">AI creates consistent questions and an evidence summary. A person reads the actual answers and owns the badge decision.</p></div>
-                  <div className="surface p-5"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Interview outcomes</p><div className="mt-4 space-y-3"><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">Verified</span><span className="text-emerald-700">{interviews.filter((item) => item.status === "verified").length}</span></div><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">Needs improvement</span><span className="text-rose-700">{interviews.filter((item) => item.status === "needs_improvement").length}</span></div><div className="flex items-center justify-between text-xs font-bold"><span className="text-ink-500">In progress</span><span className="text-brand-dark">{interviews.filter((item) => item.status === "in_progress").length}</span></div></div></div>
                 </aside>
               </div>
             )}
 
-            {activeTab === "tasks" && (can("viewAnalytics") || can("manageContent")) && (
-              <section className="surface mt-6 overflow-hidden">
-                <div className="flex flex-col gap-3 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Marketplace inventory</p><h2 className="mt-1 text-xl font-black text-ink">Every platform task</h2></div>
-                  <span className="rounded-full bg-brand-50 px-3 py-1.5 text-xs font-black text-brand-dark">{allTasks.length} total</span>
-                </div>
-                {allTasks.length === 0 ? <p className="p-8 text-sm text-ink-500">No tasks have been created yet.</p> : <div className="divide-y divide-ink-100">{allTasks.map((task) => (
-                  <Link key={task.id} href={`/tasks/${task.id}`} className="grid gap-4 p-5 transition hover:bg-ink-50/70 sm:grid-cols-[minmax(0,1fr)_150px_130px_28px] sm:items-center sm:px-6">
-                    <div className="min-w-0"><p className="truncate text-sm font-black text-ink">{task.title}</p><p className="mt-1 truncate text-xs font-medium text-ink-400">{task.posterName} · {task.category} · {task.location}</p></div>
-                    <p className="text-sm font-black text-ink">{formatPKR(task.budget)}</p>
-                    <div className="flex flex-wrap gap-1.5"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase text-ink-500">{task.status.replace("_", " ")}</span><span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${task.visibility === "private" ? "bg-purple-50 text-purple-700" : "bg-brand-50 text-brand-dark"}`}>{task.visibility}</span></div>
-                    <ArrowRight className="h-4 w-4 text-ink-300" />
-                  </Link>
-                ))}</div>}
-              </section>
+            {/* ------------------------------------------------ All tasks */}
+            {tab === "tasks" && can("viewAnalytics") && (
+              <Panel title="Every task on the platform" eyebrow="Marketplace records">
+                {allTasks.length === 0 ? (
+                  <EmptyState icon={ListChecks} title="No tasks yet" />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[720px] text-left text-sm">
+                      <thead className="border-b border-ink-100 text-[10px] uppercase tracking-wider text-ink-400">
+                        <tr>
+                          <th className="p-4 font-black">Task</th>
+                          <th className="p-4 font-black">Client</th>
+                          <th className="p-4 font-black">Budget</th>
+                          <th className="p-4 font-black">Offers</th>
+                          <th className="p-4 font-black">Status</th>
+                          <th className="p-4 font-black" />
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-ink-50">
+                        {allTasks
+                          .slice()
+                          .sort((a, b) => ((b.createdAt as any)?.seconds ?? 0) - ((a.createdAt as any)?.seconds ?? 0))
+                          .slice(0, 100)
+                          .map((task) => (
+                            <tr key={task.id} className="transition hover:bg-ink-50/60">
+                              <td className="max-w-xs p-4">
+                                <p className="truncate font-black text-ink">{task.title}</p>
+                                <p className="mt-0.5 text-xs text-ink-400">
+                                  {task.category} · {timeAgo(task.createdAt)}
+                                </p>
+                              </td>
+                              <td className="p-4 text-xs font-bold text-ink-600">{task.posterName}</td>
+                              <td className="p-4 text-xs font-black text-ink">{formatPKR(task.budget)}</td>
+                              <td className="p-4 text-xs font-bold text-ink-500">{task.bidsCount || 0}</td>
+                              <td className="p-4">
+                                <StatusBadge status={task.status} />
+                              </td>
+                              <td className="p-4 text-right">
+                                <Link href={`/tasks/${task.id}`} className="text-xs font-black text-brand-dark">
+                                  Open
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Panel>
             )}
 
-            {activeTab === "finance" && can("managePayments") && (
-              <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-                <section className="surface overflow-hidden">
-                  <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Money movement</p><h2 className="mt-1 text-xl font-black text-ink">Wallet transactions</h2></div>
-                  {transactions.length === 0 ? <p className="p-8 text-sm text-ink-500">No transactions recorded yet.</p> : <div className="divide-y divide-ink-100">{transactions.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 p-5 sm:px-6">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><CircleDollarSign className="h-5 w-5" /></span>
-                      <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-ink">{item.note || item.type || "Wallet transaction"}</p><p className="mt-1 truncate text-xs font-medium text-ink-400">User: {item.userId || "—"}{item.taskId ? ` · Task: ${item.taskId}` : ""}</p></div>
-                      <div className="text-right"><p className="text-sm font-black text-ink">{formatPKR(Number(item.amount) || 0)}</p><p className="mt-1 text-[10px] font-black uppercase text-ink-400">{item.type || "entry"}</p></div>
-                    </div>
-                  ))}</div>}
-                </section>
-                <section className="surface overflow-hidden">
-                  <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-red-600">Resolution desk</p><h2 className="mt-1 text-xl font-black text-ink">Disputes</h2></div>
-                  {disputes.length === 0 ? <div className="p-8 text-center"><CheckCircle2 className="mx-auto h-8 w-8 text-brand" /><p className="mt-3 text-sm font-bold text-ink">No disputes</p><p className="mt-1 text-xs text-ink-400">The resolution queue is clear.</p></div> : <div className="divide-y divide-ink-100">{disputes.map((item) => (
-                    <div key={item.id} className="p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm font-black text-ink">{item.reason || item.title || "Task dispute"}</p><span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase text-red-700">{item.status || "open"}</span></div><p className="mt-2 text-xs leading-5 text-ink-500">{item.description || `Task ${item.taskId || "not specified"}`}</p></div>
-                  ))}</div>}
-                </section>
-              </div>
+            {/* ------------------------------------------------ Interviews */}
+            {tab === "interviews" && can("manageUsers") && (
+              <Panel
+                title="Freelancer interview review"
+                eyebrow="Human-in-the-loop vetting"
+                action={
+                  <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700">
+                    {pendingInterviews.length} awaiting
+                  </span>
+                }
+              >
+                {interviews.length === 0 ? (
+                  <EmptyState icon={Bot} title="No interviews yet" description="Freelancer interview attempts will appear here." />
+                ) : (
+                  <ul className="divide-y divide-ink-100">
+                    {interviews
+                      .slice()
+                      .sort((a, b) => (a.status === "awaiting_review" ? -1 : 1))
+                      .map((record) => (
+                        <li key={record.id} className="p-5 sm:p-6">
+                          <div className="flex flex-wrap items-start gap-4">
+                            <Avatar name={record.profileSnapshot?.name || "Freelancer"} size="md" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Link href={`/u/${record.userId}`} className="text-sm font-black text-ink hover:text-brand">
+                                  {record.profileSnapshot?.name || "Freelancer"}
+                                </Link>
+                                <Badge
+                                  tone={
+                                    record.status === "verified"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : record.status === "awaiting_review"
+                                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                                        : "bg-ink-50 text-ink-500 border-ink-200"
+                                  }
+                                >
+                                  {record.status.replace("_", " ")}
+                                </Badge>
+                                {record.assessment?.score !== undefined && (
+                                  <Badge tone="bg-brand-50 text-brand-dark border-brand-200">
+                                    Score {record.assessment.score}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="mt-1 text-xs font-semibold text-ink-400">
+                                {record.profileSnapshot?.professionalTitle || "No title"} · attempt{" "}
+                                {record.attemptNumber}
+                              </p>
+                              {record.assessment?.summary && (
+                                <p className="mt-2 text-sm leading-6 text-ink-600">{record.assessment.summary}</p>
+                              )}
+                            </div>
+                            {record.status === "awaiting_review" && (
+                              <div className="flex shrink-0 gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="success"
+                                  loading={action === `verify-${record.id}`}
+                                  onClick={() => run(`verify-${record.id}`, () => reviewInterview(record, "verified", user.email || user.uid), "Badge approved.")}
+                                >
+                                  Approve badge
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  loading={action === `reject-int-${record.id}`}
+                                  onClick={() =>
+                                    run(
+                                      `reject-int-${record.id}`,
+                                      () => reviewInterview(record, "needs_improvement", user.email || user.uid),
+                                      "Freelancer asked to improve their evidence."
+                                    )
+                                  }
+                                >
+                                  Needs work
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </Panel>
             )}
 
-            {activeTab === "users" && (can("manageUsers") || can("approveTasks")) && (
-              <section className="surface mt-6 overflow-hidden">
-                <div className="flex flex-col gap-4 border-b border-ink-100 p-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">People & providers</p><h2 className="mt-1 text-xl font-black text-ink">Platform members</h2></div>
-                  <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-xs font-extrabold text-brand-dark"><Lock className="h-3.5 w-3.5" /> {privateProviders.length} private providers</div>
-                </div>
-                <div className="divide-y divide-ink-100">
-                  {allUsers.map((member) => (
-                    <div key={member.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                      <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-ink text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-ink px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
-                      <div className="flex items-center gap-2">
-                        {member.role === "super_admin" ? <span className="rounded-full bg-ink px-3 py-1.5 text-[10px] font-black uppercase text-white">Owner</span> : <select value={member.role === "tasker" ? "tasker" : "customer"} onChange={(event) => changeUserRole(member, event.target.value as "customer" | "tasker")} disabled={actionBusy === member.id} className="min-h-9 rounded-xl border border-ink-200 bg-white px-3 text-[11px] font-extrabold text-ink focus:border-brand focus:outline-none"><option value="customer">Client</option><option value="tasker">Freelancer</option></select>}
-                        {member.role === "tasker" && <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>}
-                      </div>
+            {/* ------------------------------------------------ Finance */}
+            {tab === "finance" && can("managePayments") && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  {[
+                    { label: "Gross volume", value: formatPKR(analytics.volume), tone: "bg-blue-50 text-blue-600" },
+                    { label: "Platform revenue", value: formatPKR(analytics.revenue), tone: "bg-emerald-50 text-emerald-600" },
+                    { label: "Ledger entries", value: String(transactions.length), tone: "bg-violet-50 text-violet-600" },
+                    { label: "Open disputes", value: String(openDisputes.length), tone: "bg-rose-50 text-rose-600" },
+                  ].map((item) => (
+                    <div key={item.label} className="surface p-5">
+                      <span className={`inline-grid h-10 w-10 place-items-center rounded-xl ${item.tone}`}>
+                        <CircleDollarSign className="h-5 w-5" />
+                      </span>
+                      <p className="mt-4 text-xl font-black tracking-[-0.03em] text-ink">{item.value}</p>
+                      <p className="mt-0.5 text-[11px] font-bold text-ink-400">{item.label}</p>
                     </div>
                   ))}
                 </div>
-              </section>
+
+                <Alert tone="warning" title="Live payments are not enabled">
+                  These are internal contract records only. Before customer money moves, Workly needs an approved
+                  marketplace/held-funds agreement with a State Bank of Pakistan-regulated provider, plus signed
+                  server-side webhooks.
+                </Alert>
+
+                <Panel title="Disputes" eyebrow="Needs a human decision">
+                  {disputes.length === 0 ? (
+                    <EmptyState icon={CheckCircle2} title="No disputes" description="Nothing has been escalated." />
+                  ) : (
+                    <ul className="divide-y divide-ink-100">
+                      {disputes.map((dispute) => (
+                        <li key={dispute.id} className="flex flex-wrap items-start gap-4 p-5 sm:p-6">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-black text-ink">{dispute.openedByName || "Member"}</p>
+                              <Badge
+                                tone={
+                                  dispute.status === "resolved"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                    : "bg-rose-50 text-rose-700 border-rose-200"
+                                }
+                              >
+                                {dispute.status}
+                              </Badge>
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-ink-600">{dispute.reason}</p>
+                            <Link href={`/tasks/${dispute.taskId}`} className="mt-2 inline-block text-xs font-black text-brand-dark">
+                              Open the task record
+                            </Link>
+                          </div>
+                          {dispute.status !== "resolved" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              loading={action === `dispute-${dispute.id}`}
+                              onClick={() =>
+                                run(
+                                  `dispute-${dispute.id}`,
+                                  async () => {
+                                    if (!db) return;
+                                    await runTransaction(db, async (transaction) => {
+                                      transaction.update(doc(db!, "disputes", dispute.id), {
+                                        status: "resolved",
+                                        resolvedBy: user.email || user.uid,
+                                        resolvedAt: serverTimestamp(),
+                                      });
+                                    });
+                                    await audited({ action: "dispute.resolve", target: dispute.id });
+                                  },
+                                  "Dispute marked resolved."
+                                )
+                              }
+                            >
+                              Mark resolved
+                            </Button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panel>
+
+                <Panel title="Recent ledger entries" eyebrow="Money trail">
+                  {transactions.length === 0 ? (
+                    <EmptyState icon={ReceiptText} title="No entries yet" />
+                  ) : (
+                    <ul className="divide-y divide-ink-50">
+                      {transactions
+                        .slice()
+                        .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+                        .slice(0, 40)
+                        .map((entry) => (
+                          <li key={entry.id} className="flex items-center gap-4 p-4 px-6">
+                            <Badge
+                              tone={
+                                entry.type === "release"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : entry.type === "hold"
+                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    : entry.type === "refund"
+                                      ? "bg-sky-50 text-sky-700 border-sky-200"
+                                      : "bg-ink-50 text-ink-600 border-ink-200"
+                              }
+                            >
+                              {entry.type}
+                            </Badge>
+                            <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink-600">{entry.note}</p>
+                            <p className="shrink-0 text-sm font-black text-ink">{formatPKR(entry.amount)}</p>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </Panel>
+              </div>
             )}
 
-            {activeTab === "admins" && can("manageAdmins") && (
-              <ManageAdmins admins={admins} ownerEmail={user.email || ""} onChanged={load} />
+            {/* ------------------------------------------------ People */}
+            {tab === "people" && can("manageUsers") && (
+              <Panel
+                title="Member accounts"
+                eyebrow="People"
+                action={
+                  <Input
+                    value={memberSearch}
+                    onChange={(event) => setMemberSearch(event.target.value)}
+                    placeholder="Search name or email"
+                    className="min-h-10 max-w-xs py-2 text-sm"
+                  />
+                }
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[860px] text-left text-sm">
+                    <thead className="border-b border-ink-100 text-[10px] uppercase tracking-wider text-ink-400">
+                      <tr>
+                        <th className="p-4 font-black">Member</th>
+                        <th className="p-4 font-black">Mode</th>
+                        <th className="p-4 font-black">Status</th>
+                        <th className="p-4 font-black">Private provider</th>
+                        <th className="p-4 font-black">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-ink-50">
+                      {members
+                        .filter((member) => {
+                          const needle = memberSearch.trim().toLowerCase();
+                          if (!needle) return true;
+                          return (
+                            String(member.name || "").toLowerCase().includes(needle) ||
+                            String(member.email || "").toLowerCase().includes(needle)
+                          );
+                        })
+                        .slice(0, 150)
+                        .map((member) => {
+                          const memberRole = normalizeRole(member.role);
+                          return (
+                            <tr key={member.id} className="transition hover:bg-ink-50/60">
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar name={member.name || member.email} src={member.avatarUrl} size="sm" />
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-black text-ink">{member.name || "Unnamed"}</p>
+                                    <p className="truncate text-xs text-ink-400">{member.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Select
+                                  value={memberRole}
+                                  onChange={(event) =>
+                                    run(
+                                      `role-${member.id}`,
+                                      async () => {
+                                        await setUserRole(member.id, event.target.value as MemberRole);
+                                        await audited({
+                                          action: "user.role",
+                                          target: member.email || member.id,
+                                          detail: event.target.value,
+                                        });
+                                      },
+                                      "Account mode updated."
+                                    )
+                                  }
+                                  className="min-h-9 py-1.5 text-xs"
+                                >
+                                  <option value="client">Client</option>
+                                  <option value="freelancer">Freelancer</option>
+                                </Select>
+                              </td>
+                              <td className="p-4">
+                                {member.suspended ? (
+                                  <Badge tone="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>
+                                ) : member.verified ? (
+                                  <Badge tone="bg-emerald-50 text-emerald-700 border-emerald-200">Verified</Badge>
+                                ) : (
+                                  <Badge>Active</Badge>
+                                )}
+                              </td>
+                              <td className="p-4">
+                                <button
+                                  onClick={() =>
+                                    run(
+                                      `private-${member.id}`,
+                                      async () => {
+                                        await setUserPrivateStatus(member.id, !member.isPrivate);
+                                        await audited({
+                                          action: "user.private_provider",
+                                          target: member.email || member.id,
+                                          detail: String(!member.isPrivate),
+                                        });
+                                      },
+                                      "Private provider status updated."
+                                    )
+                                  }
+                                  className={`rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${
+                                    member.isPrivate
+                                      ? "bg-ink text-white"
+                                      : "border border-ink-200 text-ink-400 hover:border-ink-300"
+                                  }`}
+                                >
+                                  {member.isPrivate ? "Managed" : "Public"}
+                                </button>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex flex-wrap gap-1.5">
+                                  <button
+                                    onClick={() =>
+                                      run(
+                                        `verify-${member.id}`,
+                                        async () => {
+                                          await setUserVerified(member.id, !member.verified);
+                                          await audited({
+                                            action: "user.verify",
+                                            target: member.email || member.id,
+                                            detail: String(!member.verified),
+                                          });
+                                        },
+                                        "Verification updated."
+                                      )
+                                    }
+                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-emerald-300 hover:text-emerald-700"
+                                  >
+                                    {member.verified ? "Unverify" : "Verify"}
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      run(
+                                        `suspend-${member.id}`,
+                                        async () => {
+                                          await setUserSuspended(
+                                            member.id,
+                                            !member.suspended,
+                                            "Suspended by Workly staff"
+                                          );
+                                          await audited({
+                                            action: "user.suspend",
+                                            target: member.email || member.id,
+                                            detail: String(!member.suspended),
+                                          });
+                                        },
+                                        "Account status updated."
+                                      )
+                                    }
+                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-rose-300 hover:text-rose-700"
+                                  >
+                                    {member.suspended ? "Restore" : "Suspend"}
+                                  </button>
+                                  <Link
+                                    href={`/u/${member.id}`}
+                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-brand-300 hover:text-brand-dark"
+                                  >
+                                    Profile
+                                  </Link>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </Panel>
             )}
 
-            {activeTab === "settings" && can("manageContent") && (
-              <AutoApproveControl onChanged={load} />
+            {/* ------------------------------------------------ Staff */}
+            {tab === "staff" && can("manageAdmins") && (
+              <StaffTab
+                admins={admins}
+                ownerEmail={user.email || ""}
+                isOwner={isOwner}
+                action={action}
+                onInvite={async (email, name, uid, staffRole) => {
+                  await addAdmin({ uid, email, name, addedBy: user.email || user.uid, staffRole });
+                  await audited({ action: "staff.add", target: email, detail: staffRole });
+                  await refreshStaff();
+                }}
+                onUpdate={async (record, changes) => {
+                  await updateAdmin(record.uid, changes);
+                  await audited({
+                    action: "staff.update",
+                    target: record.email,
+                    detail: JSON.stringify(changes),
+                  });
+                  await refreshStaff();
+                }}
+                onRemove={async (record) => {
+                  await removeAdmin(record.uid);
+                  await audited({ action: "staff.remove", target: record.email });
+                  await refreshStaff();
+                }}
+                run={run}
+              />
             )}
-          </>
+
+            {/* ------------------------------------------------ Platform settings */}
+            {tab === "settings" && can("manageContent") && (
+              <SettingsTab
+                settings={settings}
+                action={action}
+                onSave={(changes, label) =>
+                  run(
+                    "settings",
+                    async () => {
+                      await savePlatformSettings(changes);
+                      await audited({ action: "settings.update", target: "platform", detail: label });
+                    },
+                    "Platform settings saved."
+                  )
+                }
+              />
+            )}
+
+            {/* ------------------------------------------------ Audit */}
+            {tab === "audit" && can("manageAdmins") && (
+              <Panel title="Privileged action log" eyebrow="Accountability">
+                {audit.length === 0 ? (
+                  <EmptyState icon={History} title="No entries yet" description="Staff actions are recorded here." />
+                ) : (
+                  <ul className="divide-y divide-ink-50">
+                    {audit.map((entry) => (
+                      <li key={entry.id} className="flex flex-wrap items-center gap-3 p-4 px-6">
+                        <Badge tone="bg-ink-50 text-ink-600 border-ink-200">{entry.action}</Badge>
+                        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink-600">
+                          <span className="font-black text-ink">{entry.actorEmail}</span> → {entry.target}
+                          {entry.detail && <span className="text-ink-400"> · {entry.detail}</span>}
+                        </p>
+                        <span className="shrink-0 text-xs font-bold text-ink-400">{timeAgo(entry.createdAt)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Panel>
+            )}
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function AutoApproveControl({ onChanged }: { onChanged: () => void }) {
-  const [enabled, setEnabled] = useState(false);
-  const [busy, setBusy] = useState(true);
-
-  useEffect(() => {
-    getAutoApprove().then(setEnabled).finally(() => setBusy(false));
-  }, []);
-
-  const toggle = async () => {
-    setBusy(true);
-    const next = !enabled;
-    try {
-      await setAutoApprove(next);
-      setEnabled(next);
-      onChanged();
-    } finally {
-      setBusy(false);
+async function reviewInterview(record: InterviewWithId, decision: "verified" | "needs_improvement", reviewer: string) {
+  if (!db) throw new Error("Firebase is not connected.");
+  await runTransaction(db, async (transaction) => {
+    const interviewRef = doc(db!, "interviews", record.id);
+    const userRef = doc(db!, "users", record.userId);
+    const latest = await transaction.get(interviewRef);
+    if (!latest.exists() || latest.data().status !== "awaiting_review") {
+      throw new Error("This interview was already reviewed.");
     }
+    transaction.update(interviewRef, {
+      status: decision,
+      reviewedBy: reviewer,
+      reviewedAt: serverTimestamp(),
+      reviewNote:
+        decision === "verified"
+          ? "Evidence reviewed and badge approved."
+          : "More concrete role evidence is needed before approval.",
+    });
+    transaction.update(userRef, {
+      interviewStatus: decision,
+      interviewUpdatedAt: serverTimestamp(),
+      ...(decision === "verified" ? { interviewVerifiedAt: serverTimestamp() } : {}),
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+
+function StaffTab({
+  admins,
+  ownerEmail,
+  isOwner,
+  action,
+  onInvite,
+  onUpdate,
+  onRemove,
+  run,
+}: {
+  admins: AdminDoc[];
+  ownerEmail: string;
+  isOwner: boolean;
+  action: string;
+  onInvite: (email: string, name: string, uid: string, staffRole: StaffRole) => Promise<void>;
+  onUpdate: (record: AdminDoc, changes: { staffRole?: StaffRole; permissions?: Permission[]; suspended?: boolean }) => Promise<void>;
+  onRemove: (record: AdminDoc) => Promise<void>;
+  run: (key: string, work: () => Promise<void>, success?: string) => Promise<void>;
+}) {
+  const [email, setEmail] = useState("");
+  const [staffRole, setStaffRole] = useState<StaffRole>("moderator");
+  const [lookupError, setLookupError] = useState("");
+  const [expanded, setExpanded] = useState("");
+
+  const invite = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLookupError("");
+    const found = await findUserByEmail(email);
+    if (!found) {
+      setLookupError("No Workly member uses that email. Ask them to create an account first, then invite them.");
+      return;
+    }
+    await run(
+      "invite-staff",
+      () => onInvite(found.email, found.name, found.uid, staffRole),
+      `${found.name || found.email} now has ${STAFF_ROLE_LABELS[staffRole].toLowerCase()} access.`
+    );
+    setEmail("");
   };
 
   return (
-    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="surface p-6 sm:p-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes Workly&apos;s AI quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
-          <button type="button" onClick={toggle} disabled={busy} aria-pressed={enabled} className={`relative h-8 w-14 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-ink-200"}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${enabled ? "left-7" : "left-1"}`} /></button>
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <Panel title="Staff team" eyebrow="Who can control Workly">
+        <div className="border-b border-ink-100 bg-brand-50/50 p-5 sm:p-6">
+          <div className="flex items-center gap-3">
+            <Avatar name="Owner" size="md" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-black text-ink">{ownerEmail}</p>
+                <Badge tone="bg-ink text-white border-ink">Owner</Badge>
+              </div>
+              <p className="mt-0.5 text-xs font-semibold text-ink-500">
+                Permanent full control. This account cannot be edited or removed from the interface.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="mt-7 grid gap-3 sm:grid-cols-3">
-          {[
-            [Sparkles, "AI category check", "Keeps discovery organised"],
-            [ShieldCheck, "Safety scan", "Flags risky content"],
-            [Clock3, "Human fallback", "Uncertain tasks wait"],
-          ].map(([Icon,title,body]: any) => <div key={title} className="rounded-2xl bg-ink-50 p-4"><Icon className="h-5 w-5 text-brand" /><p className="mt-3 text-xs font-black text-ink">{title}</p><p className="mt-1 text-[11px] font-medium text-ink-400">{body}</p></div>)}
+
+        {admins.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No staff added yet"
+            description="Invite trusted people as editors, moderators or admins. Every grant is logged."
+          />
+        ) : (
+          <ul className="divide-y divide-ink-100">
+            {admins.map((record) => (
+              <li key={record.uid} className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-start gap-4">
+                  <Avatar name={record.name || record.email} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-black text-ink">{record.name || record.email}</p>
+                      <Badge tone="bg-brand-50 text-brand-dark border-brand-200">
+                        {STAFF_ROLE_LABELS[record.staffRole]}
+                      </Badge>
+                      {record.suspended && <Badge tone="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>}
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-ink-400">{record.email}</p>
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {record.permissions.map((permission) => (
+                        <span
+                          key={permission}
+                          className="rounded-lg bg-ink-50 px-2 py-1 text-[10px] font-black text-ink-500"
+                        >
+                          {PERMISSION_LABELS[permission]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-1.5">
+                    <Button size="sm" variant="ghost" onClick={() => setExpanded(expanded === record.uid ? "" : record.uid)}>
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      loading={action === `remove-${record.uid}`}
+                      onClick={() => run(`remove-${record.uid}`, () => onRemove(record), "Staff access revoked.")}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {expanded === record.uid && (
+                  <div className="mt-5 space-y-4 rounded-2xl border border-ink-100 bg-ink-50/50 p-4">
+                    <Field label="Staff role">
+                      <Select
+                        value={record.staffRole}
+                        onChange={(event) =>
+                          run(
+                            `staffrole-${record.uid}`,
+                            () => onUpdate(record, { staffRole: event.target.value as StaffRole }),
+                            "Staff role updated."
+                          )
+                        }
+                        className="min-h-10 py-2 text-sm"
+                      >
+                        {ASSIGNABLE_STAFF_ROLES.map((option) => (
+                          <option key={option} value={option}>
+                            {STAFF_ROLE_LABELS[option]} — {STAFF_ROLE_BLURB[option]}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+
+                    <Field label="Fine-tune permissions">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {ALL_PERMISSIONS.map((permission) => {
+                          const enabled = record.permissions.includes(permission);
+                          return (
+                            <label
+                              key={permission}
+                              className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition ${
+                                enabled ? "border-brand bg-white" : "border-ink-100 bg-white/60"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={enabled}
+                                onChange={() =>
+                                  run(`perm-${record.uid}-${permission}`, () =>
+                                    onUpdate(record, {
+                                      permissions: enabled
+                                        ? record.permissions.filter((item) => item !== permission)
+                                        : [...record.permissions, permission],
+                                    })
+                                  )
+                                }
+                                className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand"
+                              />
+                              <span>
+                                <span className="block text-xs font-black text-ink">{PERMISSION_LABELS[permission]}</span>
+                                <span className="mt-0.5 block text-[11px] leading-4 text-ink-400">
+                                  {PERMISSION_HINTS[permission]}
+                                </span>
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </Field>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      loading={action === `suspend-staff-${record.uid}`}
+                      onClick={() =>
+                        run(
+                          `suspend-staff-${record.uid}`,
+                          () => onUpdate(record, { suspended: !record.suspended }),
+                          record.suspended ? "Staff access restored." : "Staff access paused."
+                        )
+                      }
+                    >
+                      {record.suspended ? "Restore access" : "Pause access"}
+                    </Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+
+      <aside className="space-y-4 lg:sticky lg:top-6">
+        <div className="surface p-6">
+          <h3 className="flex items-center gap-2 text-lg font-black text-ink">
+            <UserPlus className="h-5 w-5 text-brand" /> Invite staff
+          </h3>
+          <p className="mt-1.5 text-xs leading-5 text-ink-500">
+            The person must already have a Workly account. Access takes effect on their next page load.
+          </p>
+          <form onSubmit={invite} className="mt-4 space-y-3">
+            <Field label="Their Workly email" required>
+              <Input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="teammate@example.com"
+                required
+              />
+            </Field>
+            <Field label="Role">
+              <Select value={staffRole} onChange={(event) => setStaffRole(event.target.value as StaffRole)}>
+                {ASSIGNABLE_STAFF_ROLES.map((option) => (
+                  <option key={option} value={option}>
+                    {STAFF_ROLE_LABELS[option]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <p className="rounded-xl bg-ink-50 p-3 text-[11px] leading-4 text-ink-500">
+              {STAFF_ROLE_BLURB[staffRole]}
+            </p>
+            {lookupError && <Alert tone="error">{lookupError}</Alert>}
+            <Button type="submit" loading={action === "invite-staff"} fullWidth>
+              Grant {STAFF_ROLE_LABELS[staffRole].toLowerCase()} access
+            </Button>
+          </form>
         </div>
-      </section>
-      <aside className={`rounded-3xl p-6 text-white ${enabled ? "bg-brand shadow-glow" : "bg-ink shadow-elevated"}`}>
-        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/60">Current mode</p><p className="mt-3 text-2xl font-black">{enabled ? "Smart automation" : "Manual control"}</p><p className="mt-2 text-sm leading-6 text-white/65">{enabled ? "Safe tasks can reach the marketplace without team delay." : "Every new task waits for an admin decision."}</p>
+
+        <div className="rounded-3xl bg-ink p-6 text-white">
+          <ShieldCheck className="h-5 w-5 text-brand-light" />
+          <h3 className="mt-4 text-base font-black">Role guide</h3>
+          <div className="mt-4 space-y-3">
+            {ASSIGNABLE_STAFF_ROLES.map((option) => (
+              <div key={option}>
+                <p className="text-xs font-black text-brand-300">{STAFF_ROLE_LABELS[option]}</p>
+                <p className="mt-0.5 text-[11px] leading-4 text-white/50">{STAFF_ROLE_BLURB[option]}</p>
+              </div>
+            ))}
+            <div className="border-t border-white/10 pt-3">
+              <p className="text-xs font-black text-brand-300">Owner</p>
+              <p className="mt-0.5 text-[11px] leading-4 text-white/50">
+                {isOwner ? "That is you. " : ""}Permanent, single account, full control of everything including staff.
+              </p>
+            </div>
+          </div>
+        </div>
       </aside>
     </div>
   );
 }
 
-function ManageAdmins({ admins, ownerEmail, onChanged }: { admins: any[]; ownerEmail: string; onChanged: () => void }) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+// ---------------------------------------------------------------------------
 
-  const togglePermission = (permission: Permission) => {
-    setPermissions((current) => current.includes(permission) ? current.filter((item) => item !== permission) : [...current, permission]);
-  };
+function SettingsTab({
+  settings,
+  action,
+  onSave,
+}: {
+  settings: PlatformSettings;
+  action: string;
+  onSave: (changes: Partial<PlatformSettings>, label: string) => void;
+}) {
+  const [draft, setDraft] = useState(settings);
 
-  const add = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      const found = await findUserByEmail(email.trim());
-      if (!found) throw new Error("No account exists with this email. Ask them to sign up first.");
-      await addAdmin({
-        uid: found.uid,
-        email: found.email,
-        name: name.trim() || found.name || found.email,
-        addedBy: ownerEmail,
-        permissions: permissions.length ? permissions : [...ALL_PERMISSIONS],
-      });
-      setEmail("");
-      setName("");
-      setPermissions([]);
-      onChanged();
-    } catch (err: any) {
-      setError(err?.message || "Could not add this admin.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  useEffect(() => setDraft(settings), [settings]);
 
-  const changePermissions = async (uid: string, next: Permission[]) => {
-    await updateAdminPermissions(uid, next);
-    onChanged();
-  };
-
-  const remove = async (uid: string) => {
-    if (!confirm("Remove this admin from Workly Control?")) return;
-    await removeAdmin(uid);
-    onChanged();
-  };
+  const toggles: { key: keyof PlatformSettings; title: string; body: string }[] = [
+    {
+      key: "autoApprove",
+      title: "Smart auto-approval",
+      body: "Let Workly AI publish clean, complete tasks instantly. Anything uncertain still goes to the queue.",
+    },
+    {
+      key: "allowNewSignups",
+      title: "Allow new signups",
+      body: "Turn off to temporarily close public registration.",
+    },
+    {
+      key: "requireInterviewToBid",
+      title: "Require verified interview to bid",
+      body: "Only freelancers with an approved skills badge can send offers.",
+    },
+    {
+      key: "maintenanceMode",
+      title: "Maintenance mode",
+      body: "Show a maintenance notice on the marketplace while you work on it.",
+    },
+  ];
 
   return (
-    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-      <form onSubmit={add} className="surface p-6 lg:sticky lg:top-24">
-        <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand"><UserPlus className="h-5 w-5" /></span><div><h2 className="font-black text-ink">Add an admin</h2><p className="text-xs font-medium text-ink-400">They must already have an account</p></div></div>
-        <div className="mt-6 space-y-3"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Admin email address" required /><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name (optional)" /></div>
-        <p className="mt-5 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Access permissions</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {ALL_PERMISSIONS.map((permission) => <button type="button" key={permission} onClick={() => togglePermission(permission)} className={`rounded-full border px-3 py-1.5 text-[10px] font-extrabold transition ${permissions.includes(permission) ? "border-brand bg-brand text-white" : "border-ink-100 bg-white text-ink-500 hover:border-brand-200"}`}>{PERMISSION_LABELS[permission]}</button>)}
-        </div>
-        {error && <p className="mt-4 text-xs font-bold text-red-600">{error}</p>}
-        <Button type="submit" disabled={busy} className="mt-5 w-full gap-2">{busy ? "Adding..." : "Add to admin team"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
-      </form>
+    <div className="grid items-start gap-6 lg:grid-cols-2">
+      <Panel title="Marketplace controls" eyebrow="Platform">
+        <ul className="divide-y divide-ink-100">
+          {toggles.map((item) => {
+            const enabled = Boolean(draft[item.key]);
+            return (
+              <li key={String(item.key)} className="flex items-start gap-4 p-5 sm:p-6">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-black text-ink">{item.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-ink-500">{item.body}</p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={enabled}
+                  aria-label={item.title}
+                  onClick={() => {
+                    setDraft((current) => ({ ...current, [item.key]: !enabled }));
+                    onSave({ [item.key]: !enabled } as Partial<PlatformSettings>, `${String(item.key)}=${!enabled}`);
+                  }}
+                  className={`relative h-7 w-12 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-ink-200"}`}
+                >
+                  <span
+                    className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                      enabled ? "left-6" : "left-1"
+                    }`}
+                  />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
 
-      <section className="surface overflow-hidden">
-        <div className="border-b border-ink-100 p-6"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Role-based access</p><h2 className="mt-1 text-xl font-black text-ink">Admin team</h2></div>
-        {admins.length === 0 ? <div className="p-10 text-center text-sm font-medium text-ink-400">No additional admins yet.</div> : <div className="divide-y divide-ink-100">
-          {admins.map((admin) => (
-            <div key={admin.uid} className="p-5 sm:p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ink text-white"><ShieldCheck className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-sm font-black text-ink">{admin.name || admin.email}</p><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{admin.email}</p></div></div>
-                <button onClick={() => remove(admin.uid)} className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 text-red-500 transition hover:bg-red-50" aria-label={`Remove ${admin.name || admin.email}`}><Trash2 className="h-4 w-4" /></button>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {ALL_PERMISSIONS.map((permission) => {
-                  const isOn = admin.permissions?.includes(permission);
-                  return <button type="button" key={permission} onClick={() => changePermissions(admin.uid, isOn ? admin.permissions.filter((item: Permission) => item !== permission) : [...(admin.permissions || []), permission])} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-extrabold transition ${isOn ? "border-brand-200 bg-brand-50 text-brand-dark" : "border-ink-100 bg-white text-ink-400"}`}>{isOn && <Check className="h-3 w-3" />}{PERMISSION_LABELS[permission]}</button>;
-                })}
-              </div>
-            </div>
-          ))}
-        </div>}
-      </section>
+      <Panel title="Commercial settings" eyebrow="Fees & limits">
+        <form
+          className="space-y-5 p-5 sm:p-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSave(
+              {
+                freelancerFeePercent: Number(draft.freelancerFeePercent) || 0,
+                clientFeePercent: Number(draft.clientFeePercent) || 0,
+                minTaskBudget: Number(draft.minTaskBudget) || 500,
+              },
+              "fees"
+            );
+          }}
+        >
+          <Field label="Freelancer service fee (%)" hint="Disclosed before an offer is sent">
+            <Input
+              type="number"
+              min={0}
+              max={40}
+              value={draft.freelancerFeePercent}
+              onChange={(event) => setDraft({ ...draft, freelancerFeePercent: Number(event.target.value) })}
+            />
+          </Field>
+          <Field label="Client service fee (%)" hint="Shown separately at checkout">
+            <Input
+              type="number"
+              min={0}
+              max={30}
+              value={draft.clientFeePercent}
+              onChange={(event) => setDraft({ ...draft, clientFeePercent: Number(event.target.value) })}
+            />
+          </Field>
+          <Field label="Minimum task budget (PKR)">
+            <Input
+              type="number"
+              min={100}
+              step={100}
+              value={draft.minTaskBudget}
+              onChange={(event) => setDraft({ ...draft, minTaskBudget: Number(event.target.value) })}
+            />
+          </Field>
+          <Alert tone="warning">
+            Changing fees affects new contracts only. Existing contracts keep the rate fixed at hire time.
+          </Alert>
+          <Button type="submit" loading={action === "settings"}>
+            Save commercial settings
+          </Button>
+        </form>
+      </Panel>
     </div>
   );
 }
