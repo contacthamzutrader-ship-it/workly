@@ -83,7 +83,7 @@ function requireAuth() {
   return auth;
 }
 
-function profileFromSnapshot(uid: string, email: string, data: Record<string, any>): WorklyProfile {
+function profileFromSnapshot(uid: string, email: string, data: Record<string, any>, user?: User | null): WorklyProfile {
   return {
     uid,
     name: data.name || "",
@@ -92,7 +92,7 @@ function profileFromSnapshot(uid: string, email: string, data: Record<string, an
     isPrivate: data.isPrivate === true,
     suspended: data.suspended === true,
     verified: data.verified === true,
-    avatarUrl: data.avatarUrl || "",
+    avatarUrl: data.avatarUrl || user?.photoURL || "",
     city: data.city || "",
     profileComplete: data.profileComplete === true,
     interviewStatus: data.interviewStatus || "not_started",
@@ -108,6 +108,7 @@ function newProfileDoc(user: User, name: string, role: MemberRole) {
     name: name || user.displayName || "",
     email: (user.email || "").toLowerCase(),
     role: toStoredRole(role),
+    avatarUrl: user.photoURL || "",
     isTasker: role === "freelancer",
     isPrivate: false,
     suspended: false,
@@ -197,7 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileUnsub.current = onSnapshot(
         reference,
         (snapshot) => {
-          setProfile(snapshot.exists() ? profileFromSnapshot(current.uid, email, snapshot.data()) : null);
+          setProfile(snapshot.exists() ? profileFromSnapshot(current.uid, email, snapshot.data(), current) : null);
           setProfileLoading(false);
           setLoading(false);
         },
@@ -293,7 +294,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resendVerification = useCallback(async () => {
     const instance = requireAuth();
     if (!instance.currentUser) throw new Error("Sign in first.");
-    await sendEmailVerification(instance.currentUser);
+    await sendEmailVerification(instance.currentUser, {
+      url: `${window.location.origin}/dashboard`,
+      handleCodeInApp: true,
+    });
   }, []);
 
   const refreshStaff = useCallback(async () => {

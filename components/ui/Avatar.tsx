@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const SIZES = {
   sm: "h-9 w-9 rounded-xl text-xs",
   md: "h-11 w-11 rounded-[14px] text-sm",
@@ -16,6 +18,7 @@ export default function Avatar({
   size?: keyof typeof SIZES;
   className?: string;
 }) {
+  const [error, setError] = useState(false);
   const initials = (name || "W")
     .trim()
     .split(/\s+/)
@@ -23,9 +26,16 @@ export default function Avatar({
     .map((part) => part[0]?.toUpperCase() || "")
     .join("");
 
-  if (src) {
+  if (src && !error) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={name ? `${name} profile photo` : "Profile photo"} className={`${SIZES[size]} shrink-0 object-cover ${className}`} />;
+    return (
+      <img
+        src={src}
+        alt={name ? `${name} profile photo` : "Profile photo"}
+        onError={() => setError(true)}
+        className={`${SIZES[size]} shrink-0 object-cover ${className}`}
+      />
+    );
   }
 
   return (
