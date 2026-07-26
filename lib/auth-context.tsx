@@ -1,222 +1,364 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   getAdditionalUserInfo,
+  sendPasswordResetEmail,
+  sendEmailVerification,
   signInWithPopup,
+  updateProfile,
   GoogleAuthProvider,
-  signOut as fbSignOut,
-  User,
+  signOut as firebaseSignOut,
+  type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { OWNER_EMAIL, getAdminDoc, ownerSession, type AdminSession, type Permission } from "./admin";
+import { getAdminDoc } from "./admin";
+import {
+  capabilitiesFor,
+  isOwnerEmail,
+  normalizeRole,
+  ownerSession,
+  staffRoleFromPermissions,
+  toStoredRole,
+  type Capabilities,
+  type MemberRole,
+  type Permission,
+  type StaffSession,
+} from "./roles";
 
-export type Role = "customer" | "tasker" | "moderator" | "company_admin" | "super_admin";
-
-type AuthContextType = {
-  user: User | null;
-  role: Role | null;
-  loading: boolean;
-  adminSession: AdminSession | null;
-  permissions: Permission[];
-  signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, name: string, role: "customer" | "tasker") => Promise<void>;
-  signInWithGoogle: (role?: "customer" | "tasker") => Promise<void>;
-  setAccountType: (role: "customer" | "tasker") => Promise<void>;
-  signOut: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function assertConfig() {
-  if (!auth || !db) {
-    throw new Error(
-      "Firebase is not configured. Add NEXT_PUBLIC_FIREBASE_* values to .env.local"
-    );
-  }
+/** The public profile document backing every signed-in session. */
+export interface WorklyProfile {
+  uid: string;
+  name: string;
+  email: string;
+  role: MemberRole;
+  isPrivate: boolean;
+  suspended: boolean;
+  verified: boolean;
+  avatarUrl: string;
+  city: string;
+  profileComplete: boolean;
+  interviewStatus: string;
+  wallet: number;
+  onboarded: boolean;
+  createdAt?: unknown;
 }
 
-let pendingSignupRole: "customer" | "tasker" | null = null;
+interface AuthContextValue {
+  user: User | null;
+  profile: WorklyProfile | null;
+  /** The member role currently in effect: "client" or "freelancer". */
+  role: MemberRole;
+  staff: StaffSession | null;
+  permissions: Permission[];
+  capabilities: Capabilities;
+  isOwner: boolean;
+  isStaff: boolean;
+  loading: boolean;
+  /** True while Firebase is known but the profile document has not arrived. */
+  profileLoading: boolean;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (input: { email: string; password: string; name: string; role: MemberRole }) => Promise<void>;
+  signInWithGoogle: (role?: MemberRole) => Promise<{ isNewUser: boolean }>;
+  switchRole: (role: MemberRole) => Promise<void>;
+  markOnboarded: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  resendVerification: () => Promise<void>;
+  refreshStaff: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
 
-function newUserProfile(u: User, name: string, selectedRole: "customer" | "tasker") {
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const EMPTY_CAPABILITIES = capabilitiesFor("client", null);
+
+function requireAuth() {
+  if (!auth || !db) {
+    throw new Error("Workly is not connected to Firebase yet. Add your NEXT_PUBLIC_FIREBASE_* keys.");
+  }
+  return auth;
+}
+
+function profileFromSnapshot(uid: string, email: string, data: Record<string, any>): WorklyProfile {
   return {
-    uid: u.uid,
-    name: name || u.displayName || "",
-    email: u.email,
-    role: selectedRole,
-    isTasker: selectedRole === "tasker",
+    uid,
+    name: data.name || "",
+    email: data.email || email,
+    role: normalizeRole(data.role),
+    isPrivate: data.isPrivate === true,
+    suspended: data.suspended === true,
+    verified: data.verified === true,
+    avatarUrl: data.avatarUrl || "",
+    city: data.city || "",
+    profileComplete: data.profileComplete === true,
+    interviewStatus: data.interviewStatus || "not_started",
+    wallet: Number(data.wallet || 0),
+    onboarded: data.onboarded === true,
+    createdAt: data.createdAt,
+  };
+}
+
+function newProfileDoc(user: User, name: string, role: MemberRole) {
+  return {
+    uid: user.uid,
+    name: name || user.displayName || "",
+    email: (user.email || "").toLowerCase(),
+    role: toStoredRole(role),
+    isTasker: role === "freelancer",
     isPrivate: false,
+    suspended: false,
+    verified: false,
     wallet: 0,
+    onboarded: false,
     profileComplete: false,
     interviewStatus: "not_started",
     createdAt: serverTimestamp(),
   };
 }
 
-async function ensureUserDoc(
-  u: User,
-  name: string,
-  selectedRole: "customer" | "tasker" = "customer",
-  forcePublicRole = false
-) {
-  if (!db) return;
-  const ref = doc(db, "users", u.uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, newUserProfile(u, name, selectedRole));
-  } else if (forcePublicRole) {
-    await setDoc(ref, {
-      role: selectedRole,
-      isTasker: selectedRole === "tasker",
-      ...(name ? { name } : {}),
-    }, { merge: true });
-  }
-}
+/**
+ * Role chosen on the signup screen. Google sign-in bounces through a popup,
+ * so the choice is stashed here for the auth-state listener that follows.
+ */
+let pendingRole: MemberRole | null = null;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
+  const [profile, setProfile] = useState<WorklyProfile | null>(null);
+  const [staff, setStaff] = useState<StaffSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const profileUnsub = useRef<null | (() => void)>(null);
+
+  const loadStaff = useCallback(async (current: User | null) => {
+    if (!current) {
+      setStaff(null);
+      return;
+    }
+    if (isOwnerEmail(current.email)) {
+      setStaff(ownerSession());
+      return;
+    }
+    const record = await getAdminDoc(current.uid);
+    if (record) {
+      setStaff({
+        role: record.staffRole || staffRoleFromPermissions(record.permissions),
+        isOwner: false,
+        permissions: record.permissions || [],
+      });
+    } else {
+      setStaff(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!auth) {
       setLoading(false);
       return;
     }
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      try {
-        if (u && db) {
-        // 1) OWNER is always super_admin — deterministic, never flaky.
-        if (u.email && u.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
-          setRole("super_admin");
-          setAdminSession(ownerSession());
-          if (db) {
-            const ref = doc(db, "users", u.uid);
-            const snap = await getDoc(ref);
-            if (!snap.exists()) {
-              await setDoc(ref, {
-                uid: u.uid,
-                name: u.displayName || "Owner",
-                email: u.email,
-                role: "super_admin",
-                isTasker: true,
-                isPrivate: false,
-                wallet: 0,
-                createdAt: serverTimestamp(),
-              });
-            }
-          }
-          return;
-        }
+    const unsubscribe = onAuthStateChanged(auth, async (current) => {
+      profileUnsub.current?.();
+      profileUnsub.current = null;
+      setUser(current);
 
-        // 2) Regular user doc (for profile / wallet / trust).
-        const ref = doc(db, "users", u.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          setRole((snap.data().role as Role) || "customer");
-        } else {
-          const selectedRole = pendingSignupRole || "customer";
-          await setDoc(ref, newUserProfile(u, u.displayName || u.email || "", selectedRole));
-          setRole(selectedRole);
-        }
-
-        // 3) Check admins collection for permission-based admin.
-        const admin = await getAdminDoc(u.uid);
-        if (admin) {
-          setRole("company_admin");
-          setAdminSession({ role: "company_admin", isOwner: false, permissions: admin.permissions });
-        } else {
-          setAdminSession(null);
-        }
-        } else {
-          setRole(null);
-          setAdminSession(null);
-        }
-      } catch (error) {
-        console.error("Could not load the signed-in Workly profile", error);
-        setRole(null);
-        setAdminSession(null);
-      } finally {
+      if (!current || !db) {
+        setProfile(null);
+        setStaff(null);
+        setProfileLoading(false);
         setLoading(false);
+        return;
       }
+
+      setProfileLoading(true);
+      const reference = doc(db, "users", current.uid);
+      const email = (current.email || "").toLowerCase();
+
+      // Make sure a profile document exists before subscribing, so a fresh
+      // Google account never lands in the app without a role.
+      try {
+        const existing = await getDoc(reference);
+        if (!existing.exists()) {
+          await setDoc(
+            reference,
+            isOwnerEmail(email)
+              ? { ...newProfileDoc(current, current.displayName || "Owner", "client"), onboarded: true }
+              : newProfileDoc(current, current.displayName || "", pendingRole || "client")
+          );
+        }
+      } catch {
+        // Rules may block the read for a suspended account; the listener below
+        // still reports whatever the account is allowed to see.
+      }
+
+      profileUnsub.current = onSnapshot(
+        reference,
+        (snapshot) => {
+          setProfile(snapshot.exists() ? profileFromSnapshot(current.uid, email, snapshot.data()) : null);
+          setProfileLoading(false);
+          setLoading(false);
+        },
+        () => {
+          setProfile(null);
+          setProfileLoading(false);
+          setLoading(false);
+        }
+      );
+
+      await loadStaff(current);
+      setLoading(false);
     });
-    return () => unsub();
+
+    return () => {
+      profileUnsub.current?.();
+      unsubscribe();
+    };
+  }, [loadStaff]);
+
+  const signInWithEmail = useCallback(async (email: string, password: string) => {
+    const instance = requireAuth();
+    await signInWithEmailAndPassword(instance, email.trim(), password);
   }, []);
 
-  const signInWithEmail = async (email: string, password: string) => {
-    assertConfig();
-    await signInWithEmailAndPassword(auth!, email, password);
-  };
-
-  const signUpWithEmail = async (email: string, password: string, name: string, selectedRole: "customer" | "tasker") => {
-    assertConfig();
-    pendingSignupRole = selectedRole;
-    try {
-      const cred = await createUserWithEmailAndPassword(auth!, email, password);
-      await ensureUserDoc(cred.user, name, selectedRole, true);
-      setRole(selectedRole);
-    } finally {
-      pendingSignupRole = null;
-    }
-  };
-
-  const signInWithGoogle = async (selectedRole: "customer" | "tasker" = "customer") => {
-    assertConfig();
-    pendingSignupRole = selectedRole;
-    try {
-      const cred = await signInWithPopup(auth!, new GoogleAuthProvider());
-      const isNewUser = getAdditionalUserInfo(cred)?.isNewUser === true;
-      await ensureUserDoc(cred.user, "", selectedRole, isNewUser);
-      if (isNewUser) setRole(selectedRole);
-    } finally {
-      pendingSignupRole = null;
-    }
-  };
-
-  const setAccountType = async (selectedRole: "customer" | "tasker") => {
-    assertConfig();
-    const currentUser = auth!.currentUser;
-    if (!currentUser) throw new Error("Sign in before changing your account type.");
-    await setDoc(doc(db!, "users", currentUser.uid), {
-      role: selectedRole,
-      isTasker: selectedRole === "tasker",
-    }, { merge: true });
-    setRole(selectedRole);
-  };
-
-  const signOut = async () => {
-    if (!auth) return;
-    await fbSignOut(auth);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        role,
-        loading,
-        adminSession,
-        permissions: adminSession?.permissions ?? [],
-        signInWithEmail,
-        signUpWithEmail,
-        signInWithGoogle,
-        setAccountType,
-        signOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const signUpWithEmail = useCallback(
+    async ({ email, password, name, role }: { email: string; password: string; name: string; role: MemberRole }) => {
+      const instance = requireAuth();
+      pendingRole = role;
+      try {
+        const credential = await createUserWithEmailAndPassword(instance, email.trim(), password);
+        if (name.trim()) {
+          await updateProfile(credential.user, { displayName: name.trim() }).catch(() => undefined);
+        }
+        if (db) {
+          await setDoc(doc(db, "users", credential.user.uid), newProfileDoc(credential.user, name.trim(), role), {
+            merge: true,
+          });
+        }
+        sendEmailVerification(credential.user).catch(() => undefined);
+      } finally {
+        pendingRole = null;
+      }
+    },
+    []
   );
+
+  const signInWithGoogle = useCallback(async (role: MemberRole = "client") => {
+    const instance = requireAuth();
+    pendingRole = role;
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      const credential = await signInWithPopup(instance, provider);
+      const isNewUser = getAdditionalUserInfo(credential)?.isNewUser === true;
+      if (isNewUser && db) {
+        await setDoc(
+          doc(db, "users", credential.user.uid),
+          newProfileDoc(credential.user, credential.user.displayName || "", role),
+          { merge: true }
+        );
+      }
+      return { isNewUser };
+    } finally {
+      pendingRole = null;
+    }
+  }, []);
+
+  const switchRole = useCallback(async (role: MemberRole) => {
+    const instance = requireAuth();
+    const current = instance.currentUser;
+    if (!current || !db) throw new Error("Sign in before changing how you use Workly.");
+    await setDoc(
+      doc(db, "users", current.uid),
+      { role: toStoredRole(role), isTasker: role === "freelancer", roleUpdatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    setProfile((previous) => (previous ? { ...previous, role } : previous));
+  }, []);
+
+  const markOnboarded = useCallback(async () => {
+    const instance = requireAuth();
+    const current = instance.currentUser;
+    if (!current || !db) return;
+    await setDoc(doc(db, "users", current.uid), { onboarded: true }, { merge: true });
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    const instance = requireAuth();
+    await sendPasswordResetEmail(instance, email.trim());
+  }, []);
+
+  const resendVerification = useCallback(async () => {
+    const instance = requireAuth();
+    if (!instance.currentUser) throw new Error("Sign in first.");
+    await sendEmailVerification(instance.currentUser);
+  }, []);
+
+  const refreshStaff = useCallback(async () => {
+    await loadStaff(auth?.currentUser ?? null);
+  }, [loadStaff]);
+
+  const signOut = useCallback(async () => {
+    if (!auth) return;
+    profileUnsub.current?.();
+    profileUnsub.current = null;
+    setProfile(null);
+    setStaff(null);
+    await firebaseSignOut(auth);
+  }, []);
+
+  const role: MemberRole = profile?.role ?? "client";
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      profile,
+      role,
+      staff,
+      permissions: staff?.permissions ?? [],
+      capabilities: user ? capabilitiesFor(role, staff) : EMPTY_CAPABILITIES,
+      isOwner: staff?.isOwner === true || isOwnerEmail(user?.email),
+      isStaff: !!staff,
+      loading,
+      profileLoading,
+      signInWithEmail,
+      signUpWithEmail,
+      signInWithGoogle,
+      switchRole,
+      markOnboarded,
+      resetPassword,
+      resendVerification,
+      refreshStaff,
+      signOut,
+    }),
+    [
+      user,
+      profile,
+      role,
+      staff,
+      loading,
+      profileLoading,
+      signInWithEmail,
+      signUpWithEmail,
+      signInWithGoogle,
+      switchRole,
+      markOnboarded,
+      resetPassword,
+      resendVerification,
+      refreshStaff,
+      signOut,
+    ]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used inside <AuthProvider>.");
+  return context;
 }
+
+export type { MemberRole, Permission, StaffSession };

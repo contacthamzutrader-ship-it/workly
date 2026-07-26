@@ -3,101 +3,263 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/lib/auth-context";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Briefcase,
+  CalendarClock,
+  CheckCircle2,
+  Globe,
+  Languages,
+  MapPin,
+  MessageSquare,
+  ShieldCheck,
+  Star,
+  TrendingUp,
+  UserRound,
+} from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth-context";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
-import { User, Star, Shield, MapPin, Briefcase, ArrowLeft, BadgeCheck, Bot } from "lucide-react";
+import { normalizeRole, MEMBER_ROLE_LABELS } from "@/lib/roles";
+import { formatPKR, timeAgo } from "@/lib/format";
+import Avatar from "@/components/ui/Avatar";
+import Button from "@/components/ui/Button";
+import { Badge, Stat } from "@/components/ui/Badge";
+import { EmptyState, PageLoader } from "@/components/ui/Feedback";
 
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const { role } = useAuth();
-  const [data, setData] = useState<any>(null);
+  const { user, isStaff } = useAuth();
+  const [data, setData] = useState<Record<string, any> | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [hidden, setHidden] = useState(false);
-  const isAdmin = role === "company_admin" || role === "super_admin";
 
-  useEffect(() => { if (!id) return;
-    (async () => { if (!db) return;
-      const snap = await getDoc(doc(db, "users", id));
-      if (!snap.exists()) { setHidden(true); setLoading(false); return; }
-      const d = snap.data();
-      if (d.isPrivate && !isAdmin) { setHidden(true); setLoading(false); return; }
-      setData(d); setReviews(await listReviewsForUser(id)); setLoading(false);
+  useEffect(() => {
+    if (!id || !db) return;
+    (async () => {
+      try {
+        const snapshot = await getDoc(doc(db!, "users", id));
+        if (!snapshot.exists()) {
+          setHidden(true);
+          return;
+        }
+        const record = snapshot.data();
+        if (record.isPrivate && !isStaff) {
+          setHidden(true);
+          return;
+        }
+        setData(record);
+        setReviews(await listReviewsForUser(id).catch(() => []));
+      } catch {
+        setHidden(true);
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, [id, isAdmin]);
+  }, [id, isStaff]);
 
-  if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-  if (hidden || !data) return <div className="mx-auto max-w-2xl px-4 py-20 text-center text-ink-500"><User className="mx-auto h-12 w-12 text-ink-300" /><h2 className="mt-4 text-lg font-semibold text-ink">Profile not available</h2><Link href="/" className="mt-2 inline-block text-sm font-semibold text-brand">Go home</Link></div>;
+  if (loading) return <PageLoader label="Loading profile" />;
 
-  const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : "\u2014";
+  if (hidden || !data) {
+    return (
+      <div className="page-shell max-w-2xl py-20">
+        <div className="surface">
+          <EmptyState
+            icon={UserRound}
+            title="Profile not available"
+            description="This member may have left Workly, or their profile is private."
+            action={
+              <Link href="/talent">
+                <Button variant="ghost">
+                  <ArrowLeft className="h-4 w-4" /> Browse talent
+                </Button>
+              </Link>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const role = normalizeRole(data.role);
+  const isFreelancer = role === "freelancer";
+  const average = reviews.length
+    ? (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1)
+    : "—";
+  const isSelf = user?.uid === id;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <Link href="/tasks" className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink mb-6"><ArrowLeft className="h-4 w-4" /> Back</Link>
+    <div className="bg-canvas py-8 sm:py-10">
+      <div className="page-shell max-w-4xl">
+        <Link href="/talent" className="mb-5 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 hover:text-ink">
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Link>
 
-      <div className="rounded-[32px] border border-ink-100 bg-white p-8 text-center shadow-elevated sm:p-12">
-        {data.avatarUrl ? <img src={data.avatarUrl} alt={`${data.name || "User"} profile`} className="mx-auto h-24 w-24 rounded-3xl object-cover shadow-card" /> : <div className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-ink text-3xl font-black text-white shadow-card">{(data.name || "U")[0].toUpperCase()}</div>}
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2"><h1 className="text-3xl font-black tracking-[-0.035em] text-ink">{data.name || "User"}</h1>{data.interviewStatus === "verified" && <BadgeCheck className="h-6 w-6 text-emerald-600" aria-label="Workly interviewed" />}</div>
-        {data.professionalTitle && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.professionalTitle}</p>}
-        {data.organization && <p className="mt-1 text-sm font-extrabold text-brand-dark">{data.organization}</p>}
-        <p className="mt-2 text-sm text-ink-500">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-dark">
-            {data.isPrivate ? "Private - Team" : data.role || "Member"}
-          </span>
-        </p>
-        {data.bio && <p className="mt-4 max-w-md mx-auto text-ink-600 leading-relaxed">{data.bio}</p>}
-        <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs font-semibold text-ink-500">
-          {data.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-brand" />{data.city}</span>}
-          {data.hourlyRate > 0 && <span className="inline-flex items-center gap-1"><Briefcase className="h-3.5 w-3.5 text-brand" />PKR {Number(data.hourlyRate).toLocaleString("en-PK")}/hour</span>}
-          {data.experienceYears > 0 && <span>{data.experienceYears} years experience</span>}
-          {data.availability && data.role === "tasker" && <span>{data.availability}</span>}
-          {data.languages?.length > 0 && <span>{data.languages.join(" · ")}</span>}
-        </div>
-
-        <div className="mt-6 flex justify-center gap-6">
-          <div className="text-center"><div className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /><span className="font-bold">{avg}</span></div><p className="text-xs text-ink-500">{reviews.length} reviews</p></div>
-          {typeof data.trustScore === "number" && <div className="text-center"><div className="flex items-center gap-1"><Shield className="h-4 w-4 text-brand" /><span className="font-bold">{data.trustScore}</span></div><p className="text-xs text-ink-500">Trust score</p></div>}
-        </div>
-
-        {data.interviewStatus === "verified" && (
-          <div className="mx-auto mt-7 max-w-2xl rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-left">
-            <div className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><Bot className="h-5 w-5" /></span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-black text-emerald-900">Workly interviewed</p>{typeof data.interviewScore === "number" && <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase text-emerald-700">Evidence {data.interviewScore}/100</span>}</div>
-                <p className="mt-2 text-sm leading-6 text-emerald-900/70">{data.interviewSummary || "Structured role interview reviewed by the Workly team."}</p>
-                {data.interviewTopSkills?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{data.interviewTopSkills.map((skill: string) => <span key={skill} className="rounded-full bg-white px-2.5 py-1 text-[10px] font-extrabold text-emerald-700">{skill}</span>)}</div>}
-                <p className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-emerald-700"><BadgeCheck className="h-3.5 w-3.5" /> AI-assisted evidence review · Human-approved badge</p>
+        <section className="surface overflow-hidden">
+          <div className="h-28 bg-gradient-to-r from-brand to-brand-light" />
+          <div className="px-6 pb-7 sm:px-8 sm:pb-8">
+            <div className="-mt-14 flex flex-wrap items-end gap-5">
+              <Avatar name={data.name} src={data.avatarUrl} size="xl" className="ring-4 ring-white" />
+              <div className="min-w-0 flex-1 pb-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-black tracking-[-0.035em] text-ink sm:text-3xl">
+                    {data.name || "Workly member"}
+                  </h1>
+                  {data.interviewStatus === "verified" && (
+                    <BadgeCheck className="h-6 w-6 text-emerald-600" aria-label="Workly interviewed" />
+                  )}
+                </div>
+                <p className="mt-1 text-sm font-bold text-brand-dark">
+                  {data.professionalTitle || data.organization || MEMBER_ROLE_LABELS[role]}
+                </p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <Badge tone="bg-brand-50 text-brand-dark border-brand-200">{MEMBER_ROLE_LABELS[role]}</Badge>
+                  {data.verified && (
+                    <Badge tone="bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <ShieldCheck className="h-3 w-3" /> ID verified
+                    </Badge>
+                  )}
+                  {data.isPrivate && <Badge tone="bg-ink text-white border-ink">Managed provider</Badge>}
+                  {data.availability && isFreelancer && <Badge>{data.availability}</Badge>}
+                </div>
               </div>
+              {isSelf && (
+                <Link href="/profile" className="pb-1">
+                  <Button variant="ghost" size="sm">
+                    Edit your profile
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {data.bio && <p className="mt-6 max-w-2xl text-[15px] leading-7 text-ink-600">{data.bio}</p>}
+
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-ink-500">
+              {data.city && (
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-brand" /> {data.city}
+                </span>
+              )}
+              {data.hourlyRate > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-brand" /> {formatPKR(data.hourlyRate)} / hour
+                </span>
+              )}
+              {data.experienceYears > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarClock className="h-3.5 w-3.5 text-brand" /> {data.experienceYears} years experience
+                </span>
+              )}
+              {Array.isArray(data.languages) && data.languages.length > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Languages className="h-3.5 w-3.5 text-brand" /> {data.languages.join(" · ")}
+                </span>
+              )}
+              {data.portfolioUrl && (
+                <a
+                  href={data.portfolioUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="inline-flex items-center gap-1.5 text-brand-dark hover:underline"
+                >
+                  <Globe className="h-3.5 w-3.5" /> Portfolio
+                </a>
+              )}
             </div>
           </div>
-        )}
+        </section>
 
-        {data.skills?.length > 0 && (
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {data.skills.map((s: string) => <span key={s} className="rounded-full bg-ink-50 px-3 py-1 text-xs font-medium text-ink-600">{s}</span>)}
-          </div>
-        )}
-        {data.certifications?.length > 0 && <div className="mt-6"><p className="text-xs font-black uppercase tracking-wider text-ink-400">Certifications</p><p className="mt-2 text-sm font-semibold text-ink-600">{data.certifications.join(" · ")}</p></div>}
-        {data.portfolioUrl && <a href={data.portfolioUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex rounded-xl bg-ink px-4 py-2.5 text-sm font-extrabold text-white">View portfolio</a>}
-        {data.hiringNeeds && <div className="mx-auto mt-6 max-w-xl rounded-2xl bg-ink-50 p-5 text-left"><p className="text-xs font-black uppercase tracking-wider text-ink-400">Usually hiring for</p><p className="mt-2 text-sm leading-6 text-ink-600">{data.hiringNeeds}</p></div>}
-      </div>
-
-      {reviews.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-          <h2 className="text-lg font-bold text-ink">Reviews</h2>
-          <div className="mt-4 space-y-3">
-            {reviews.map(r => (
-              <div key={r.id} className="rounded-xl border border-ink-100 p-4">
-                <div className="flex items-center gap-2"><div className="flex gap-0.5">{Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}</div><span className="text-sm font-semibold text-ink">{r.fromName}</span></div>
-                {r.comment && <p className="mt-2 text-sm text-ink-500">{r.comment}</p>}
-              </div>
-            ))}
-          </div>
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat icon={Star} label={`${reviews.length} reviews`} value={average} tone="bg-amber-50 text-amber-600" />
+          <Stat
+            icon={CheckCircle2}
+            label="Tasks completed"
+            value={data.tasksCompleted ?? "—"}
+            tone="bg-emerald-50 text-emerald-600"
+          />
+          <Stat icon={TrendingUp} label="Trust score" value={data.trustScore ?? 70} tone="bg-brand-50 text-brand" />
+          <Stat
+            icon={ShieldCheck}
+            label="Interview"
+            value={data.interviewStatus === "verified" ? "Verified" : "Pending"}
+            tone="bg-indigo-50 text-indigo-600"
+          />
         </div>
-      )}
+
+        {isFreelancer && Array.isArray(data.skills) && data.skills.length > 0 && (
+          <section className="surface mt-5 p-6">
+            <h2 className="text-lg font-black text-ink">Services offered</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {data.skills.map((skill: string) => (
+                <span key={skill} className="rounded-xl bg-brand-50 px-3 py-2 text-xs font-black text-brand-dark">
+                  {skill}
+                </span>
+              ))}
+            </div>
+            {Array.isArray(data.certifications) && data.certifications.length > 0 && (
+              <>
+                <h3 className="mt-6 text-sm font-black text-ink">Certifications</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {data.certifications.map((item: string) => (
+                    <span key={item} className="rounded-xl bg-ink-50 px-3 py-2 text-xs font-bold text-ink-600">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        )}
+
+        {!isFreelancer && data.hiringNeeds && (
+          <section className="surface mt-5 p-6">
+            <h2 className="text-lg font-black text-ink">What they hire for</h2>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-ink-600">{data.hiringNeeds}</p>
+          </section>
+        )}
+
+        <section className="surface mt-5 overflow-hidden">
+          <div className="border-b border-ink-100 p-5 sm:p-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Reputation</p>
+            <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
+              {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+            </h2>
+          </div>
+          {reviews.length === 0 ? (
+            <EmptyState
+              icon={MessageSquare}
+              title="No reviews yet"
+              description="Reviews appear here once completed tasks are approved and rated."
+            />
+          ) : (
+            <ul className="divide-y divide-ink-100">
+              {reviews.map((review) => (
+                <li key={review.id} className="p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <Star
+                          key={value}
+                          className={`h-3.5 w-3.5 ${value <= review.rating ? "fill-sun text-sun" : "text-ink-200"}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm font-black text-ink">{review.fromName}</span>
+                    {review.taskTitle && (
+                      <span className="text-xs font-semibold text-ink-400">· {review.taskTitle}</span>
+                    )}
+                    <span className="ml-auto text-xs text-ink-400">{timeAgo(review.createdAt)}</span>
+                  </div>
+                  {review.comment && <p className="mt-2.5 text-sm leading-6 text-ink-600">{review.comment}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
