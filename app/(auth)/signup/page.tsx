@@ -3,10 +3,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, HardHat, ShieldCheck } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, Eye, EyeOff, HardHat, ShieldCheck, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { authErrorMessage, checkPassword } from "@/lib/auth-errors";
 import { MEMBER_ROLE_BLURB, MEMBER_ROLE_LABELS, type MemberRole } from "@/lib/roles";
+import { getPlatformSettings } from "@/lib/admin";
 import Button from "@/components/ui/Button";
 import Input, { Field } from "@/components/ui/Input";
 import { Alert } from "@/components/ui/Feedback";
@@ -47,11 +48,18 @@ function SignupForm() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
+  const [allowSignups, setAllowSignups] = useState<boolean | null>(null);
 
   useEffect(() => {
     const requested = searchParams.get("role");
     if (requested === "freelancer" || requested === "tasker") setRole("freelancer");
   }, [searchParams]);
+
+  useEffect(() => {
+    getPlatformSettings()
+      .then((settings) => setAllowSignups(settings.allowNewSignups))
+      .catch(() => setAllowSignups(true));
+  }, []);
 
   const strength = checkPassword(password);
   const canSubmit = name.trim().length > 1 && email.includes("@") && password.length >= 8 && agreed;
@@ -96,7 +104,15 @@ function SignupForm() {
         </p>
       </div>
 
-      <div className="surface p-6 sm:p-8">
+      {allowSignups === false && (
+        <Alert tone="warning" title="New signups are temporarily paused" className="mb-5">
+          <span className="flex items-start gap-2">
+            <Lock className="mt-0.5 h-4 w-4" /> The Workly team has paused new registrations for maintenance. Please check back shortly — existing members can still log in.
+          </span>
+        </Alert>
+      )}
+
+      <div className={`surface p-6 sm:p-8 ${allowSignups === false ? "opacity-60 pointer-events-none select-none" : ""}`}>
         <fieldset className="mb-6">
           <legend className="mb-3 text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">
             I am joining to

@@ -3,10 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, MapPin, Search, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-import { CATEGORIES } from "@/lib/tasks";
+import { CATEGORIES, subscribeTalent } from "@/lib/tasks";
 import { formatPKR } from "@/lib/format";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
@@ -38,26 +36,22 @@ export default function TalentPage() {
   const [skill, setSkill] = useState("all");
   const [sort, setSort] = useState<"trust" | "rate_low" | "rate_high" | "experience">("trust");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [live, setLive] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      if (!db) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const snapshot = await getDocs(query(collection(db, "users"), where("role", "==", "tasker"), limit(200)));
-        setTalent(
-          snapshot.docs
-            .map((item) => ({ id: item.id, ...item.data() }) as TalentRecord & { isPrivate?: boolean })
-            .filter((item) => !(item as any).isPrivate && !(item as any).suspended)
-        );
-      } catch {
-        setTalent([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    // Realtime talent directory — respects private-profile rules correctly (isPrivate==false).
+    try {
+      return subscribeTalent(
+        (users) => {
+          setTalent(users as TalentRecord[]);
+          setLoading(false);
+          setLive(true);
+        },
+        () => setLoading(false)
+      );
+    } catch {
+      setLoading(false);
+    }
   }, []);
 
   const filtered = useMemo(() => {
@@ -152,9 +146,15 @@ export default function TalentPage() {
         </div>
 
         <div className="mb-4 mt-6 flex items-center justify-between">
-          <h2 className="text-xl font-black tracking-[-0.03em] text-ink">
-            {loading ? "Finding talent…" : `${filtered.length} ${filtered.length === 1 ? "freelancer" : "freelancers"}`}
-          </h2>
+          <div>
+            <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">
+              Talent {live && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
+            </p>
+            <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
+              {loading ? "Finding talent…" : `${filtered.length} ${filtered.length === 1 ? "freelancer" : "freelancers"}`}
+            </h2>
+          </div>
+          {live && <span className="hidden text-xs font-bold text-emerald-600 sm:inline">Realtime</span>}
         </div>
 
         {loading ? (

@@ -15,10 +15,16 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-import { PLATFORM_FEE, listTasksByPoster, listTasksForFreelancer, type Task } from "@/lib/tasks";
+import {
+  PLATFORM_FEE,
+  listTasksByPoster,
+  listTasksForFreelancer,
+  subscribeWalletTxs,
+  subscribeTasksByPoster,
+  subscribeTasksForFreelancer,
+  type Task,
+} from "@/lib/tasks";
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import { Alert, EmptyState, PageLoader, Skeleton } from "@/components/ui/Feedback";
@@ -57,39 +63,66 @@ export default function WalletPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (!user || !db) return;
-    (async () => {
-      setBusy(true);
-      try {
-        const [posted, assigned, ledgerSnapshot] = await Promise.all([
-          listTasksByPoster(user.uid).catch(() => [] as Task[]),
-          listTasksForFreelancer(user.uid).catch(() => [] as Task[]),
-          getDocs(
-            query(
-              collection(db!, "wallet_txs"),
-              where("userId", "==", user.uid),
-              orderBy("createdAt", "desc"),
-              limit(80)
-            )
-          ).catch(() => null),
-        ]);
+    if (!user) return;
+    setBusy(true);
+    // Realtime wallet ledger + live contract-derived stats — no refresh needed.
+    const unsubs: (() => void)[] = [];
+    let postedTasks: Task[] = [];
+    let assignedTasks: Task[] = [];
 
-        const activeHolds = posted.filter((task) => task.heldAmount && !task.paymentReleased);
-        setHeld(activeHolds.reduce((total, task) => total + (task.heldAmount || 0), 0));
-        setPendingApproval(posted.filter((task) => task.status === "submitted"));
-        setEarnedTotal(
-          assigned
-            .filter((task) => task.paymentReleased)
-            .reduce((total, task) => total + Math.round((task.heldAmount || 0) * (1 - PLATFORM_FEE)), 0)
-        );
+    const recompute = () => {
+      const activeHolds = postedTasks.filter((task) => task.heldAmount && !task.paymentReleased);
+      setHeld(activeHolds.reduce((total, task) => total + (task.heldAmount || 0), 0));
+      setPendingApproval(postedTasks.filter((task) => task.status === "submitted"));
+      setEarnedTotal(
+        assignedTasks
+          .filter((task) => task.paymentReleased)
+          .reduce((total, task) => total + Math.round((task.heldAmount || 0) * (1 - PLATFORM_FEE)), 0)
+      );
+      setBusy(false);
+    };
 
-        if (ledgerSnapshot) {
-          setEntries(ledgerSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as LedgerEntry));
+    try {
+      unsubs.push(
+        subscribeTasksByPoster(user.uid, (tasks) => {
+          postedTasks = tasks;
+          recompute();
+        })
+      );
+      unsubs.push(
+        subscribeTasksForFreelancer(user.uid, (tasks) => {
+          assignedTasks = tasks;
+          recompute();
+        })
+      );
+      unsubs.push(
+        subscribeWalletTxs(
+          user.uid,
+          (ledger) => {
+            setEntries(ledger as LedgerEntry[]);
+            setBusy(false);
+          },
+          () => setBusy(false)
+        )
+      );
+    } catch {
+      // Fallback to one-off fetch if realtime unavailable (e.g. rules not deployed).
+      (async () => {
+        try {
+          const [posted, assigned] = await Promise.all([
+            listTasksByPoster(user.uid).catch(() => [] as Task[]),
+            listTasksForFreelancer(user.uid).catch(() => [] as Task[]),
+          ]);
+          postedTasks = posted;
+          assignedTasks = assigned;
+          recompute();
+        } finally {
+          setBusy(false);
         }
-      } finally {
-        setBusy(false);
-      }
-    })();
+      })();
+    }
+
+    return () => unsubs.forEach((fn) => fn());
   }, [user]);
 
   if (loading || !user) return <PageLoader />;

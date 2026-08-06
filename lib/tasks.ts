@@ -6,6 +6,7 @@ import {
   getDocs,
   query,
   where,
+  orderBy,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -251,30 +252,23 @@ export interface TaskFilters {
   sort?: "newest" | "budget_high" | "budget_low" | "fewest_offers";
 }
 
-export async function listPublicTasks(filters: TaskFilters = {}): Promise<Task[]> {
-  const database = needDb();
-  const snapshot = await getDocs(
-    query(collection(database, "tasks"), where("visibility", "==", "public"), limit(200))
-  );
-  let tasks = snapshot.docs
-    .map((item) => ({ id: item.id, ...item.data() }) as Task)
-    .filter((task) => task.visibility === "public" && ACTIVE_STATUSES.includes(task.status));
-
+export function filterAndSortTasks(tasks: Task[], filters: TaskFilters = {}): Task[] {
+  let result = tasks.slice();
   if (filters.category && filters.category !== "all") {
-    tasks = tasks.filter((task) => task.category === filters.category);
+    result = result.filter((task) => task.category === filters.category);
   }
-  if (filters.remoteOnly) tasks = tasks.filter((task) => task.remote === true);
-  if (typeof filters.minBudget === "number") tasks = tasks.filter((task) => task.budget >= filters.minBudget!);
+  if (filters.remoteOnly) result = result.filter((task) => task.remote === true);
+  if (typeof filters.minBudget === "number") result = result.filter((task) => task.budget >= filters.minBudget!);
   if (typeof filters.maxBudget === "number" && filters.maxBudget > 0) {
-    tasks = tasks.filter((task) => task.budget <= filters.maxBudget!);
+    result = result.filter((task) => task.budget <= filters.maxBudget!);
   }
   if (filters.location?.trim()) {
     const needle = filters.location.trim().toLowerCase();
-    tasks = tasks.filter((task) => (task.location || "").toLowerCase().includes(needle));
+    result = result.filter((task) => (task.location || "").toLowerCase().includes(needle));
   }
   if (filters.search?.trim()) {
     const needle = filters.search.trim().toLowerCase();
-    tasks = tasks.filter(
+    result = result.filter(
       (task) =>
         task.title.toLowerCase().includes(needle) ||
         task.description.toLowerCase().includes(needle) ||
@@ -285,14 +279,45 @@ export async function listPublicTasks(filters: TaskFilters = {}): Promise<Task[]
 
   switch (filters.sort) {
     case "budget_high":
-      return tasks.sort((a, b) => b.budget - a.budget);
+      return result.sort((a, b) => b.budget - a.budget);
     case "budget_low":
-      return tasks.sort((a, b) => a.budget - b.budget);
+      return result.sort((a, b) => a.budget - b.budget);
     case "fewest_offers":
-      return tasks.sort((a, b) => (a.bidsCount || 0) - (b.bidsCount || 0));
+      return result.sort((a, b) => (a.bidsCount || 0) - (b.bidsCount || 0));
     default:
-      return tasks.sort(byNewest);
+      return result.sort(byNewest);
   }
+}
+
+export async function listPublicTasks(filters: TaskFilters = {}): Promise<Task[]> {
+  const database = needDb();
+  const snapshot = await getDocs(
+    query(collection(database, "tasks"), where("visibility", "==", "public"), limit(200))
+  );
+  const tasks = snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as Task)
+    .filter((task) => task.visibility === "public" && ACTIVE_STATUSES.includes(task.status));
+  return filterAndSortTasks(tasks, filters);
+}
+
+/** Realtime variant of listPublicTasks — keeps the marketplace live without refresh. */
+export function subscribePublicTasks(
+  filters: TaskFilters,
+  callback: (tasks: Task[]) => void,
+  onError?: (error: Error) => void
+) {
+  const database = needDb();
+  const q = query(collection(database, "tasks"), where("visibility", "==", "public"), limit(200));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const tasks = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }) as Task)
+        .filter((task) => task.visibility === "public" && ACTIVE_STATUSES.includes(task.status));
+      callback(filterAndSortTasks(tasks, filters));
+    },
+    (error) => onError?.(error as Error)
+  );
 }
 
 export async function listTasksByPoster(posterId: string): Promise<Task[]> {
@@ -335,12 +360,39 @@ export async function listPendingTasks(): Promise<Task[]> {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest);
 }
 
+export function subscribePendingTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), where("status", "==", "pending"), limit(200)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
+}
+
 export async function listPrivateTasks(): Promise<Task[]> {
   const database = needDb();
   const snapshot = await getDocs(
     query(collection(database, "tasks"), where("visibility", "==", "private"), limit(200))
   );
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest);
+}
+
+export function subscribePrivateTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), where("visibility", "==", "private"), limit(200)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
+}
+
+export function subscribeAllTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), limit(500)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -947,4 +999,91 @@ export async function listSavedTaskIds(userId: string): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+// ---------------------------------------------------------------------------
+// Realtime helpers for wallet and talent (advanced marketplace polish)
+// ---------------------------------------------------------------------------
+
+export interface WalletTx {
+  id?: string;
+  amount: number;
+  type: "deposit" | "withdraw" | "release" | "payment" | "hold" | "refund";
+  note: string;
+  createdAt: string;
+  taskId?: string;
+  userId: string;
+}
+
+export function subscribeWalletTxs(
+  userId: string,
+  callback: (entries: WalletTx[]) => void,
+  onError?: (error: Error) => void
+) {
+  const database = needDb();
+  // Prefer indexed, server-sorted query; fall back to client sort if the index is still building.
+  try {
+    const q = query(
+      collection(database, "wallet_txs"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
+      limit(80)
+    );
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as WalletTx));
+      },
+      () => {
+        const fallback = query(collection(database, "wallet_txs"), where("userId", "==", userId), limit(200));
+        return onSnapshot(
+          fallback,
+          (snapshot) => {
+            const entries = snapshot.docs
+              .map((item) => ({ id: item.id, ...item.data() }) as WalletTx)
+              .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+            callback(entries);
+          },
+          (error) => onError?.(error as Error)
+        );
+      }
+    );
+  } catch {
+    const fallback = query(collection(database, "wallet_txs"), where("userId", "==", userId), limit(200));
+    return onSnapshot(
+      fallback,
+      (snapshot) => {
+        const entries = snapshot.docs
+          .map((item) => ({ id: item.id, ...item.data() }) as WalletTx)
+          .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        callback(entries);
+      },
+      (error) => onError?.(error as Error)
+    );
+  }
+}
+
+export function subscribeTalent(
+  callback: (users: any[]) => void,
+  onError?: (error: Error) => void
+) {
+  const database = needDb();
+  // Public talent must be queryable without tripping private-profile rules, so
+  // we filter to public, non-suspended taskers directly in the query.
+  const q = query(
+    collection(database, "users"),
+    where("role", "==", "tasker"),
+    where("isPrivate", "==", false),
+    limit(200)
+  );
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const talent = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item: any) => !item.suspended);
+      callback(talent);
+    },
+    (error) => onError?.(error as Error)
+  );
 }

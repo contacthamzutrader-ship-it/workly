@@ -12,6 +12,7 @@ import {
   orderBy,
   serverTimestamp,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import {
@@ -261,6 +262,24 @@ export async function getAutoApprove(): Promise<boolean> {
 
 export async function setAutoApprove(value: boolean): Promise<void> {
   await savePlatformSettings({ autoApprove: value });
+}
+
+export function subscribePlatformSettings(
+  callback: (settings: PlatformSettings) => void,
+  onError?: (error: Error) => void
+) {
+  if (!db) {
+    callback({ ...DEFAULT_SETTINGS });
+    return () => {};
+  }
+  return onSnapshot(
+    doc(db, "settings", "platform"),
+    (snap) => {
+      if (snap.exists()) callback({ ...DEFAULT_SETTINGS, ...(snap.data() as Partial<PlatformSettings>) });
+      else callback({ ...DEFAULT_SETTINGS });
+    },
+    (err) => onError?.(err as Error)
+  );
 }
 
 // ---------------------------------------------------------------------------

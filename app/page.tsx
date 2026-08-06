@@ -26,7 +26,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { listPublicTasks, PLATFORM_FEE, type Task } from "@/lib/tasks";
+import { subscribePublicTasks, PLATFORM_FEE, type Task } from "@/lib/tasks";
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import TaskCard from "@/components/TaskCard";
@@ -51,9 +51,13 @@ export default function HomePage() {
   const [liveTasks, setLiveTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    listPublicTasks({ sort: "newest" })
-      .then((tasks) => setLiveTasks(tasks.filter((task) => task.status === "open").slice(0, 6)))
-      .catch(() => setLiveTasks([]));
+    try {
+      return subscribePublicTasks({ sort: "newest" }, (tasks) =>
+        setLiveTasks(tasks.filter((task) => task.status === "open").slice(0, 6))
+      );
+    } catch {
+      setLiveTasks([]);
+    }
   }, []);
 
   const primaryHref = user ? (role === "freelancer" ? "/tasks" : "/post") : "/signup";

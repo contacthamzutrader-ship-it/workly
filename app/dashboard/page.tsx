@@ -25,8 +25,8 @@ import { useAuth } from "@/lib/auth-context";
 import {
   ACTIVE_STATUSES,
   PLATFORM_FEE,
-  listPublicTasks,
   subscribeBidsByUser,
+  subscribePublicTasks,
   subscribeTasksByPoster,
   subscribeTasksForFreelancer,
   TASK_STATUS_META,
@@ -74,9 +74,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (role !== "freelancer") return;
-    listPublicTasks({ sort: "newest" })
-      .then((tasks) => setRecommended(tasks.filter((task) => task.status === "open").slice(0, 6)))
-      .catch(() => setRecommended([]));
+    // Realtime recommendations — update the moment a new open task is approved.
+    try {
+      return subscribePublicTasks({ sort: "newest" }, (tasks) =>
+        setRecommended(tasks.filter((task) => task.status === "open").slice(0, 6))
+      );
+    } catch {
+      setRecommended([]);
+    }
   }, [role]);
 
   const clientMetrics = useMemo(() => {

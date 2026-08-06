@@ -53,6 +53,7 @@ import {
   type Review,
   type Task,
 } from "@/lib/tasks";
+import { getPlatformSettings } from "@/lib/admin";
 import { getOrCreateConversation } from "@/lib/chat";
 import { computeBidMatch, isFreshTalent, type BidMatch } from "@/lib/matching";
 import { formatDate, formatPKR, timeAgo } from "@/lib/format";
@@ -105,6 +106,7 @@ function TaskDetail() {
   const [showDispute, setShowDispute] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [requireVerified, setRequireVerified] = useState(false);
 
   // Claim a private invitation before anything else.
   useEffect(() => {
@@ -203,6 +205,13 @@ function TaskDetail() {
     hasReviewed(id, user.uid).then(setAlreadyReviewed).catch(() => setAlreadyReviewed(false));
   }, [user, id, task?.status]);
 
+  // Platform gate: interview verification required to bid when the team turns it on.
+  useEffect(() => {
+    getPlatformSettings()
+      .then((settings) => setRequireVerified(!!settings.requireInterviewToBid))
+      .catch(() => setRequireVerified(false));
+  }, []);
+
   const myOffer = useMemo(() => bids.find((bid) => bid.bidderId === user?.uid), [bids, user?.uid]);
 
   useEffect(() => {
@@ -243,9 +252,8 @@ function TaskDetail() {
   const feeAmount = Math.round((task.heldAmount || task.budget) * PLATFORM_FEE);
   const takeHome = (task.heldAmount || task.budget) - feeAmount;
 
-  const canSendOffer =
-    !!user && role === "freelancer" && task.status === "open" && !isPoster && !myOffer && !profile?.suspended;
-  const canEditOffer = !!myOffer && myOffer.status === "pending" && task.status === "open";
+  const canSendOffer = !!user && !isStaff && role === "freelancer" && task.status === "open" && !isPoster && !myOffer && !profile?.suspended && (!requireVerified || profile?.interviewStatus === "verified");
+  const canEditOffer = !!myOffer && myOffer.status === "pending" && task.status === "open" && !isStaff;
   const canHire = (isPoster || isStaff) && task.status === "open" && bids.length > 0;
   const canStart = isWorker && task.status === "assigned";
   const canDeliver = isWorker && (task.status === "in_progress" || task.status === "changes_requested");
@@ -851,6 +859,20 @@ function TaskDetail() {
               {user && role === "client" && !isPoster && task.status === "open" && (
                 <Alert tone="info" className="mt-5">
                   You are in client mode. Switch to freelancer in your account menu to send an offer.
+                </Alert>
+              )}
+              {user && requireVerified && role === "freelancer" && profile?.interviewStatus !== "verified" && task.status === "open" && !myOffer && !isPoster && (
+                <Alert tone="warning" className="mt-5" title="Interview verification required">
+                  This marketplace currently requires a verified Workly interview before freelancers can bid.{" "}
+                  <Link href="/profile/interview" className="font-black text-brand-dark underline">
+                    Take the interview
+                  </Link>{" "}
+                  — a human reviewer will approve your badge shortly.
+                </Alert>
+              )}
+              {user && isStaff && task.status === "open" && (
+                <Alert tone="info" className="mt-5">
+                  Staff accounts view offers but do not send them. Offers are for verified freelancers only.
                 </Alert>
               )}
             </div>
