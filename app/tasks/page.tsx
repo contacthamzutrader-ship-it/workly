@@ -14,7 +14,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { CATEGORIES, listPublicTasks, type Task, type TaskFilters } from "@/lib/tasks";
+import { CATEGORIES, listPublicTasks, subscribePublicTasks, type Task, type TaskFilters } from "@/lib/tasks";
 import { useAuth } from "@/lib/auth-context";
 import { formatPKR } from "@/lib/format";
 import TaskCard from "@/components/TaskCard";
@@ -51,6 +51,8 @@ function BrowseTasks() {
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [sort, setSort] = useState<NonNullable<TaskFilters["sort"]>>("newest");
   const [mobileFilters, setMobileFilters] = useState(false);
+  const [live, setLive] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<TaskFilters>({ sort: "newest" });
 
   const load = useCallback(async (filters: TaskFilters) => {
     setLoading(true);
@@ -63,14 +65,48 @@ function BrowseTasks() {
     }
   }, []);
 
+  // Keep the marketplace truly live: subscribe to public tasks and re-apply filters locally on every change.
+  useEffect(() => {
+    setLoading(true);
+    setLive(false);
+    let unsub: (() => void) | undefined;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+    try {
+      unsub = subscribePublicTasks(
+        appliedFilters,
+        (liveTasks) => {
+          setTasks(liveTasks);
+          setLoading(false);
+          setLive(true);
+        },
+        () => {
+          // Realtime failed (offline / rules) — fall back to one-off fetch.
+          load(appliedFilters);
+          setLive(false);
+        }
+      );
+      // If snapshot never fires (e.g. Firestore not configured), fall back after 3s.
+      fallback = setTimeout(() => {
+        if (live === false) setLoading((prev) => prev);
+      }, 3000);
+    } catch {
+      load(appliedFilters);
+    }
+    return () => {
+      unsub?.();
+      if (fallback) clearTimeout(fallback);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedFilters, load]);
+
   useEffect(() => {
     const initialCategory = searchParams.get("category") || "all";
     const initialSearch = searchParams.get("q") || "";
     const resolved = CATEGORIES.includes(initialCategory) ? initialCategory : "all";
     setCategory(resolved);
     setSearch(initialSearch);
-    load({ category: resolved, search: initialSearch, sort: "newest" });
-  }, [searchParams, load]);
+    setAppliedFilters({ category: resolved, search: initialSearch, sort: "newest" });
+  }, [searchParams]);
 
   const currentFilters = useMemo<TaskFilters>(
     () => ({
@@ -85,7 +121,7 @@ function BrowseTasks() {
     [category, search, minBudget, maxBudget, location, remoteOnly, sort]
   );
 
-  const apply = () => load(currentFilters);
+  const apply = () => setAppliedFilters(currentFilters);
 
   const clear = () => {
     setSearch("");
@@ -95,7 +131,7 @@ function BrowseTasks() {
     setLocation("");
     setRemoteOnly(false);
     setSort("newest");
-    load({ category: "all", sort: "newest" });
+    setAppliedFilters({ category: "all", sort: "newest" });
   };
 
   const activeFilterCount =
@@ -231,7 +267,7 @@ function BrowseTasks() {
             onChange={(event) => {
               const next = event.target.value as NonNullable<TaskFilters["sort"]>;
               setSort(next);
-              load({ ...currentFilters, sort: next });
+              setAppliedFilters({ ...currentFilters, sort: next });
             }}
             className="min-h-12 lg:w-52"
           >
@@ -259,16 +295,21 @@ function BrowseTasks() {
           <main>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Marketplace</p>
+                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">
+                  Marketplace {live && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
+                </p>
                 <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
                   {loading ? "Finding opportunities…" : `${tasks.length} open ${tasks.length === 1 ? "task" : "tasks"}`}
                 </h2>
               </div>
-              {activeFilterCount > 0 && (
-                <button onClick={clear} className="flex items-center gap-1.5 text-xs font-black text-ink-400 hover:text-ink">
-                  <X className="h-3.5 w-3.5" /> Clear {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {live && <span className="hidden text-xs font-bold text-emerald-600 sm:inline">Realtime</span>}
+                {activeFilterCount > 0 && (
+                  <button onClick={clear} className="flex items-center gap-1.5 text-xs font-black text-ink-400 hover:text-ink">
+                    <X className="h-3.5 w-3.5" /> Clear {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
+                  </button>
+                )}
+              </div>
             </div>
 
             {loading ? (

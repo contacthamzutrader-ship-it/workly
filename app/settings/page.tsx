@@ -107,11 +107,15 @@ export default function SettingsPage() {
           {/* ---------------------------------------------- Mode */}
           <section className="surface p-6 sm:p-7">
             <h2 className="text-lg font-black text-ink">How you use Workly</h2>
-            <p className="mt-1.5 text-sm text-ink-500">
-              One account, two modes. Switching changes your dashboard and what you can do — nothing is deleted.
-            </p>
+            {isStaff ? (
+              <p className="mt-1.5 rounded-xl bg-ink p-3 text-xs font-bold text-white">Staff accounts use the control centre and do not switch between client and freelancer mode.</p>
+            ) : (
+              <p className="mt-1.5 text-sm text-ink-500">
+                One account, two modes. Switching changes your dashboard and what you can do — nothing is deleted.
+              </p>
+            )}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className={`mt-5 grid gap-3 sm:grid-cols-2 ${isStaff ? "opacity-50 pointer-events-none" : ""}`}>
               {(
                 [
                   { value: "client" as MemberRole, icon: BriefcaseBusiness },
@@ -123,6 +127,7 @@ export default function SettingsPage() {
                   <button
                     key={option.value}
                     onClick={() =>
+                      !isStaff &&
                       !active &&
                       run(
                         `switch-${option.value}`,
@@ -130,7 +135,7 @@ export default function SettingsPage() {
                         `You are now using Workly as a ${MEMBER_ROLE_LABELS[option.value].toLowerCase()}.`
                       )
                     }
-                    disabled={active || action !== ""}
+                    disabled={isStaff || active || action !== ""}
                     className={`rounded-2xl border p-5 text-left transition disabled:cursor-default ${
                       active ? "border-brand bg-brand-50" : "border-ink-100 hover:border-ink-200 hover:bg-ink-50/60"
                     }`}

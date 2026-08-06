@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AccountBanner from "@/components/AccountBanner";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
 import { Spinner } from "@/components/ui/Feedback";
 
 /** Routes that render their own full-bleed chrome. */
@@ -28,6 +29,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      <MaintenanceBanner />
       <AccountBanner />
       <main className="flex-1">{children}</main>
       <Footer />

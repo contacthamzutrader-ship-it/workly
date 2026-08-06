@@ -59,8 +59,8 @@ export default function PostTaskPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) router.replace("/login?redirect=/post");
-    else if (!capabilities.canPostTask) router.replace("/dashboard");
-  }, [loading, user, capabilities.canPostTask, router]);
+    else if (!capabilities.canPostTask || profile?.suspended) router.replace("/dashboard");
+  }, [loading, user, capabilities.canPostTask, profile?.suspended, router]);
 
   useEffect(() => {
     getPlatformSettings()

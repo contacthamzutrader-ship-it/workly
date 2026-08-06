@@ -21,6 +21,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { CATEGORIES, listReviewsForUser, type Review } from "@/lib/tasks";
+import { hasPermission } from "@/lib/roles";
 import { MEMBER_ROLE_LABELS, type MemberRole } from "@/lib/roles";
 import { interviewStatusLabel, interviewStatusTone, type InterviewStatus } from "@/lib/interview";
 import Button from "@/components/ui/Button";
@@ -32,7 +33,7 @@ import { Stat } from "@/components/ui/Badge";
 const AVAILABILITY = ["Available now", "Part-time", "Weekends only", "Booked until further notice"];
 
 export default function ProfilePage() {
-  const { user, profile, role, isStaff, loading, switchRole } = useAuth();
+  const { user, profile, role, staff, isStaff, loading, switchRole } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -178,7 +179,7 @@ export default function ProfilePage() {
         data.hiringNeeds = hiringNeeds.trim();
       }
 
-      if (isStaff) data.isPrivate = isPrivate;
+      if (hasPermission(staff, "manageUsers")) data.isPrivate = isPrivate;
 
       await setDoc(doc(db, "users", user.uid), data, { merge: true });
       setAvatarUrl(uploadedAvatar);
@@ -458,7 +459,7 @@ export default function ProfilePage() {
             </section>
           )}
 
-          {isStaff && (
+          {hasPermission(staff, "manageUsers") && (
             <label className="flex cursor-pointer items-start gap-3 rounded-3xl bg-ink p-6 text-sm text-white">
               <input
                 type="checkbox"
@@ -467,9 +468,9 @@ export default function ProfilePage() {
                 className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand"
               />
               <span>
-                <span className="block font-black">Internal private provider</span>
+                <span className="block font-black">Internal private provider (manageUsers)</span>
                 <span className="mt-1 block text-xs leading-5 text-white/55">
-                  Hidden from public discovery and available for managed private assignments only.
+                  Hidden from public discovery and available for managed private assignments only. Requires private-provider permission.
                 </span>
               </span>
             </label>
