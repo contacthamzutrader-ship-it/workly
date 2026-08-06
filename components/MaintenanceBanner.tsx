@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Settings, ShieldCheck } from "lucide-react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { DEFAULT_SETTINGS, type PlatformSettings } from "@/lib/admin";
+import { Settings, ShieldCheck } from "lucide-react";
+import { DEFAULT_SETTINGS, subscribePlatformSettings, type PlatformSettings } from "@/lib/admin";
 import { useAuth } from "@/lib/auth-context";
 
 export default function MaintenanceBanner() {
@@ -12,17 +10,7 @@ export default function MaintenanceBanner() {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
 
   useEffect(() => {
-    if (!db) return;
-    const ref = doc(db, "settings", "platform");
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        if (snap.exists()) setSettings({ ...DEFAULT_SETTINGS, ...(snap.data() as Partial<PlatformSettings>) });
-        else setSettings(DEFAULT_SETTINGS);
-      },
-      () => setSettings(null)
-    );
-    return () => unsub();
+    return subscribePlatformSettings(setSettings, () => setSettings(null));
   }, []);
 
   if (!settings) return null;

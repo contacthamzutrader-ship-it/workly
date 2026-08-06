@@ -360,12 +360,39 @@ export async function listPendingTasks(): Promise<Task[]> {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest);
 }
 
+export function subscribePendingTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), where("status", "==", "pending"), limit(200)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
+}
+
 export async function listPrivateTasks(): Promise<Task[]> {
   const database = needDb();
   const snapshot = await getDocs(
     query(collection(database, "tasks"), where("visibility", "==", "private"), limit(200))
   );
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest);
+}
+
+export function subscribePrivateTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), where("visibility", "==", "private"), limit(200)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
+}
+
+export function subscribeAllTasks(callback: (tasks: Task[]) => void, onError?: (e: Error) => void) {
+  const database = needDb();
+  return onSnapshot(
+    query(collection(database, "tasks"), limit(500)),
+    (snap) => callback(snap.docs.map((item) => ({ id: item.id, ...item.data() }) as Task).sort(byNewest)),
+    (err) => onError?.(err as Error)
+  );
 }
 
 // ---------------------------------------------------------------------------
