@@ -69,6 +69,8 @@ function LoginForm() {
     setError("");
     setBusy("google");
     try {
+      // Legacy behavior used isNewUser ? "/onboarding" : redirect here.
+      // Login is now intentionally existing-account-only; signup owns account creation.
       const { isOwner } = await signInWithGoogle();
       router.push(isOwner ? "/admin" : redirect);
     } catch (caught) {
