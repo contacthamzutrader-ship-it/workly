@@ -26,6 +26,8 @@ type AnswerBody = {
   answer: string;
 };
 
+type InterviewRequestBody = StartBody | AnswerBody;
+
 function responseFromRecord(record: InterviewRecord) {
   const index = record.answers?.length || 0;
   return {
@@ -44,10 +46,41 @@ function apiError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+async function parseBody(request: Request): Promise<InterviewRequestBody | null> {
+  let value: unknown;
+  try {
+    value = await request.json();
+  } catch {
+    return null;
+  }
+
+  if (!isRecord(value)) return null;
+  if (value.action === "start") {
+    return {
+      action: "start",
+      consent: value.consent === true,
+    };
+  }
+  if (value.action === "answer") {
+    return {
+      action: "answer",
+      attemptId: typeof value.attemptId === "string" ? value.attemptId.trim() : "",
+      answer: typeof value.answer === "string" ? value.answer : "",
+    };
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const decoded = await requireFirebaseUser(request);
-    const body = await request.json() as StartBody | AnswerBody;
+    const body = await parseBody(request);
+    if (!body) return apiError("Invalid interview request.", 400);
+
     const { db } = getFirebaseAdmin();
     const userRef = db.collection("users").doc(decoded.uid);
     const userSnap = await userRef.get();
@@ -80,13 +113,6 @@ export async function POST(request: Request) {
         return apiError("You have reached the self-service retake limit. Contact Workly support for help.", 429);
       }
 
-      if (previous?.attemptId) {
-        await db.collection("interviews").doc(decoded.uid).collection("history").doc(previous.attemptId).set({
-          ...previous,
-          archivedAt: Timestamp.now(),
-        });
-      }
-
       const firstQuestion = await generateQuestion(profile, []);
       const record: InterviewRecord = {
         userId: decoded.uid,
@@ -103,9 +129,24 @@ export async function POST(request: Request) {
 
       await db.runTransaction(async (transaction) => {
         const latest = await transaction.get(interviewRef);
-        if (latest.exists && (latest.data() as InterviewRecord).status === "in_progress") {
-          throw new Error("INTERVIEW_ALREADY_STARTED");
+        const latestRecord = latest.exists ? latest.data() as InterviewRecord : null;
+
+        if (latestRecord && ["in_progress", "awaiting_review", "verified"].includes(latestRecord.status)) {
+          throw new Error("INTERVIEW_STATE_CHANGED");
         }
+
+        if ((latestRecord?.attemptNumber || 0) !== (previous?.attemptNumber || 0)) {
+          throw new Error("INTERVIEW_STATE_CHANGED");
+        }
+
+        if (latestRecord?.attemptId) {
+          const historyRef = interviewRef.collection("history").doc(latestRecord.attemptId);
+          transaction.set(historyRef, {
+            ...latestRecord,
+            archivedAt: Timestamp.now(),
+          });
+        }
+
         transaction.set(interviewRef, record);
         transaction.update(userRef, {
           interviewStatus: "in_progress",
@@ -118,7 +159,7 @@ export async function POST(request: Request) {
     }
 
     if (body.action === "answer") {
-      const answer = String(body.answer || "").trim();
+      const answer = body.answer.trim();
       if (!body.attemptId) return apiError("This interview session is invalid. Please restart it.", 400);
       if (answer.length < INTERVIEW_MIN_ANSWER_LENGTH) {
         return apiError(`Please give a little more detail (at least ${INTERVIEW_MIN_ANSWER_LENGTH} characters).`, 400);
@@ -183,13 +224,14 @@ export async function POST(request: Request) {
     }
 
     return apiError("Unsupported interview action.", 400);
-  } catch (error: any) {
-    const code = String(error?.code || "");
-    const message = String(error?.message || "");
+  } catch (error: unknown) {
+    const typedError = error as { code?: unknown; message?: unknown } | null;
+    const code = String(typedError?.code || "");
+    const message = String(typedError?.message || "");
     if (message === "AUTH_REQUIRED" || code.includes("id-token") || code.includes("auth/")) {
       return apiError("Your session expired. Sign in again and retry.", 401);
     }
-    if (message === "INTERVIEW_ALREADY_STARTED" || message === "ANSWER_ALREADY_SAVED" || message === "INTERVIEW_STALE") {
+    if (["INTERVIEW_ALREADY_STARTED", "INTERVIEW_STATE_CHANGED", "ANSWER_ALREADY_SAVED", "INTERVIEW_STALE"].includes(message)) {
       return apiError("Your interview changed in another tab. Refresh this page to continue.", 409);
     }
     if (code.includes("credential") || message.includes("Could not load the default credentials")) {
