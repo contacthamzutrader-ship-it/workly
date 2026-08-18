@@ -147,8 +147,8 @@ function SignupForm() {
 
     setBusy("google");
     try {
-      const { isNewUser, isOwner } = await signInWithGoogle(role);
-      router.push(isOwner ? "/admin" : isNewUser ? "/onboarding" : "/dashboard");
+      const { isNewUser, isOwner, onboarded } = await signInWithGoogle(role);
+      router.push(isOwner ? "/admin" : isNewUser || !onboarded ? "/onboarding" : "/dashboard");
     } catch (caught) {
       setError(authErrorMessage(caught, "Google sign-up did not complete."));
     } finally {
