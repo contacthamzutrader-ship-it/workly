@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import AppShell from "@/components/AppShell";
+import PublicProfileSync from "@/components/PublicProfileSync";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen bg-canvas font-sans text-ink">
         <AuthProvider>
+          <PublicProfileSync />
           <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
