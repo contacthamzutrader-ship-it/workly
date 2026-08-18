@@ -12,7 +12,7 @@ test("public signup exposes member roles only", async () => {
   const roles = await read("lib/roles.ts");
   const signup = await read("app/(auth)/signup/page.tsx");
   assert.match(roles, /export type MemberRole = "client" \| "freelancer"/);
-  assert.match(signup, /Hire for tasks/);
+  assert.match(signup, /Hire for a task/);
   assert.match(signup, /Work and earn/);
   assert.doesNotMatch(signup, /company_admin|"moderator"|"admin"/);
   assert.match(signup, /Staff and admin access is never granted at signup/);
