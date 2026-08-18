@@ -25,7 +25,7 @@ import {
   subscribeTasksForFreelancer,
   type Task,
 } from "@/lib/tasks";
-import { formatPKR } from "@/lib/format";
+import { formatDate, formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import { Alert, EmptyState, PageLoader, Skeleton } from "@/components/ui/Feedback";
 import { Badge } from "@/components/ui/Badge";
@@ -35,7 +35,7 @@ type LedgerEntry = {
   amount: number;
   type: "deposit" | "withdraw" | "release" | "payment" | "hold" | "refund";
   note: string;
-  createdAt: string;
+  createdAt: unknown;
   taskId?: string;
 };
 
@@ -65,7 +65,6 @@ export default function WalletPage() {
   useEffect(() => {
     if (!user) return;
     setBusy(true);
-    // Realtime wallet ledger + live contract-derived stats — no refresh needed.
     const unsubs: (() => void)[] = [];
     let postedTasks: Task[] = [];
     let assignedTasks: Task[] = [];
@@ -106,7 +105,6 @@ export default function WalletPage() {
         )
       );
     } catch {
-      // Fallback to one-off fetch if realtime unavailable (e.g. rules not deployed).
       (async () => {
         try {
           const [posted, assigned] = await Promise.all([
@@ -143,9 +141,7 @@ export default function WalletPage() {
                 <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">
                   {isFreelancer ? "Your earnings" : "Holds and releases"}
                 </h1>
-                <p className="mt-1 text-sm text-white/55">
-                  Every movement on your contracts, in one record.
-                </p>
+                <p className="mt-1 text-sm text-white/55">Every movement on your contracts, in one record.</p>
               </div>
             </div>
             <Link href="/dashboard">
@@ -163,19 +159,19 @@ export default function WalletPage() {
               <Landmark className="h-5 w-5 text-brand" />
             </div>
             <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-ink">{formatPKR(profile?.wallet || 0)}</p>
-            <p className="mt-1.5 text-xs text-ink-400">Usable for hiring on Workly</p>
+            <p className="mt-1.5 text-xs text-ink-400">Internal Workly balance for contract testing</p>
           </div>
 
           <div className="surface bg-brand-50 p-6">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-black text-brand-dark">{isFreelancer ? "Total earned" : "Held on contracts"}</p>
+              <p className="text-sm font-black text-brand-dark">{isFreelancer ? "Total recorded earnings" : "Held on contracts"}</p>
               <ShieldCheck className="h-5 w-5 text-brand" />
             </div>
             <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-brand-dark">
               {formatPKR(isFreelancer ? earnedTotal : held)}
             </p>
             <p className="mt-1.5 text-xs text-brand-700">
-              {isFreelancer ? `After the ${Math.round(PLATFORM_FEE * 100)}% service fee` : "Released when you approve"}
+              {isFreelancer ? `Internal ledger after the ${Math.round(PLATFORM_FEE * 100)}% service fee` : "Internal contract hold record"}
             </p>
           </div>
 
@@ -205,7 +201,7 @@ export default function WalletPage() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-ink">{task.title}</p>
                       <p className="mt-0.5 text-xs text-ink-400">
-                        Approve to release {formatPKR(task.heldAmount || 0)} to {task.assignedName}
+                        Review the delivery for {formatPKR(task.heldAmount || 0)} from {task.assignedName}
                       </p>
                     </div>
                     <span className="shrink-0 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-700">
@@ -229,23 +225,17 @@ export default function WalletPage() {
           <div className="flex items-center justify-between border-b border-ink-100 p-5 sm:p-6">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Transaction history</p>
-              <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">Your ledger</h2>
+              <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">Your internal ledger</h2>
             </div>
             <ReceiptText className="h-5 w-5 text-ink-300" />
           </div>
 
           {busy ? (
             <div className="space-y-2 p-6">
-              {[1, 2, 3, 4].map((index) => (
-                <Skeleton key={index} className="h-16" />
-              ))}
+              {[1, 2, 3, 4].map((index) => <Skeleton key={index} className="h-16" />)}
             </div>
           ) : entries.length === 0 ? (
-            <EmptyState
-              icon={Clock3}
-              title="No transactions yet"
-              description="Holds, releases and refunds appear here as your contracts progress."
-            />
+            <EmptyState icon={Clock3} title="No transactions yet" description="Internal holds, releases and refunds appear here as your contracts progress." />
           ) : (
             <ul className="divide-y divide-ink-50">
               {entries.map((entry) => {
@@ -259,24 +249,15 @@ export default function WalletPage() {
                       <p className="truncate text-sm font-black text-ink">{entry.note}</p>
                       <div className="mt-1 flex items-center gap-2">
                         <Badge>{entry.type}</Badge>
-                        <span className="text-xs text-ink-400">
-                          {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString("en-PK") : ""}
-                        </span>
+                        <span className="text-xs text-ink-400">{entry.createdAt ? formatDate(entry.createdAt) : ""}</span>
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p
-                        className={`text-sm font-black ${
-                          style.sign === "+" ? "text-emerald-600" : style.sign === "−" ? "text-rose-600" : "text-ink"
-                        }`}
-                      >
-                        {style.sign}
-                        {formatPKR(entry.amount)}
+                      <p className={`text-sm font-black ${style.sign === "+" ? "text-emerald-600" : style.sign === "−" ? "text-rose-600" : "text-ink"}`}>
+                        {style.sign}{formatPKR(entry.amount)}
                       </p>
                       {entry.taskId && (
-                        <Link href={`/tasks/${entry.taskId}`} className="text-[11px] font-black text-brand-dark">
-                          View task
-                        </Link>
+                        <Link href={`/tasks/${entry.taskId}`} className="text-[11px] font-black text-brand-dark">View task</Link>
                       )}
                     </div>
                   </li>
