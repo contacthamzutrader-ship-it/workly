@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, MapPin, Search, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { CATEGORIES, subscribeTalent } from "@/lib/tasks";
+import { CATEGORIES } from "@/lib/tasks";
+import { subscribeTalent } from "@/lib/talent";
 import { formatPKR } from "@/lib/format";
 import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
@@ -22,7 +23,7 @@ type TalentRecord = {
   skills?: string[];
   hourlyRate?: number;
   experienceYears?: number;
-  trustScore?: number;
+  trustScore?: number | null;
   interviewStatus?: string;
   availability?: string;
   verified?: boolean;
@@ -39,7 +40,6 @@ export default function TalentPage() {
   const [live, setLive] = useState(false);
 
   useEffect(() => {
-    // Realtime talent directory — respects private-profile rules correctly (isPrivate==false).
     try {
       return subscribeTalent(
         (users) => {
@@ -76,7 +76,11 @@ export default function TalentPage() {
       case "experience":
         return list.sort((a, b) => (b.experienceYears || 0) - (a.experienceYears || 0));
       default:
-        return list.sort((a, b) => (b.trustScore || 70) - (a.trustScore || 70));
+        return list.sort((a, b) => {
+          const aScore = typeof a.trustScore === "number" ? a.trustScore : -1;
+          const bScore = typeof b.trustScore === "number" ? b.trustScore : -1;
+          return bScore - aScore;
+        });
     }
   }, [talent, skill, verifiedOnly, search, sort]);
 
@@ -118,17 +122,9 @@ export default function TalentPage() {
           </div>
           <Select value={skill} onChange={(event) => setSkill(event.target.value)} className="min-h-12 lg:w-48">
             <option value="all">All skills</option>
-            {CATEGORIES.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
+            {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
           </Select>
-          <Select
-            value={sort}
-            onChange={(event) => setSort(event.target.value as typeof sort)}
-            className="min-h-12 lg:w-48"
-          >
+          <Select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="min-h-12 lg:w-48">
             <option value="trust">Highest trust</option>
             <option value="experience">Most experienced</option>
             <option value="rate_low">Lowest rate</option>
@@ -159,9 +155,7 @@ export default function TalentPage() {
 
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((index) => (
-              <Skeleton key={index} className="h-56" />
-            ))}
+            {[1, 2, 3, 4, 5, 6].map((index) => <Skeleton key={index} className="h-56" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="surface">
@@ -169,13 +163,7 @@ export default function TalentPage() {
               icon={Users}
               title="No matching freelancers"
               description="Try a broader search, or post your task and let the right people come to you."
-              action={
-                capabilities.canPostTask ? (
-                  <Link href="/post">
-                    <Button>Post a task</Button>
-                  </Link>
-                ) : undefined
-              }
+              action={capabilities.canPostTask ? <Link href="/post"><Button>Post a task</Button></Link> : undefined}
             />
           </div>
         ) : (
@@ -190,24 +178,14 @@ export default function TalentPage() {
                   <Avatar name={person.name} src={person.avatarUrl} size="lg" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate font-black text-ink transition group-hover:text-brand-dark">
-                        {person.name || "Workly freelancer"}
-                      </p>
-                      {person.interviewStatus === "verified" && (
-                        <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" />
-                      )}
+                      <p className="truncate font-black text-ink transition group-hover:text-brand-dark">{person.name || "Workly freelancer"}</p>
+                      {person.interviewStatus === "verified" && <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" />}
                     </div>
-                    <p className="mt-0.5 truncate text-xs font-bold text-brand-dark">
-                      {person.professionalTitle || "Freelancer"}
-                    </p>
+                    <p className="mt-0.5 truncate text-xs font-bold text-brand-dark">{person.professionalTitle || "Freelancer"}</p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-bold text-ink-400">
-                      {person.city && (
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {person.city}
-                        </span>
-                      )}
+                      {person.city && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {person.city}</span>}
                       <span className="inline-flex items-center gap-1">
-                        <Star className="h-3 w-3 text-sun" /> Trust {person.trustScore ?? 70}
+                        <Star className="h-3 w-3 text-sun" /> Trust {typeof person.trustScore === "number" ? person.trustScore : "—"}
                       </span>
                     </div>
                   </div>
@@ -218,24 +196,16 @@ export default function TalentPage() {
                 {person.skills && person.skills.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {person.skills.slice(0, 3).map((item) => (
-                      <span key={item} className="rounded-lg bg-ink-50 px-2 py-1 text-[10px] font-black text-ink-600">
-                        {item}
-                      </span>
+                      <span key={item} className="rounded-lg bg-ink-50 px-2 py-1 text-[10px] font-black text-ink-600">{item}</span>
                     ))}
-                    {person.skills.length > 3 && (
-                      <span className="rounded-lg bg-ink-50 px-2 py-1 text-[10px] font-black text-ink-400">
-                        +{person.skills.length - 3}
-                      </span>
-                    )}
+                    {person.skills.length > 3 && <span className="rounded-lg bg-ink-50 px-2 py-1 text-[10px] font-black text-ink-400">+{person.skills.length - 3}</span>}
                   </div>
                 )}
 
                 <div className="mt-auto flex items-end justify-between border-t border-ink-100 pt-4">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Rate</p>
-                    <p className="mt-0.5 text-base font-black text-ink">
-                      {person.hourlyRate ? `${formatPKR(person.hourlyRate)}/hr` : "On request"}
-                    </p>
+                    <p className="mt-0.5 text-base font-black text-ink">{person.hourlyRate ? `${formatPKR(person.hourlyRate)}/hr` : "On request"}</p>
                   </div>
                   {person.availability && <Badge>{person.availability}</Badge>}
                 </div>
@@ -250,8 +220,7 @@ export default function TalentPage() {
               <ShieldCheck className="h-6 w-6 text-brand-light" />
               <h2 className="mt-4 text-2xl font-black tracking-[-0.035em]">Hire with confidence</h2>
               <p className="mt-2 text-sm leading-6 text-white/60">
-                Every verified badge means a human reviewer checked real evidence of the freelancer&apos;s work — not just
-                a self-written profile.
+                A Workly interview badge is shown only after the structured interview has been reviewed by a human operator.
               </p>
             </div>
             <Link href="/how-it-works#safety">

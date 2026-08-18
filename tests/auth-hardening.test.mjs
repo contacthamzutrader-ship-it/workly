@@ -65,7 +65,7 @@ test("mode switching recalculates readiness and incomplete profiles lose marketp
   assert.match(auth, /canSendOffer: base\.canSendOffer && ready/);
 });
 
-test("Firestore blocks privileged defaults and respects the signup gate", async () => {
+test("Firestore blocks privileged signup defaults and respects the signup gate", async () => {
   const rules = await read("firestore.rules");
   assert.match(rules, /function signupsAllowed\(\)/);
   assert.match(rules, /&& signupsAllowed\(\)/);
@@ -76,13 +76,17 @@ test("Firestore blocks privileged defaults and respects the signup gate", async 
   assert.match(rules, /get\('profileComplete', false\) == false/);
 });
 
-test("posting and bidding verify actual profile fields instead of trusting a legacy flag", async () => {
+test("marketplace readiness is enforced on the trusted server while direct task and bid writes are denied", async () => {
   const rules = await read("firestore.rules");
-  assert.match(rules, /function memberReadyForMarketplace\(\)/);
-  assert.match(rules, /userDoc\(\)\.get\('bio', ''\)\.size\(\) >= 20/);
-  assert.match(rules, /userDoc\(\)\.get\('professionalTitle', ''\)\.size\(\) >= 3/);
-  assert.match(rules, /userDoc\(\)\.get\('skills', \[\]\)\.size\(\) > 0/);
-  assert.match(rules, /&& memberReadyForMarketplace\(\)/);
+  const route = await read("app/api/marketplace/route.ts");
+  assert.match(route, /function memberReady\(user:/);
+  assert.match(route, /String\(user\.bio \|\| ""\)\.trim\(\)\.length >= 20/);
+  assert.match(route, /String\(user\.professionalTitle \|\| ""\)\.trim\(\)\.length >= 3/);
+  assert.match(route, /Array\.isArray\(user\.skills\) && user\.skills\.length > 0/);
+  assert.match(route, /requireMember\(actor, "customer"\)/);
+  assert.match(route, /requireMember\(actor, "tasker"\)/);
+  assert.match(rules, /match \/tasks\/\{taskId\}[\s\S]*?allow create, update, delete: if false/);
+  assert.match(rules, /match \/bids\/\{bidId\}[\s\S]*?allow create, update, delete: if false/);
 });
 
 test("login redirects remain internal", async () => {

@@ -1,13 +1,21 @@
 # Workly
 
-Workly is a Next.js + Firebase marketplace for posting tasks, comparing freelancers, managing delivery, messaging, reviews and internal contract balances. The current build uses a two-mode member account model: **Client** for hiring and **Freelancer** for earning. Staff roles are invitation-only and controlled from the admin centre.
+Workly is a Next.js + Firebase marketplace for posting tasks, comparing freelancers, managing delivery, messaging, reviews and internal contract records. Members use one account in two modes: **Client** for hiring and **Freelancer** for providing services. Staff access is invitation-only and permission-scoped.
 
-## Stack
+## Production architecture
 
 - **App:** Next.js App Router, React, TypeScript, Tailwind CSS
-- **Auth/Data/Storage:** Firebase Auth, Cloud Firestore, Firebase Storage
-- **AI:** Hugging Face-backed interview and matching helpers
-- **Hosting:** Vercel for the web app, Firebase CLI for rules/index deployment
+- **Identity:** Firebase Authentication
+- **Private account data:** Cloud Firestore `users/{uid}`
+- **Public profile data:** server-authored `public_profiles/{uid}` projection
+- **Marketplace reads:** Firestore realtime subscriptions where appropriate
+- **Marketplace writes:** authenticated `/api/marketplace` server route using Firebase Admin SDK
+- **Privileged operations:** authenticated `/api/admin` server route with granular permissions and audit entries
+- **AI:** authenticated Hugging Face-backed helpers with bounded requests and rate limiting on the task-analysis endpoint
+- **Storage:** Firebase Storage with owner/contract-participant rules
+- **Hosting:** Vercel for the web app; Firebase CLI for Firestore/Storage rules and indexes
+
+Sensitive state transitions are not trusted to browser writes. Hiring, offer mutation, delivery approval, cancellation, disputes, reviews, chat writes, notifications and internal ledger records are authorized on the server against current Firestore state.
 
 ## Local setup
 
@@ -21,9 +29,9 @@ Open <http://localhost:3000>.
 
 ### Required environment variables
 
-Use `.env.example` as the source of truth. Browser-safe Firebase config must use the `NEXT_PUBLIC_` prefix. Server-only secrets must **not** use that prefix.
+Use `.env.example` as the source of truth. Browser-safe Firebase config uses the `NEXT_PUBLIC_` prefix. Server credentials and provider keys must never use that prefix.
 
-Minimum for the client app:
+Client Firebase configuration:
 
 ```bash
 NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -34,7 +42,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
-Required for authenticated AI interview/API routes:
+Server authentication/API configuration:
 
 ```bash
 FIREBASE_PROJECT_ID=
@@ -47,66 +55,99 @@ HUGGINGFACE_API_KEY=
 HUGGINGFACE_CHAT_MODEL=
 ```
 
-## Useful commands
+## Commands
 
 ```bash
-npm test          # Node-based platform checks
+npm test          # security/product regression tests
 npm run lint      # TypeScript check: tsc --noEmit
-npm run build     # Production Next.js build
-npm run start     # Serve a production build locally
+npm run build     # regression tests + production Next.js build on release branches
+npm run start     # serve a production build locally
 ```
+
+The production build command is intentionally test-gated. Do not remove the test step to make a failing deployment appear green.
 
 ## Firebase deployment
 
-The repository includes Firebase rules and composite indexes:
+The repository includes:
 
 - `firestore.rules`
 - `firestore.indexes.json`
 - `storage.rules`
-- `.firebaserc` defaults to project `workly-c7458`
+- `.firebaserc` (project `workly-c7458`)
 
-Deploy rules and indexes together so production queries do not hit missing-index errors:
+Deploy rules, indexes and storage rules together after merging security changes:
 
 ```bash
 firebase deploy --only firestore:rules,firestore:indexes,storage
 ```
 
-If you only changed indexes:
+The current index file includes task, offer, review, ledger, notification, conversation and sanitized `public_profiles` directory queries.
 
-```bash
-firebase deploy --only firestore:indexes
-```
+### Public profile migration
 
-### Index coverage
+Private `users/{uid}` documents contain account/operational fields and are not public-readable. Public discovery uses sanitized `public_profiles/{uid}` documents written by trusted server code.
 
-`firestore.indexes.json` covers the marketplace queries that combine identity/status filters with uniqueness checks or newest-first ledgers:
+Signed-in members automatically refresh their own projection. An owner or staff account with `manageUsers` can run the `sync_public_profiles` admin server action to backfill existing users after this release. Run the backfill before expecting legacy freelancers to appear in `/talent`.
 
-- public/private/pending task views and member task dashboards
-- duplicate offer prevention on `bids(taskId, bidderId)`
-- offer lists by task or freelancer
-- review dedupe on `reviews(taskId, fromId)` and public profile review history
-- wallet ledger by `userId + createdAt`
-- notification and conversation feeds
+Do not temporarily reopen public reads on `users` to populate the talent directory.
 
-## Vercel deployment
+## Vercel deployment order
 
-1. Add the same environment variables in the Vercel project settings.
-2. Keep server-only values out of `NEXT_PUBLIC_` variables.
-3. Deploy from the GitHub branch or let the GitHub integration create a preview.
-4. After a production deploy, run the smoke checklist below against the deployed URL.
+1. Add/verify the Firebase server credentials in Vercel.
+2. Deploy Firestore rules/indexes and Storage rules.
+3. Deploy the application preview.
+4. Confirm the automated regression suite and Next.js build are green.
+5. Backfill sanitized public profiles if legacy users exist.
+6. Run the smoke checklist below.
+7. Only then promote/merge to the production branch.
 
-## Smoke checklist
+## Security smoke checklist
 
-- Sign up with email/password and Google.
-- Confirm signup offers only **Client** and **Freelancer**.
-- Switch mode from the account menu or `/settings`.
-- As a client: post a task, review offers, hire, request changes and approve.
-- As a freelancer: browse tasks, send/edit/withdraw an offer, start work and submit delivery.
-- Confirm messages, notifications, reviews and wallet ledger entries render.
-- Confirm the owner account `contact.hamzutrader@gmail.com` can access the control centre.
+### Account lifecycle
 
-## Roles and payment honesty
+- Email signup → required onboarding → dashboard.
+- Google login does not silently become signup.
+- Interrupted onboarding returns to onboarding on next login.
+- Client/Freelancer role switching recalculates profile readiness.
+- Suspended/incomplete accounts cannot perform marketplace actions.
 
-Detailed role behaviour is documented in [`ROLES_AND_ACCESS.md`](./ROLES_AND_ACCESS.md). Marketplace audit notes live in [`MARKETPLACE_AUDIT.md`](./MARKETPLACE_AUDIT.md).
+### Marketplace
 
-Workly currently records internal contract balances. Do not describe those records as regulated escrow until live payments are connected through an approved State Bank of Pakistan-regulated provider with signed server-side webhooks and a proper ledger.
+- Client can post a valid task, but direct browser writes to `tasks` fail.
+- Freelancer can send/edit/withdraw one offer per task through the server action path.
+- Hiring derives freelancer identity and amount from the selected offer document.
+- Competing offers close when one is selected.
+- Start work → submit → request changes → resubmit → approve follows valid states only.
+- Duplicate delivery approval does not create duplicate ledger records.
+- Cancellation/refund and dispute transitions reject stale/invalid states.
+
+### Privacy and communication
+
+- Public profile/talent pages do not expose user email or wallet fields.
+- Managed/private freelancers are not discoverable publicly.
+- Conversation participants are the actual contract parties.
+- Direct Firestore message and notification creation is denied.
+- Task attachments are limited to contract participants and permitted file types/sizes.
+
+### Staff
+
+- Editor, Moderator and Admin permissions are different at the rules/API layer, not just hidden in UI.
+- Staff/user/settings mutations create audit records server-side.
+- No public signup can grant staff or owner access.
+
+## Payments: launch boundary
+
+Workly currently maintains **internal contract records for application testing and workflow development**. These records are not a bank balance and are not regulated escrow.
+
+Do not accept or market real customer money until Workly has all of the following:
+
+- written approval from an appropriate State Bank of Pakistan-regulated payment provider for the intended marketplace/held-funds model;
+- provider-issued merchant/marketplace credentials;
+- signed webhook verification and reconciliation;
+- provider-approved refund, chargeback and payout flows;
+- provider-hosted or otherwise legally reviewed KYC/payout onboarding;
+- reviewed legal Terms, Privacy, prohibited-services, cancellation/refund and tax/withholding policies.
+
+The server-owned internal ledger in this repository is a safer application boundary, but it is **not a substitute for a regulated PSP ledger or legal escrow approval**.
+
+Detailed role behaviour is documented in [`ROLES_AND_ACCESS.md`](./ROLES_AND_ACCESS.md). Product/launch boundaries are tracked in [`MARKETPLACE_AUDIT.md`](./MARKETPLACE_AUDIT.md).

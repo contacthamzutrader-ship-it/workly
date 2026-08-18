@@ -31,7 +31,7 @@ import { EmptyState, PageLoader } from "@/components/ui/Feedback";
 
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const { user, isStaff } = useAuth();
+  const { user } = useAuth();
   const [data, setData] = useState<Record<string, any> | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,17 +41,12 @@ export default function PublicProfilePage() {
     if (!id || !db) return;
     (async () => {
       try {
-        const snapshot = await getDoc(doc(db!, "users", id));
+        const snapshot = await getDoc(doc(db!, "public_profiles", id));
         if (!snapshot.exists()) {
           setHidden(true);
           return;
         }
-        const record = snapshot.data();
-        if (record.isPrivate && !isStaff) {
-          setHidden(true);
-          return;
-        }
-        setData(record);
+        setData(snapshot.data());
         setReviews(await listReviewsForUser(id).catch(() => []));
       } catch {
         setHidden(true);
@@ -59,7 +54,7 @@ export default function PublicProfilePage() {
         setLoading(false);
       }
     })();
-  }, [id, isStaff]);
+  }, [id]);
 
   if (loading) return <PageLoader label="Loading profile" />;
 
@@ -70,7 +65,7 @@ export default function PublicProfilePage() {
           <EmptyState
             icon={UserRound}
             title="Profile not available"
-            description="This member may have left Workly, or their profile is private."
+            description="This member may have left Workly or does not currently have a public profile."
             action={
               <Link href="/talent">
                 <Button variant="ghost">
@@ -122,15 +117,12 @@ export default function PublicProfilePage() {
                       <ShieldCheck className="h-3 w-3" /> ID verified
                     </Badge>
                   )}
-                  {data.isPrivate && <Badge tone="bg-ink text-white border-ink">Managed provider</Badge>}
                   {data.availability && isFreelancer && <Badge>{data.availability}</Badge>}
                 </div>
               </div>
               {isSelf && (
                 <Link href="/profile" className="pb-1">
-                  <Button variant="ghost" size="sm">
-                    Edit your profile
-                  </Button>
+                  <Button variant="ghost" size="sm">Edit your profile</Button>
                 </Link>
               )}
             </div>
@@ -139,32 +131,19 @@ export default function PublicProfilePage() {
 
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-ink-500">
               {data.city && (
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-brand" /> {data.city}
-                </span>
+                <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-brand" /> {data.city}</span>
               )}
               {data.hourlyRate > 0 && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Briefcase className="h-3.5 w-3.5 text-brand" /> {formatPKR(data.hourlyRate)} / hour
-                </span>
+                <span className="inline-flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5 text-brand" /> {formatPKR(data.hourlyRate)} / hour</span>
               )}
               {data.experienceYears > 0 && (
-                <span className="inline-flex items-center gap-1.5">
-                  <CalendarClock className="h-3.5 w-3.5 text-brand" /> {data.experienceYears} years experience
-                </span>
+                <span className="inline-flex items-center gap-1.5"><CalendarClock className="h-3.5 w-3.5 text-brand" /> {data.experienceYears} years experience</span>
               )}
               {Array.isArray(data.languages) && data.languages.length > 0 && (
-                <span className="inline-flex items-center gap-1.5">
-                  <Languages className="h-3.5 w-3.5 text-brand" /> {data.languages.join(" · ")}
-                </span>
+                <span className="inline-flex items-center gap-1.5"><Languages className="h-3.5 w-3.5 text-brand" /> {data.languages.join(" · ")}</span>
               )}
               {data.portfolioUrl && (
-                <a
-                  href={data.portfolioUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-1.5 text-brand-dark hover:underline"
-                >
+                <a href={data.portfolioUrl} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 text-brand-dark hover:underline">
                   <Globe className="h-3.5 w-3.5" /> Portfolio
                 </a>
               )}
@@ -174,17 +153,12 @@ export default function PublicProfilePage() {
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat icon={Star} label={`${reviews.length} reviews`} value={average} tone="bg-amber-50 text-amber-600" />
-          <Stat
-            icon={CheckCircle2}
-            label="Tasks completed"
-            value={data.tasksCompleted ?? "—"}
-            tone="bg-emerald-50 text-emerald-600"
-          />
-          <Stat icon={TrendingUp} label="Trust score" value={data.trustScore ?? 70} tone="bg-brand-50 text-brand" />
+          <Stat icon={CheckCircle2} label="Tasks completed" value={data.tasksCompleted ?? "—"} tone="bg-emerald-50 text-emerald-600" />
+          <Stat icon={TrendingUp} label="Trust score" value={typeof data.trustScore === "number" ? data.trustScore : "—"} tone="bg-brand-50 text-brand" />
           <Stat
             icon={ShieldCheck}
             label="Interview"
-            value={data.interviewStatus === "verified" ? "Verified" : "Pending"}
+            value={data.interviewStatus === "verified" ? "Verified" : "Not verified"}
             tone="bg-indigo-50 text-indigo-600"
           />
         </div>
@@ -194,9 +168,7 @@ export default function PublicProfilePage() {
             <h2 className="text-lg font-black text-ink">Services offered</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {data.skills.map((skill: string) => (
-                <span key={skill} className="rounded-xl bg-brand-50 px-3 py-2 text-xs font-black text-brand-dark">
-                  {skill}
-                </span>
+                <span key={skill} className="rounded-xl bg-brand-50 px-3 py-2 text-xs font-black text-brand-dark">{skill}</span>
               ))}
             </div>
             {Array.isArray(data.certifications) && data.certifications.length > 0 && (
@@ -204,9 +176,7 @@ export default function PublicProfilePage() {
                 <h3 className="mt-6 text-sm font-black text-ink">Certifications</h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {data.certifications.map((item: string) => (
-                    <span key={item} className="rounded-xl bg-ink-50 px-3 py-2 text-xs font-bold text-ink-600">
-                      {item}
-                    </span>
+                    <span key={item} className="rounded-xl bg-ink-50 px-3 py-2 text-xs font-bold text-ink-600">{item}</span>
                   ))}
                 </div>
               </>
@@ -224,16 +194,10 @@ export default function PublicProfilePage() {
         <section className="surface mt-5 overflow-hidden">
           <div className="border-b border-ink-100 p-5 sm:p-6">
             <p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Reputation</p>
-            <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
-              {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-            </h2>
+            <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">{reviews.length} {reviews.length === 1 ? "review" : "reviews"}</h2>
           </div>
           {reviews.length === 0 ? (
-            <EmptyState
-              icon={MessageSquare}
-              title="No reviews yet"
-              description="Reviews appear here once completed tasks are approved and rated."
-            />
+            <EmptyState icon={MessageSquare} title="No reviews yet" description="Reviews appear here once completed tasks are approved and rated." />
           ) : (
             <ul className="divide-y divide-ink-100">
               {reviews.map((review) => (
@@ -241,16 +205,11 @@ export default function PublicProfilePage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((value) => (
-                        <Star
-                          key={value}
-                          className={`h-3.5 w-3.5 ${value <= review.rating ? "fill-sun text-sun" : "text-ink-200"}`}
-                        />
+                        <Star key={value} className={`h-3.5 w-3.5 ${value <= review.rating ? "fill-sun text-sun" : "text-ink-200"}`} />
                       ))}
                     </div>
                     <span className="text-sm font-black text-ink">{review.fromName}</span>
-                    {review.taskTitle && (
-                      <span className="text-xs font-semibold text-ink-400">· {review.taskTitle}</span>
-                    )}
+                    {review.taskTitle && <span className="text-xs font-semibold text-ink-400">· {review.taskTitle}</span>}
                     <span className="ml-auto text-xs text-ink-400">{timeAgo(review.createdAt)}</span>
                   </div>
                   {review.comment && <p className="mt-2.5 text-sm leading-6 text-ink-600">{review.comment}</p>}

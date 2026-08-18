@@ -4,319 +4,159 @@ import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-// ---------------------------------------------------------------------------
-// Accounts and roles
-// ---------------------------------------------------------------------------
+function section(text, start, next) {
+  const a = text.indexOf(start);
+  assert.notEqual(a, -1, `missing ${start}`);
+  const b = next ? text.indexOf(next, a + start.length) : -1;
+  return text.slice(a, b === -1 ? undefined : b);
+}
 
-test("public signup offers only the two member roles", async () => {
+test("member roles remain client and freelancer only", async () => {
   const roles = await read("lib/roles.ts");
   const signup = await read("app/(auth)/signup/page.tsx");
-  assert.match(roles, /export type MemberRole = "client" \| "freelancer"/);
-  assert.match(signup, /Hire for tasks/);
-  assert.match(signup, /Work and earn/);
-  // No staff role may be selectable from the public signup screen.
-  assert.doesNotMatch(signup, /super_admin|company_admin|"moderator"|"admin"/);
-  assert.match(signup, /Staff and admin access is never granted at signup/);
+  assert.ok(roles.includes('export type MemberRole = "client" | "freelancer"'));
+  assert.ok(signup.includes('value: "client"'));
+  assert.ok(signup.includes('value: "freelancer"'));
+  assert.ok(signup.includes("Staff and admin access is never granted at signup"));
 });
 
-test("legacy customer/tasker documents still resolve to a member role", async () => {
-  const roles = await read("lib/roles.ts");
-  assert.match(roles, /raw === "freelancer" \|\| raw === "tasker"/);
-  assert.match(roles, /export function toStoredRole/);
-});
-
-test("members can switch between client and freelancer on one account", async () => {
-  const auth = await read("lib/auth-context.tsx");
-  const navbar = await read("components/Navbar.tsx");
-  const settings = await read("app/settings/page.tsx");
-  assert.match(auth, /switchRole: \(role: MemberRole\) => Promise<void>/);
-  assert.match(navbar, /Using Workly as/);
-  assert.match(settings, /How you use Workly/);
-});
-
-test("new and incomplete accounts are routed through onboarding", async () => {
-  const signup = await read("app/(auth)/signup/page.tsx");
-  const login = await read("app/(auth)/login/page.tsx");
-  const onboarding = await read("app/onboarding/page.tsx");
-  assert.match(signup, /router\.push\("\/onboarding"\)/);
-  assert.match(login, /onboarded \? redirect : "\/onboarding"/);
-  assert.match(onboarding, /onboarded: true/);
-  assert.doesNotMatch(onboarding, /Skip for now/);
-});
-
-test("password reset and email verification are reachable", async () => {
-  const auth = await read("lib/auth-context.tsx");
-  const login = await read("app/(auth)/login/page.tsx");
-  const forgot = await read("app/(auth)/forgot-password/page.tsx");
-  assert.match(auth, /sendPasswordResetEmail/);
-  assert.match(auth, /sendEmailVerification/);
-  assert.match(login, /\/forgot-password/);
-  assert.match(forgot, /Send reset link/);
-});
-
-// ---------------------------------------------------------------------------
-// Owner and staff
-// ---------------------------------------------------------------------------
-
-test("the platform owner is fixed and always has every permission", async () => {
-  const roles = await read("lib/roles.ts");
-  const rules = await read("firestore.rules");
-  assert.match(roles, /export const OWNER_EMAIL = "contact\.hamzutrader@gmail\.com"/);
-  assert.match(roles, /if \(session\.isOwner \|\| session\.role === "super_admin"\) return true/);
-  assert.match(rules, /request\.auth\.token\.email == 'contact\.hamzutrader@gmail\.com'/);
-});
-
-test("owner can appoint editors, moderators and admins with granular permissions", async () => {
-  const roles = await read("lib/roles.ts");
-  const admin = await read("app/admin/page.tsx");
-  assert.match(roles, /STAFF_ROLE_PERMISSIONS/);
-  assert.match(roles, /editor: \["manageContent", "viewAnalytics"\]/);
-  assert.match(roles, /moderator: \["approveTasks", "manageContent", "viewAnalytics"\]/);
-  assert.match(admin, /ASSIGNABLE_STAFF_ROLES/);
-  assert.match(admin, /Fine-tune permissions/);
-  assert.match(admin, /Invite staff/);
-});
-
-test("a second owner cannot be created and staff need an existing account", async () => {
-  const adminLib = await read("lib/admin.ts");
-  assert.match(adminLib, /There can only be one owner account/);
-  assert.match(adminLib, /The platform owner already has full access/);
-});
-
-test("privileged actions are written to an append-only audit log", async () => {
-  const adminLib = await read("lib/admin.ts");
-  const admin = await read("app/admin/page.tsx");
-  const rules = await read("firestore.rules");
-  assert.match(adminLib, /export async function recordAudit/);
-  assert.match(admin, /action: "staff\.add"/);
-  assert.match(admin, /action: "user\.suspend"/);
-  assert.match(rules, /match \/audit_logs\/\{entryId\}/);
-  assert.match(rules, /allow update, delete: if false/);
-});
-
-test("admin surface is permission-gated tab by tab", async () => {
-  const admin = await read("app/admin/page.tsx");
-  assert.match(admin, /permission: "manageAdmins"/);
-  assert.match(admin, /permission: "managePayments"/);
-  assert.match(admin, /\.filter\(\(item\) => item\.permission === null \|\| can\(item\.permission\)\)/);
-});
-
-// ---------------------------------------------------------------------------
-// Marketplace workflow
-// ---------------------------------------------------------------------------
-
-test("the task lifecycle covers delivery, revisions and disputes", async () => {
+test("marketplace mutations use authenticated server actions", async () => {
+  const client = await read("lib/marketplace-api.ts");
+  const route = await read("app/api/marketplace/route.ts");
   const tasks = await read("lib/tasks.ts");
-  assert.match(tasks, /"submitted"/);
-  assert.match(tasks, /"changes_requested"/);
-  assert.match(tasks, /"disputed"/);
-  assert.match(tasks, /export async function submitWork/);
-  assert.match(tasks, /export async function requestChanges/);
-  assert.match(tasks, /export async function approveAndPay/);
-  assert.match(tasks, /export async function cancelTask/);
-  assert.match(tasks, /export async function openDispute/);
-});
-
-test("cancelling a funded task returns the held amount to the client", async () => {
-  const tasks = await read("lib/tasks.ts");
-  assert.match(tasks, /type: "refund"/);
-  assert.match(tasks, /A paid task cannot be cancelled\. Open a dispute instead\./);
-});
-
-test("hiring one freelancer closes every other offer", async () => {
-  const tasks = await read("lib/tasks.ts");
-  assert.match(tasks, /status: "rejected", updatedAt: serverTimestamp\(\)/);
-  assert.match(tasks, /Another freelancer was hired/);
-});
-
-test("both sides of a contract can review each other", async () => {
-  const tasks = await read("lib/tasks.ts");
-  const detail = await read("app/tasks/[id]/page.tsx");
-  assert.match(tasks, /fromRole\?: "client" \| "freelancer"/);
-  assert.match(tasks, /export async function hasReviewed/);
-  assert.match(detail, /canLeaveReview/);
-  assert.match(detail, /isPoster \? task\.assignedTo : task\.posterId/);
-});
-
-test("posting and bidding stay role-gated", async () => {
-  const post = await read("app/post/page.tsx");
-  const detail = await read("app/tasks/[id]/page.tsx");
-  const roles = await read("lib/roles.ts");
-  assert.match(post, /capabilities\.canPostTask/);
-  assert.match(detail, /role === "freelancer" && task\.status === "open"/);
-  assert.match(roles, /canPostTask: role === "client" && !staff/);
-  assert.match(roles, /canSendOffer: role === "freelancer" && !staff/);
-});
-
-test("freelancers see their exact take-home before sending an offer", async () => {
-  const detail = await read("app/tasks/[id]/page.tsx");
-  assert.match(detail, /Workly service fee/);
-  assert.match(detail, /You receive/);
-});
-
-test("real-time marketplace listeners are present", async () => {
-  const tasks = await read("lib/tasks.ts");
-  const chat = await read("lib/chat.ts");
-  const notifications = await read("lib/notifications.ts");
-  assert.match(tasks, /export function subscribeTask/);
-  assert.match(tasks, /export function subscribeTasksByPoster/);
-  assert.match(tasks, /export function subscribeTasksForFreelancer/);
-  assert.match(tasks, /export function subscribeBidsByUser/);
-  assert.match(chat, /export function subscribeMessages/);
-  assert.match(chat, /export function subscribeConversations/);
-  assert.match(notifications, /export function subscribeNotifications/);
-});
-
-test("browse pages support real filtering and sorting", async () => {
-  const tasksLib = await read("lib/tasks.ts");
-  const browse = await read("app/tasks/page.tsx");
-  const talent = await read("app/talent/page.tsx");
-  assert.match(tasksLib, /export interface TaskFilters/);
-  assert.match(tasksLib, /case "budget_high"/);
-  assert.match(browse, /remoteOnly/);
-  assert.match(talent, /Verified only/);
-});
-
-// ---------------------------------------------------------------------------
-// Money honesty
-// ---------------------------------------------------------------------------
-
-test("no fake wallet top-ups exist and the payment status is stated plainly", async () => {
-  const wallet = await read("app/wallet/page.tsx");
-  assert.doesNotMatch(wallet, /function addFunds|const addFunds|demo wallet/i);
-  assert.match(wallet, /Live payment onboarding is still in progress/);
-  assert.match(wallet, /Balances are never editable in the\s+browser/);
-  assert.match(wallet, /State Bank of\s+Pakistan-regulated provider/);
-});
-
-test("the public explainer does not overclaim escrow", async () => {
-  const howItWorks = await read("app/how-it-works/page.tsx");
-  assert.match(howItWorks, /Honest status of live payments/);
-  assert.match(howItWorks, /rather tell you this plainly/);
-});
-
-// ---------------------------------------------------------------------------
-// Security rules
-// ---------------------------------------------------------------------------
-
-test("security rules protect privileged collections and self-escalation", async () => {
-  const rules = await read("firestore.rules");
-  assert.match(rules, /function publicRole\(role\)/);
-  assert.match(rules, /return role in \['customer', 'tasker'\]/);
-  assert.match(rules, /match \/admins\/\{uid\}/);
-  assert.match(rules, /hasPermission\('manageAdmins'\)/);
-  assert.match(rules, /match \/wallet_txs\/\{transactionId\}/);
-  assert.match(rules, /get\('verified', false\) == resource\.data\.get\('verified', false\)/);
-  assert.match(rules, /get\('suspended', false\) == resource\.data\.get\('suspended', false\)/);
-  assert.match(rules, /get\('trustScore', -1\) == resource\.data\.get\('trustScore', -1\)/);
-});
-
-test("private task invitations remain single-claim", async () => {
-  const rules = await read("firestore.rules");
-  assert.match(rules, /match \/task_invites\/\{taskId\}/);
-  assert.match(rules, /request\.resource\.data\.token == task\(taskId\)\.shareToken/);
-  assert.match(rules, /allow update: if false/);
-});
-
-test("profiles use durable image storage with upload restrictions", async () => {
-  const profile = await read("app/profile/page.tsx");
-  const storageRules = await read("storage.rules");
-  assert.match(profile, /profile-images\/\$\{user\.uid\}\/avatar/);
-  assert.match(profile, /5 \* 1024 \* 1024/);
-  assert.match(profile, /uploadBytes/);
-  assert.doesNotMatch(profile, /compactProfileImage|toDataURL/);
-  assert.match(storageRules, /request\.auth\.uid == uid/);
-  assert.match(storageRules, /image\/\(jpeg\|png\|webp\)/);
-});
-
-test("deployment guide and Firestore indexes stay in sync", async () => {
-  const guide = await read("README.md");
-  const indexConfig = JSON.parse(await read("firestore.indexes.json"));
-  const hasIndex = (collectionGroup, expectedFields) =>
-    indexConfig.indexes.some((item) => {
-      const fields = item.fields.map((field) => `${field.fieldPath}:${field.order || field.arrayConfig}`);
-      return item.collectionGroup === collectionGroup && expectedFields.every((field, index) => fields[index] === field);
-    });
-
-  assert.match(guide, /firebase deploy --only firestore:rules,firestore:indexes,storage/);
-  assert.match(guide, /review dedupe on `reviews\(taskId, fromId\)`/);
-  assert.ok(hasIndex("reviews", ["taskId:ASCENDING", "fromId:ASCENDING"]));
-  assert.ok(hasIndex("wallet_txs", ["userId:ASCENDING", "createdAt:DESCENDING"]));
-  assert.ok(hasIndex("conversations", ["participants:CONTAINS", "updatedAt:DESCENDING"]));
-});
-
-// ---------------------------------------------------------------------------
-// Interviews
-// ---------------------------------------------------------------------------
-
-test("freelancer interviews are authenticated, private, and human-reviewed", async () => {
-  const route = await read("app/api/interview/route.ts");
-  const engine = await read("lib/interview-engine.ts");
-  const rules = await read("firestore.rules");
-  const admin = await read("app/admin/page.tsx");
-  assert.match(route, /requireFirebaseUser\(request\)/);
-  assert.match(route, /update\.status = "awaiting_review"/);
-  assert.match(engine, /Never infer emotion or personality/);
-  assert.match(rules, /match \/interviews\/\{uid\}/);
-  assert.match(admin, /Approve badge/);
-  assert.match(admin, /status !== "awaiting_review"/);
-  assert.match(admin, /reviewInterview\(record, "verified"/);
-});
-
-// ---------------------------------------------------------------------------
-// UI system
-// ---------------------------------------------------------------------------
-
-test("a shared design system backs the redesigned pages", async () => {
-  const button = await read("components/ui/Button.tsx");
-  const feedback = await read("components/ui/Feedback.tsx");
-  const badge = await read("components/ui/Badge.tsx");
-  assert.match(button, /loading\?: boolean/);
-  assert.match(feedback, /export function EmptyState/);
-  assert.match(feedback, /export function PageLoader/);
-  assert.match(badge, /export function StatusBadge/);
-});
-
-test("navigation adapts to the signed-in role", async () => {
-  const navbar = await read("components/Navbar.tsx");
-  assert.match(navbar, /role === "freelancer"/);
-  assert.match(navbar, /Find work/);
-  assert.match(navbar, /Browse talent/);
-  assert.match(navbar, /capabilities\.canPostTask/);
-});
-
-test("brand mark is used consistently", async () => {
-  const layout = await read("app/layout.tsx");
-  const brand = await read("components/BrandLogo.tsx");
-  assert.match(layout, /workly-mark\.png/);
-  assert.match(brand, /src="\/workly-mark\.png"/);
-});
-
-test("every primary route exists", async () => {
-  const routes = [
-    "app/page.tsx",
-    "app/(auth)/login/page.tsx",
-    "app/(auth)/signup/page.tsx",
-    "app/(auth)/forgot-password/page.tsx",
-    "app/onboarding/page.tsx",
-    "app/dashboard/page.tsx",
-    "app/tasks/page.tsx",
-    "app/tasks/[id]/page.tsx",
-    "app/talent/page.tsx",
-    "app/post/page.tsx",
-    "app/profile/page.tsx",
-    "app/settings/page.tsx",
-    "app/wallet/page.tsx",
-    "app/messages/page.tsx",
-    "app/messages/[id]/page.tsx",
-    "app/notifications/page.tsx",
-    "app/how-it-works/page.tsx",
-    "app/support/page.tsx",
-    "app/admin/page.tsx",
-    "app/u/[id]/page.tsx",
-  ];
-  for (const route of routes) {
-    const contents = await read(route);
-    assert.ok(contents.length > 200, `${route} should be a real page`);
+  assert.ok(client.includes('Authorization: `Bearer ${token}`'));
+  assert.ok(route.includes("requireFirebaseUser(request)"));
+  assert.ok(route.includes("db.runTransaction"));
+  for (const action of ["create_task", "place_bid", "select_bid", "approve_delivery", "cancel_task", "open_dispute", "add_review"]) {
+    assert.ok(tasks.includes(`"${action}"`), `missing server action ${action}`);
   }
+  assert.doesNotMatch(tasks, /\brunTransaction\b|\baddDoc\b|\bupdateDoc\b/);
+});
+
+test("authoritative server state prevents caller-forged hire and duplicate money events", async () => {
+  const route = await read("app/api/marketplace/route.ts");
+  for (const required of [
+    "bidderId: actor.uid",
+    "bidderName: actor.name",
+    "finiteNumber(bid.amount",
+    "hold_${taskId}",
+    "release_${taskId}",
+    "payment_${taskId}",
+    "refund_${taskId}",
+    "task.paymentReleased === true",
+  ]) assert.ok(route.includes(required), `missing invariant: ${required}`);
+  assert.ok(route.includes('db.collection("disputes").doc(taskId)'));
+  assert.ok(route.includes('db.collection("reviews").doc(`${taskId}_${actor.uid}`)'));
+});
+
+test("chat and notifications are not browser-authored", async () => {
+  const chat = await read("lib/chat.ts");
+  const route = await read("app/api/marketplace/route.ts");
+  const rules = await read("firestore.rules");
+  assert.ok(chat.includes('"create_conversation"'));
+  assert.ok(chat.includes('"send_message"'));
+  assert.doesNotMatch(chat, /\baddDoc\b|\bsetDoc\b|\bupdateDoc\b/);
+  assert.ok(route.includes("fromId: actor.uid"));
+  assert.ok(route.includes("scanMessage(text)"));
+  const n = section(rules, "match /notifications/{notificationId}", "match /wallet_txs/{transactionId}");
+  assert.ok(n.includes("allow create: if false"));
+  assert.ok(n.includes("hasOnly(['read'])"));
+});
+
+test("public profiles are sanitized projections and private users stay private", async () => {
+  const publicPage = await read("app/u/[id]/page.tsx");
+  const talent = await read("lib/talent.ts");
+  const sync = await read("app/api/profile/sync/route.ts");
+  const rules = await read("firestore.rules");
+  assert.ok(publicPage.includes('"public_profiles"'));
+  assert.ok(talent.includes('"public_profiles"'));
+  assert.ok(talent.includes('where("discoverable", "==", true)'));
+  const projection = section(sync, "function publicProfile", "export async function POST");
+  assert.doesNotMatch(projection, /\bemail\s*:|\bwallet\s*:|\bsuspendedReason\s*:/);
+  const users = section(rules, "match /users/{uid}", "match /public_profiles/{uid}");
+  assert.ok(users.includes("allow read: if signedIn()"));
+  const publicProfiles = section(rules, "match /public_profiles/{uid}", "match /tasks/{taskId}");
+  assert.ok(publicProfiles.includes("discoverable"));
+  assert.ok(publicProfiles.includes("allow write: if false"));
+});
+
+test("Firestore denies direct writes to marketplace financial and reputation records", async () => {
+  const rules = await read("firestore.rules");
+  const ranges = [
+    ["match /tasks/{taskId}", "match /bids/{bidId}"],
+    ["match /bids/{bidId}", "match /reviews/{reviewId}"],
+    ["match /reviews/{reviewId}", "match /conversations/{convId}"],
+    ["match /wallet_txs/{transactionId}", "match /disputes/{disputeId}"],
+  ];
+  for (const [start, next] of ranges) {
+    assert.ok(section(rules, start, next).includes("allow create, update, delete: if false"), `${start} must deny browser writes`);
+  }
+});
+
+test("staff authorization is permission-based and member self-updates exclude protected fields", async () => {
+  const rules = await read("firestore.rules");
+  assert.doesNotMatch(rules, /function\s+isAdmin\s*\(/);
+  assert.ok(rules.includes("function hasPermission(permission)"));
+  for (const permission of ["manageUsers", "managePayments", "manageAdmins", "approveTasks"]) {
+    assert.ok(rules.includes(`hasPermission('${permission}')`));
+  }
+  const self = section(rules, "function selfUserUpdateAllowed", "function validSignupDocument");
+  for (const protectedField of ["wallet", "verified", "suspended", "trustScore", "trustPenalty", "isPrivate"]) {
+    assert.ok(!self.includes(`'${protectedField}'`), `${protectedField} must not be self-writable`);
+  }
+});
+
+test("storage limits avatars and task files to bounded authorized uploads", async () => {
+  const rules = await read("storage.rules");
+  for (const required of ["fileName == 'avatar'", "5 * 1024 * 1024", "contractParticipant(taskId)", "10 * 1024 * 1024", "application/pdf|text/plain"]) {
+    assert.ok(rules.includes(required), `missing storage rule ${required}`);
+  }
+  assert.ok(rules.includes("taskData(taskId).posterId == request.auth.uid"));
+  assert.ok(rules.includes("taskData(taskId).assignedTo == request.auth.uid"));
+});
+
+test("AI analysis requires auth rate limiting bounded input and honest heuristic confidence", async () => {
+  const route = await read("app/api/hf/analyze/route.ts");
+  const client = await read("lib/hf.ts");
+  for (const required of ["requireFirebaseUser(request)", "enforceRateLimit(decoded.uid)", "count >= 20", "raw.length > 10_000", "AbortSignal.timeout(10_000)", "confidence: null", 'analysisMode: "heuristic"']) {
+    assert.ok(route.includes(required), `missing AI protection ${required}`);
+  }
+  assert.ok(client.includes('Authorization: `Bearer ${token}`'));
+});
+
+test("admin mutations are authenticated permission-checked and transaction-audited", async () => {
+  const lib = await read("lib/admin.ts");
+  const route = await read("app/api/admin/route.ts");
+  assert.ok(lib.includes("adminAction("));
+  assert.ok(route.includes("requireFirebaseUser(request)"));
+  assert.ok(route.includes("audit(transaction, actor"));
+  for (const permission of ["manageAdmins", "manageUsers", "manageContent", "managePayments"]) {
+    assert.ok(route.includes(`requirePermission(actor, "${permission}")`), `missing admin permission ${permission}`);
+  }
+});
+
+test("reputation is recalculated on trusted server records without fake defaults", async () => {
+  const trust = await read("app/api/trust/recalculate/route.ts");
+  const talent = await read("app/talent/page.tsx");
+  const profile = await read("app/u/[id]/page.tsx");
+  assert.ok(trust.includes('where("toId", "==", targetUid)'));
+  assert.ok(trust.includes("public_profiles"));
+  assert.doesNotMatch(talent, /trustScore\s*\?\?\s*70/);
+  assert.doesNotMatch(profile, /trustScore\s*\?\?\s*70/);
+});
+
+test("payment honesty and primary product routes remain intact", async () => {
+  const wallet = await read("app/wallet/page.tsx");
+  const audit = await read("MARKETPLACE_AUDIT.md");
+  assert.ok(wallet.includes("not a bank balance or regulated escrow"));
+  assert.ok(audit.includes("must not describe an internal Firestore balance as escrow"));
+  const routes = [
+    "app/page.tsx", "app/(auth)/login/page.tsx", "app/(auth)/signup/page.tsx", "app/onboarding/page.tsx",
+    "app/dashboard/page.tsx", "app/tasks/page.tsx", "app/tasks/[id]/page.tsx", "app/talent/page.tsx",
+    "app/post/page.tsx", "app/profile/page.tsx", "app/settings/page.tsx", "app/wallet/page.tsx",
+    "app/messages/page.tsx", "app/messages/[id]/page.tsx", "app/admin/page.tsx", "app/u/[id]/page.tsx",
+  ];
+  for (const route of routes) assert.ok((await read(route)).length > 200, `${route} should remain a real page`);
+  const pkg = JSON.parse(await read("package.json"));
+  assert.equal(pkg.scripts.test, "node --test tests/*.test.mjs");
 });

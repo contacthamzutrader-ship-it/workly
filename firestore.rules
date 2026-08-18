@@ -3,33 +3,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function userDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-    function hasRole(roles) {
-      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && userDoc().role in roles;
-    }
     function ownerAccount() {
       return signedIn() && request.auth.token.email == 'contact.hamzutrader@gmail.com';
+    }
+    function adminExists() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
     function adminRecord() {
       return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
     }
-    function isAdmin() {
-      return ownerAccount()
-        || hasRole(['super_admin'])
-        || (signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-    }
-    function isModerator() {
-      return isAdmin() || hasRole(['moderator']);
-    }
     function hasPermission(permission) {
       return ownerAccount()
-        || hasRole(['super_admin'])
-        || (signedIn()
-          && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-          && permission in adminRecord().permissions);
+        || (adminExists()
+          && adminRecord().get('suspended', false) == false
+          && permission in adminRecord().get('permissions', []));
     }
     function publicRole(role) {
       return role in ['customer', 'tasker'];
@@ -37,34 +24,6 @@ service cloud.firestore {
     function signupsAllowed() {
       return !exists(/databases/$(database)/documents/settings/platform)
         || get(/databases/$(database)/documents/settings/platform).data.get('allowNewSignups', true) == true;
-    }
-    function memberReadyForMarketplace() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && userDoc().get('onboarded', false) == true
-        && userDoc().get('name', '').size() >= 2
-        && userDoc().get('city', '').size() >= 2
-        && userDoc().get('bio', '').size() >= 20
-        && (userDoc().role != 'tasker'
-          || (userDoc().get('professionalTitle', '').size() >= 3
-            && userDoc().get('skills', []).size() > 0));
-    }
-    function sameProtectedUserFields() {
-      return request.resource.data.uid == resource.data.uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
-        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0)
-        // A member can never mark themselves verified or lift their own suspension.
-        && request.resource.data.get('verified', false) == resource.data.get('verified', false)
-        && request.resource.data.get('suspended', false) == resource.data.get('suspended', false)
-        && request.resource.data.get('trustScore', -1) == resource.data.get('trustScore', -1)
-        && request.resource.data.get('interviewStatus', 'not_started') == resource.data.get('interviewStatus', 'not_started')
-        && request.resource.data.get('interviewScore', -1) == resource.data.get('interviewScore', -1)
-        && request.resource.data.get('interviewSummary', '') == resource.data.get('interviewSummary', '')
-        && request.resource.data.get('interviewTopSkills', []) == resource.data.get('interviewTopSkills', [])
-        && request.resource.data.get('interviewAttemptNumber', 0) == resource.data.get('interviewAttemptNumber', 0)
-        && request.resource.data.get('interviewVerifiedAt', '') == resource.data.get('interviewVerifiedAt', '')
-        && request.resource.data.get('interviewUpdatedAt', '') == resource.data.get('interviewUpdatedAt', '');
     }
     function task(taskId) {
       return get(/databases/$(database)/documents/tasks/$(taskId)).data;
@@ -74,197 +33,200 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/task_invites/$(taskId))
         && get(/databases/$(database)/documents/task_invites/$(taskId)).data.userId == request.auth.uid;
     }
+    function canReadOperationalTasks() {
+      return hasPermission('approveTasks')
+        || hasPermission('manageContent')
+        || hasPermission('viewAnalytics')
+        || hasPermission('managePayments');
+    }
+    function canReadUserRecords() {
+      return hasPermission('manageUsers')
+        || hasPermission('manageAdmins')
+        || hasPermission('approveTasks')
+        || hasPermission('viewAnalytics');
+    }
+    function selfUserUpdateAllowed() {
+      return request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && publicRole(resource.data.role)
+        && publicRole(request.resource.data.role)
+        && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'role', 'isTasker', 'avatarUrl', 'city', 'bio', 'professionalTitle', 'skills',
+          'hourlyRate', 'experienceYears', 'languages', 'availability', 'portfolioUrl', 'certifications',
+          'organization', 'hiringNeeds', 'onboarded', 'profileComplete', 'roleUpdatedAt', 'profileUpdatedAt'
+        ]);
+    }
+    function validSignupDocument(uid) {
+      return signedIn()
+        && request.auth.uid == uid
+        && signupsAllowed()
+        && request.auth.token.email != null
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && publicRole(request.resource.data.role)
+        && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
+        && request.resource.data.get('isPrivate', false) == false
+        && request.resource.data.get('wallet', 0) == 0
+        && request.resource.data.get('verified', false) == false
+        && request.resource.data.get('suspended', false) == false
+        && request.resource.data.get('trustScore', -1) == -1
+        && request.resource.data.get('trustPenalty', 0) == 0
+        && request.resource.data.get('onboarded', false) == false
+        && request.resource.data.get('profileComplete', false) == false
+        && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
+        && request.resource.data.get('interviewScore', -1) == -1
+        && request.resource.data.get('interviewSummary', '') == ''
+        && request.resource.data.get('interviewTopSkills', []).size() == 0
+        && request.resource.data.get('interviewAttemptNumber', 0) == 0
+        && request.resource.data.get('interviewVerifiedAt', '') == ''
+        && request.resource.data.get('interviewUpdatedAt', '') == '';
+    }
 
     match /users/{uid} {
-      allow read: if resource.data.isPrivate != true || (signedIn() && request.auth.uid == uid) || isAdmin();
-      allow create: if (ownerAccount() && request.auth.uid == uid
-          && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
-        || (signedIn() && request.auth.uid == uid
-          && signupsAllowed()
-          && request.auth.token.email != null
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || canReadUserRecords()
+        || hasPermission('managePayments')
+      );
+      allow create: if (ownerAccount()
+          && request.auth.uid == uid
           && request.resource.data.uid == uid
-          && request.resource.data.email == request.auth.token.email
-          && publicRole(request.resource.data.role)
-          && request.resource.data.isPrivate == false
-          && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
-          && request.resource.data.get('wallet', 0) == 0
-          && request.resource.data.get('verified', false) == false
-          && request.resource.data.get('suspended', false) == false
-          && request.resource.data.get('trustScore', -1) == -1
-          && request.resource.data.get('onboarded', false) == false
-          && request.resource.data.get('profileComplete', false) == false
-          && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
-          && request.resource.data.get('interviewScore', -1) == -1
-          && request.resource.data.get('interviewSummary', '') == ''
-          && request.resource.data.get('interviewTopSkills', []).size() == 0
-          && request.resource.data.get('interviewAttemptNumber', 0) == 0
-          && request.resource.data.get('interviewVerifiedAt', '') == ''
-          && request.resource.data.get('interviewUpdatedAt', '') == '');
-      allow update: if isAdmin()
-        || (signedIn() && request.auth.uid == uid
-          && sameProtectedUserFields()
-          && publicRole(resource.data.role)
-          && publicRole(request.resource.data.role));
-      allow delete: if hasPermission('manageUsers');
+          && request.resource.data.role == 'super_admin')
+        || validSignupDocument(uid);
+      allow update: if signedIn() && request.auth.uid == uid && selfUserUpdateAllowed();
+      allow delete: if false;
+
+      match /saved_tasks/{taskId} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    match /public_profiles/{uid} {
+      allow read: if resource.data.role == 'customer'
+        || resource.data.get('discoverable', false) == true
+        || (signedIn() && request.auth.uid == uid)
+        || hasPermission('manageUsers');
+      allow write: if false;
     }
 
     match /tasks/{taskId} {
-      // Only tasks that actually reached the marketplace are publicly readable.
-      // Drafts, review-queue items and rejected tasks stay with their owner.
       allow read: if (resource.data.visibility == 'public'
           && !(resource.data.status in ['draft', 'pending', 'rejected']))
-        || (signedIn() && (resource.data.posterId == request.auth.uid
-          || resource.data.assignedTo == request.auth.uid || isModerator()))
+        || (signedIn() && (
+          resource.data.posterId == request.auth.uid
+          || resource.data.assignedTo == request.auth.uid
+        ))
+        || canReadOperationalTasks()
         || hasPrivateInvite(taskId);
-      allow create: if (hasRole(['customer'])
-          && memberReadyForMarketplace()
-          && request.resource.data.posterId == request.auth.uid)
-        || (isAdmin() && request.resource.data.posterId == request.auth.uid);
-      allow update: if isAdmin()
-        || (signedIn() && resource.data.posterId == request.auth.uid)
-        // The hired freelancer may only advance the delivery fields of their
-        // own contract: start work, submit a delivery, and request payment.
-        || (signedIn() && resource.data.assignedTo == request.auth.uid
-          && request.resource.data.status in ['in_progress', 'submitted']
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission',
-                      'startedAt', 'updatedAt']))
-        || (hasRole(['tasker']) && resource.data.status == 'open'
-          && (resource.data.visibility == 'public' || hasPrivateInvite(taskId))
-          && request.resource.data.bidsCount == resource.data.bidsCount + 1
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bidsCount']));
-      allow delete: if (signedIn() && resource.data.posterId == request.auth.uid) || isAdmin();
+      allow create, update, delete: if false;
     }
 
     match /bids/{bidId} {
-      allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
-        || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
-      allow create: if (hasRole(['tasker'])
-          && memberReadyForMarketplace()
-          && request.resource.data.bidderId == request.auth.uid
-          && task(request.resource.data.taskId).status == 'open'
-          && (task(request.resource.data.taskId).visibility == 'public'
-            || hasPrivateInvite(request.resource.data.taskId))
-          && task(request.resource.data.taskId).posterId != request.auth.uid)
-        || isAdmin();
-      allow update: if isAdmin()
-        || (signedIn() && resource.data.bidderId == request.auth.uid
-          && resource.data.status == 'pending'
-          && request.resource.data.taskId == resource.data.taskId
-          && request.resource.data.bidderId == resource.data.bidderId)
-        || (signedIn() && task(resource.data.taskId).posterId == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
-      allow delete: if isAdmin();
+      allow read: if signedIn() && (
+        resource.data.bidderId == request.auth.uid
+        || task(resource.data.taskId).posterId == request.auth.uid
+        || hasPermission('approveTasks')
+        || hasPermission('viewAnalytics')
+        || hasPermission('managePayments')
+      );
+      allow create, update, delete: if false;
     }
 
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.fromId == request.auth.uid
-        && (task(request.resource.data.taskId).posterId == request.auth.uid
-          || task(request.resource.data.taskId).assignedTo == request.auth.uid)
-        && request.resource.data.toId != request.auth.uid;
-      allow update, delete: if hasPermission('manageContent');
+      allow create, update, delete: if false;
     }
 
     match /conversations/{convId} {
       function participant(data) {
         return signedIn() && request.auth.uid in data.participants;
       }
-      allow read: if participant(resource.data);
-      allow create: if participant(request.resource.data)
-        && task(request.resource.data.taskId).status in
-          ['assigned', 'in_progress', 'submitted', 'changes_requested', 'completed', 'disputed'];
-      allow update: if participant(resource.data);
-      allow delete: if isAdmin();
+      allow read: if participant(resource.data) || hasPermission('manageContent');
+      allow create, update, delete: if false;
 
       match /messages/{messageId} {
         function conversationParticipant() {
           return signedIn()
             && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
         }
-        allow read: if conversationParticipant();
-        allow create: if conversationParticipant() && request.resource.data.fromId == request.auth.uid;
-        allow update, delete: if hasPermission('manageContent');
+        allow read: if conversationParticipant() || hasPermission('manageContent');
+        allow create, update, delete: if false;
       }
     }
 
     match /notifications/{notificationId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow create: if signedIn();
-      allow update: if signedIn() && resource.data.userId == request.auth.uid
+      allow create: if false;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-      allow delete: if isAdmin();
+      allow delete: if false;
     }
 
     match /wallet_txs/{transactionId} {
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
-      allow create: if isAdmin()
-        || (signedIn() && request.resource.data.userId == request.auth.uid
-          && request.resource.data.type in ['hold', 'payment', 'refund'])
-        || (signedIn() && request.resource.data.type == 'release'
-          && task(request.resource.data.taskId).posterId == request.auth.uid
-          && task(request.resource.data.taskId).assignedTo == request.resource.data.userId);
-      allow update, delete: if hasPermission('managePayments');
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid
+        || hasPermission('managePayments')
+      );
+      allow create, update, delete: if false;
     }
 
     match /disputes/{disputeId} {
-      allow read: if signedIn() && (resource.data.openedBy == request.auth.uid
-        || resource.data.respondentId == request.auth.uid || hasPermission('managePayments'));
-      allow create: if signedIn() && request.resource.data.openedBy == request.auth.uid
-        && (task(request.resource.data.taskId).posterId == request.auth.uid
-          || task(request.resource.data.taskId).assignedTo == request.auth.uid);
-      allow update: if hasPermission('managePayments');
+      allow read: if signedIn() && (
+        resource.data.openedBy == request.auth.uid
+        || resource.data.respondentId == request.auth.uid
+        || hasPermission('managePayments')
+      );
+      allow create, update, delete: if false;
     }
 
     match /admins/{uid} {
-      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
-      allow create, update, delete: if hasPermission('manageAdmins');
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || hasPermission('manageAdmins')
+        || ownerAccount()
+      );
+      allow create, update, delete: if false;
     }
 
     match /task_invites/{taskId} {
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if hasRole(['tasker'])
-        && request.resource.data.taskId == taskId
-        && request.resource.data.userId == request.auth.uid
-        && task(taskId).visibility == 'private'
-        && task(taskId).status == 'open'
-        && request.resource.data.token == task(taskId).shareToken;
-      allow update: if false;
-      allow delete: if isAdmin();
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid
+        || hasPermission('approveTasks')
+      );
+      allow create, update, delete: if false;
     }
 
-    // Interview transcripts are private and server-authored. The API verifies a
-    // Firebase ID token, writes with the Admin SDK, and exposes only a reviewed
-    // badge summary on the public user profile.
     match /interviews/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow create, update, delete: if isAdmin();
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || hasPermission('manageUsers')
+        || hasPermission('approveTasks')
+      );
+      allow create, update, delete: if false;
 
       match /history/{attemptId} {
-        allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-        allow write: if isAdmin();
+        allow read: if signedIn() && (
+          request.auth.uid == uid
+          || hasPermission('manageUsers')
+          || hasPermission('approveTasks')
+        );
+        allow write: if false;
       }
     }
 
     match /settings/{documentId} {
-      // Platform settings drive public behaviour (auto-approval, signup gate),
-      // so they are readable by anyone but writable only by content staff.
       allow read: if true;
-      allow write: if hasPermission('manageContent');
+      allow create, update, delete: if false;
     }
 
-    // Append-only accountability trail for privileged actions. Staff can read
-    // and append; nobody can edit or erase history from the client.
     match /audit_logs/{entryId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin()
-        && request.resource.data.actorId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // A freelancer's private shortlist of tasks. Owner-only, never public.
-    match /users/{uid}/saved_tasks/{taskId} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow read: if hasPermission('manageAdmins')
+        || hasPermission('manageUsers')
+        || hasPermission('managePayments');
+      allow create, update, delete: if false;
     }
   }
 }
