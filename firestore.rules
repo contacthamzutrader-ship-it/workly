@@ -6,20 +6,11 @@ service cloud.firestore {
     function ownerAccount() {
       return signedIn() && request.auth.token.email == 'contact.hamzutrader@gmail.com';
     }
-    function userExists() {
-      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-    function userDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
     function adminExists() {
       return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
     function adminRecord() {
       return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
-    }
-    function activeStaff() {
-      return ownerAccount() || (adminExists() && adminRecord().get('suspended', false) == false);
     }
     function hasPermission(permission) {
       return ownerAccount()
@@ -66,23 +57,6 @@ service cloud.firestore {
           'organization', 'hiringNeeds', 'onboarded', 'profileComplete', 'roleUpdatedAt', 'profileUpdatedAt'
         ]);
     }
-    function managedUserUpdateAllowed() {
-      return request.resource.data.uid == resource.data.uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name', 'role', 'isTasker', 'avatarUrl', 'city', 'bio', 'professionalTitle', 'skills',
-          'hourlyRate', 'experienceYears', 'languages', 'availability', 'portfolioUrl', 'certifications',
-          'organization', 'hiringNeeds', 'onboarded', 'profileComplete', 'roleUpdatedAt', 'profileUpdatedAt',
-          'isPrivate', 'suspended', 'suspendedReason', 'suspendedAt', 'verified',
-          'interviewStatus', 'interviewUpdatedAt', 'interviewVerifiedAt'
-        ])
-        && publicRole(request.resource.data.role);
-    }
-    function paymentUserUpdateAllowed() {
-      return request.resource.data.uid == resource.data.uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallet']);
-    }
     function validSignupDocument(uid) {
       return signedIn()
         && request.auth.uid == uid
@@ -108,36 +82,20 @@ service cloud.firestore {
         && request.resource.data.get('interviewVerifiedAt', '') == ''
         && request.resource.data.get('interviewUpdatedAt', '') == '';
     }
-    function validSettings() {
-      return request.resource.data.keys().hasOnly([
-          'autoApprove', 'clientFeePercent', 'freelancerFeePercent', 'minTaskBudget',
-          'maintenanceMode', 'allowNewSignups', 'requireInterviewToBid'
-        ])
-        && request.resource.data.get('autoApprove', false) is bool
-        && request.resource.data.get('clientFeePercent', 0) is number
-        && request.resource.data.get('clientFeePercent', 0) >= 0
-        && request.resource.data.get('clientFeePercent', 0) <= 30
-        && request.resource.data.get('freelancerFeePercent', 15) is number
-        && request.resource.data.get('freelancerFeePercent', 15) >= 0
-        && request.resource.data.get('freelancerFeePercent', 15) <= 30
-        && request.resource.data.get('minTaskBudget', 500) is number
-        && request.resource.data.get('minTaskBudget', 500) >= 100
-        && request.resource.data.get('minTaskBudget', 500) <= 10000000
-        && request.resource.data.get('maintenanceMode', false) is bool
-        && request.resource.data.get('allowNewSignups', true) is bool
-        && request.resource.data.get('requireInterviewToBid', false) is bool;
-    }
 
     match /users/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || canReadUserRecords() || hasPermission('managePayments'));
-      allow create: if (ownerAccount() && request.auth.uid == uid
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || canReadUserRecords()
+        || hasPermission('managePayments')
+      );
+      allow create: if (ownerAccount()
+          && request.auth.uid == uid
           && request.resource.data.uid == uid
           && request.resource.data.role == 'super_admin')
         || validSignupDocument(uid);
-      allow update: if signedIn() && request.auth.uid == uid && selfUserUpdateAllowed()
-        || (hasPermission('manageUsers') && managedUserUpdateAllowed())
-        || (hasPermission('managePayments') && paymentUserUpdateAllowed());
-      allow delete: if hasPermission('manageUsers');
+      allow update: if signedIn() && request.auth.uid == uid && selfUserUpdateAllowed();
+      allow delete: if false;
 
       match /saved_tasks/{taskId} {
         allow read, write: if signedIn() && request.auth.uid == uid;
@@ -155,8 +113,10 @@ service cloud.firestore {
     match /tasks/{taskId} {
       allow read: if (resource.data.visibility == 'public'
           && !(resource.data.status in ['draft', 'pending', 'rejected']))
-        || (signedIn() && (resource.data.posterId == request.auth.uid
-          || resource.data.assignedTo == request.auth.uid))
+        || (signedIn() && (
+          resource.data.posterId == request.auth.uid
+          || resource.data.assignedTo == request.auth.uid
+        ))
         || canReadOperationalTasks()
         || hasPrivateInvite(taskId);
       allow create, update, delete: if false;
@@ -206,7 +166,10 @@ service cloud.firestore {
     }
 
     match /wallet_txs/{transactionId} {
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid
+        || hasPermission('managePayments')
+      );
       allow create, update, delete: if false;
     }
 
@@ -216,33 +179,23 @@ service cloud.firestore {
         || resource.data.respondentId == request.auth.uid
         || hasPermission('managePayments')
       );
-      allow create, delete: if false;
-      allow update: if hasPermission('managePayments')
-        && request.resource.data.taskId == resource.data.taskId
-        && request.resource.data.openedBy == resource.data.openedBy
-        && request.resource.data.respondentId == resource.data.respondentId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'resolvedBy', 'resolvedAt', 'resolutionNote', 'updatedAt'
-        ]);
+      allow create, update, delete: if false;
     }
 
     match /admins/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || hasPermission('manageAdmins') || ownerAccount());
-      allow create: if hasPermission('manageAdmins')
-        && request.resource.data.uid == uid
-        && request.resource.data.staffRole in ['editor', 'moderator', 'admin']
-        && request.resource.data.email != 'contact.hamzutrader@gmail.com'
-        && request.resource.data.get('suspended', false) == false;
-      allow update: if hasPermission('manageAdmins')
-        && resource.data.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.staffRole in ['editor', 'moderator', 'admin'];
-      allow delete: if hasPermission('manageAdmins');
+      allow read: if signedIn() && (
+        request.auth.uid == uid
+        || hasPermission('manageAdmins')
+        || ownerAccount()
+      );
+      allow create, update, delete: if false;
     }
 
     match /task_invites/{taskId} {
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('approveTasks'));
+      allow read: if signedIn() && (
+        resource.data.userId == request.auth.uid
+        || hasPermission('approveTasks')
+      );
       allow create, update, delete: if false;
     }
 
@@ -252,13 +205,7 @@ service cloud.firestore {
         || hasPermission('manageUsers')
         || hasPermission('approveTasks')
       );
-      allow create, delete: if false;
-      allow update: if hasPermission('manageUsers')
-        && request.resource.data.userId == resource.data.userId
-        && request.resource.data.attemptId == resource.data.attemptId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'reviewedAt', 'reviewedBy', 'reviewNote', 'updatedAt'
-        ]);
+      allow create, update, delete: if false;
 
       match /history/{attemptId} {
         allow read: if signedIn() && (
@@ -272,16 +219,14 @@ service cloud.firestore {
 
     match /settings/{documentId} {
       allow read: if true;
-      allow create, update: if documentId == 'platform' && hasPermission('manageContent') && validSettings();
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
     match /audit_logs/{entryId} {
-      allow read: if hasPermission('manageAdmins') || hasPermission('manageUsers') || hasPermission('managePayments');
-      allow create: if activeStaff()
-        && request.resource.data.actorId == request.auth.uid
-        && request.resource.data.actorEmail == request.auth.token.email;
-      allow update, delete: if false;
+      allow read: if hasPermission('manageAdmins')
+        || hasPermission('manageUsers')
+        || hasPermission('managePayments');
+      allow create, update, delete: if false;
     }
   }
 }
