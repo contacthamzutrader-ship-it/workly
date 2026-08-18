@@ -2,15 +2,38 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function taskData(taskId) {
+      return firestore.get(/databases/(default)/documents/tasks/$(taskId)).data;
+    }
+    function contractParticipant(taskId) {
+      return signedIn()
+        && (taskData(taskId).posterId == request.auth.uid
+          || taskData(taskId).assignedTo == request.auth.uid);
+    }
+    function allowedTaskFile() {
+      return request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)|application/pdf|text/plain');
+    }
+
     match /profile-images/{uid}/{fileName} {
       allow read: if true;
-      allow write: if request.auth != null
+      allow create, update: if signedIn()
         && request.auth.uid == uid
-        && request.resource.size < 5 * 1024 * 1024
+        && fileName == 'avatar'
+        && request.resource.size <= 5 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if signedIn() && request.auth.uid == uid && fileName == 'avatar';
     }
+
     match /task-files/{taskId}/{uid}/{fileName} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if contractParticipant(taskId);
+      allow create, update: if contractParticipant(taskId)
+        && request.auth.uid == uid
+        && allowedTaskFile();
+      allow delete: if contractParticipant(taskId) && request.auth.uid == uid;
     }
   }
 }
