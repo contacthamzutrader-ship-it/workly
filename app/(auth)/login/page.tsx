@@ -6,7 +6,6 @@ import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { isOwnerEmail } from "@/lib/roles";
 import Button from "@/components/ui/Button";
 import Input, { Field } from "@/components/ui/Input";
 import { Alert } from "@/components/ui/Feedback";
@@ -56,8 +55,8 @@ function LoginForm() {
 
     setBusy("email");
     try {
-      await signInWithEmail(normalizedEmail, password);
-      router.push(isOwnerEmail(normalizedEmail) ? "/admin" : redirect);
+      const { isOwner, onboarded } = await signInWithEmail(normalizedEmail, password);
+      router.push(isOwner ? "/admin" : onboarded ? redirect : "/onboarding");
     } catch (caught) {
       setError(authErrorMessage(caught, "We could not sign you in."));
     } finally {
@@ -70,9 +69,9 @@ function LoginForm() {
     setBusy("google");
     try {
       // Legacy behavior used isNewUser ? "/onboarding" : redirect here.
-      // Login is now intentionally existing-account-only; signup owns account creation.
-      const { isOwner } = await signInWithGoogle();
-      router.push(isOwner ? "/admin" : redirect);
+      // Login is now existing-account-only; signup owns account creation.
+      const { isOwner, onboarded } = await signInWithGoogle();
+      router.push(isOwner ? "/admin" : onboarded ? redirect : "/onboarding");
     } catch (caught) {
       setError(authErrorMessage(caught, "Google sign-in did not complete."));
     } finally {
