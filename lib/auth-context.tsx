@@ -42,6 +42,12 @@ export interface WorklyProfile {
   verified: boolean;
   avatarUrl: string;
   city: string;
+  bio: string;
+  professionalTitle: string;
+  skills: string[];
+  hourlyRate: number;
+  organization: string;
+  hiringNeeds: string;
   profileComplete: boolean;
   interviewStatus: string;
   wallet: number;
@@ -94,6 +100,12 @@ function profileFromSnapshot(uid: string, email: string, data: Record<string, an
     verified: data.verified === true,
     avatarUrl: data.avatarUrl || user?.photoURL || "",
     city: data.city || "",
+    bio: data.bio || "",
+    professionalTitle: data.professionalTitle || "",
+    skills: Array.isArray(data.skills) ? data.skills.filter((item: unknown) => typeof item === "string") : [],
+    hourlyRate: Math.max(0, Number(data.hourlyRate || 0)),
+    organization: data.organization || "",
+    hiringNeeds: data.hiringNeeds || "",
     profileComplete: data.profileComplete === true,
     interviewStatus: data.interviewStatus || "not_started",
     wallet: Number(data.wallet || 0),
@@ -166,12 +178,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const existing = await getDoc(reference);
     if (existing.exists()) return existing.data();
 
-    // The fixed owner identity may bootstrap its own member shell. Ordinary
-    // accounts are never silently recreated because doing so can resurrect a
-    // deleted/corrupt account or bypass the controlled signup flow.
+    // The fixed owner identity may bootstrap its own privileged profile shell.
+    // Ordinary accounts are never silently recreated because doing so can
+    // resurrect a deleted/corrupt account or bypass the controlled signup flow.
     if (isOwnerEmail(current.email)) {
       const ownerProfile = {
         ...newProfileDoc(current, current.displayName || "Owner", "client"),
+        role: "super_admin",
         onboarded: true,
         profileComplete: true,
       };
