@@ -46,6 +46,14 @@ test("onboarding cannot finish an incomplete freelancer profile", async () => {
   assert.match(onboarding, /profileUpdatedAt: serverTimestamp\(\)/);
 });
 
+test("mode switching recalculates readiness and incomplete profiles lose marketplace actions", async () => {
+  const auth = await read("lib/auth-context.tsx");
+  assert.match(auth, /function profileReadyForRole/);
+  assert.match(auth, /profileComplete: nextProfileComplete/);
+  assert.match(auth, /canPostTask: base\.canPostTask && ready/);
+  assert.match(auth, /canSendOffer: base\.canSendOffer && ready/);
+});
+
 test("Firestore blocks privileged defaults and respects the signup gate", async () => {
   const rules = await read("firestore.rules");
   assert.match(rules, /function signupsAllowed\(\)/);
@@ -55,6 +63,12 @@ test("Firestore blocks privileged defaults and respects the signup gate", async 
   assert.match(rules, /get\('verified', false\) == false/);
   assert.match(rules, /get\('suspended', false\) == false/);
   assert.match(rules, /get\('profileComplete', false\) == false/);
+});
+
+test("posting and bidding require a completed onboarded profile in security rules", async () => {
+  const rules = await read("firestore.rules");
+  assert.match(rules, /userDoc\(\)\.onboarded == true/);
+  assert.match(rules, /userDoc\(\)\.profileComplete == true/);
 });
 
 test("login redirects remain internal", async () => {
