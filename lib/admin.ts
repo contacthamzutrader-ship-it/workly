@@ -3,9 +3,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  setDoc,
-  deleteDoc,
-  updateDoc,
   addDoc,
   query,
   limit,
@@ -15,6 +12,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { adminAction } from "./admin-api";
 import {
   ALL_PERMISSIONS,
   MEMBER_ROLE_LABELS,
@@ -30,7 +28,6 @@ import {
   normalizeRole,
   ownerSession,
   staffRoleFromPermissions,
-  toStoredRole,
   type MemberRole,
   type Permission,
   type StaffRole,
@@ -75,7 +72,8 @@ function needDb() {
 }
 
 // ---------------------------------------------------------------------------
-// Audit log — every privileged action leaves a trail.
+// Audit log reads + supplemental client audit notes.
+// Critical mutations also write an audit entry in their server transaction.
 // ---------------------------------------------------------------------------
 
 export interface AuditEntry {
@@ -103,7 +101,7 @@ export async function recordAudit(input: {
       createdAt: serverTimestamp(),
     });
   } catch {
-    // An audit write must never block the action the operator was performing.
+    // Critical server actions already include their transaction-bound audit.
   }
 }
 
@@ -166,25 +164,12 @@ export async function addAdmin(input: {
   staffRole: StaffRole;
   permissions?: Permission[];
 }): Promise<void> {
-  const database = needDb();
-  if (isOwnerEmail(input.email)) {
-    throw new Error("The platform owner already has full access.");
-  }
-  if (input.staffRole === "super_admin") {
-    throw new Error("There can only be one owner account.");
-  }
-  const permissions = (input.permissions?.length ? input.permissions : STAFF_ROLE_PERMISSIONS[input.staffRole])
-    .filter((permission) => ALL_PERMISSIONS.includes(permission));
-  await setDoc(doc(database, "admins", input.uid), {
+  if (isOwnerEmail(input.email)) throw new Error("The platform owner already has full access.");
+  if (input.staffRole === "super_admin") throw new Error("There can only be one owner account.");
+  await adminAction("add_admin", {
     uid: input.uid,
-    email: input.email.toLowerCase(),
-    name: input.name,
     staffRole: input.staffRole,
-    addedBy: input.addedBy,
-    permissions,
-    suspended: false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    permissions: input.permissions,
   });
 }
 
@@ -192,28 +177,16 @@ export async function updateAdmin(
   uid: string,
   changes: { staffRole?: StaffRole; permissions?: Permission[]; suspended?: boolean }
 ): Promise<void> {
-  const database = needDb();
-  const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
-  if (changes.staffRole) {
-    if (changes.staffRole === "super_admin") throw new Error("There can only be one owner account.");
-    payload.staffRole = changes.staffRole;
-    if (!changes.permissions) payload.permissions = STAFF_ROLE_PERMISSIONS[changes.staffRole];
-  }
-  if (changes.permissions) {
-    payload.permissions = changes.permissions.filter((permission) => ALL_PERMISSIONS.includes(permission));
-  }
-  if (typeof changes.suspended === "boolean") payload.suspended = changes.suspended;
-  await updateDoc(doc(database, "admins", uid), payload);
+  if (changes.staffRole === "super_admin") throw new Error("There can only be one owner account.");
+  await adminAction("update_admin", { uid, changes });
 }
 
-/** Kept for older call sites. */
 export async function updateAdminPermissions(uid: string, permissions: Permission[]): Promise<void> {
   await updateAdmin(uid, { permissions });
 }
 
 export async function removeAdmin(uid: string): Promise<void> {
-  const database = needDb();
-  await deleteDoc(doc(database, "admins", uid));
+  await adminAction("remove_admin", { uid });
 }
 
 // ---------------------------------------------------------------------------
@@ -252,8 +225,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
 }
 
 export async function savePlatformSettings(changes: Partial<PlatformSettings>): Promise<void> {
-  const database = needDb();
-  await setDoc(doc(database, "settings", "platform"), changes, { merge: true });
+  await adminAction("save_settings", { changes });
 }
 
 export async function getAutoApprove(): Promise<boolean> {
@@ -288,9 +260,7 @@ export function subscribePlatformSettings(
 
 export async function findUserByEmail(email: string): Promise<{ uid: string; name: string; email: string } | null> {
   if (!db) return null;
-  const snap = await getDocs(
-    query(collection(db, "users"), where("email", "==", email.trim().toLowerCase()), limit(1))
-  );
+  const snap = await getDocs(query(collection(db, "users"), where("email", "==", email.trim().toLowerCase()), limit(1)));
   if (snap.empty) return null;
   const found = snap.docs[0];
   const data = found.data();
@@ -298,20 +268,11 @@ export async function findUserByEmail(email: string): Promise<{ uid: string; nam
 }
 
 export async function setUserPrivateStatus(uid: string, isPrivate: boolean): Promise<void> {
-  const database = needDb();
-  await updateDoc(
-    doc(database, "users", uid),
-    isPrivate ? { isPrivate: true, isTasker: true, role: "tasker" } : { isPrivate: false }
-  );
+  await adminAction("set_user_private", { uid, isPrivate });
 }
 
 export async function setUserRole(uid: string, role: MemberRole): Promise<void> {
-  const database = needDb();
-  await updateDoc(doc(database, "users", uid), {
-    role: toStoredRole(role),
-    isTasker: role === "freelancer",
-    roleUpdatedAt: serverTimestamp(),
-  });
+  await adminAction("set_user_role", { uid, role });
 }
 
 /** Kept for older call sites that still pass the stored token. */
@@ -320,15 +281,22 @@ export async function setUserPublicRole(uid: string, role: "customer" | "tasker"
 }
 
 export async function setUserSuspended(uid: string, suspended: boolean, reason = ""): Promise<void> {
-  const database = needDb();
-  await updateDoc(doc(database, "users", uid), {
-    suspended,
-    suspendedReason: suspended ? reason : "",
-    suspendedAt: suspended ? serverTimestamp() : null,
-  });
+  await adminAction("set_user_suspended", { uid, suspended, reason });
 }
 
 export async function setUserVerified(uid: string, verified: boolean): Promise<void> {
-  const database = needDb();
-  await updateDoc(doc(database, "users", uid), { verified });
+  await adminAction("set_user_verified", { uid, verified });
+}
+
+export async function resolveDispute(disputeId: string, note = ""): Promise<void> {
+  await adminAction("resolve_dispute", { disputeId, note });
+}
+
+export async function reviewInterviewDecision(uid: string, decision: "verified" | "needs_improvement"): Promise<void> {
+  await adminAction("review_interview", { uid, decision });
+}
+
+export async function syncAllPublicProfiles(): Promise<number> {
+  const result = await adminAction<{ synced: number }>("sync_public_profiles");
+  return result.synced;
 }
