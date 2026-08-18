@@ -1,9 +1,21 @@
-import { BadgeCheck, Gavel, ShieldCheck, Sparkles, Star, Wallet } from "lucide-react";
+import { Gavel, LockKeyhole, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
 
 const HIGHLIGHTS = [
-  { icon: Gavel, title: "Compare real offers", body: "Every offer shows price, timeline and evidence of past work." },
-  { icon: ShieldCheck, title: "Reviewed before it goes live", body: "Tasks pass smart checks or a human moderator." },
-  { icon: Wallet, title: "Pay when you approve", body: "Funds are held against the contract until you sign off." },
+  {
+    icon: Gavel,
+    title: "Compare structured offers",
+    body: "Review price, proposed timeline and the freelancer profile before you choose.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "A moderated marketplace",
+    body: "Tasks and account activity can be reviewed before they reach the wider marketplace.",
+  },
+  {
+    icon: UserCheck,
+    title: "One accountable identity",
+    body: "Each member uses one account and can switch between client and freelancer modes.",
+  },
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -21,14 +33,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             One account. Hire and get hired.
           </h1>
           <p className="mt-5 max-w-md text-base font-medium leading-7 text-white/55">
-            Start as a client or a freelancer — you can switch modes any time without creating a second account.
+            Start as a client or a freelancer and keep your profile, messages and marketplace history under one identity.
           </p>
 
           <ul className="mt-10 space-y-4">
             {HIGHLIGHTS.map((item) => (
               <li key={item.title} className="flex gap-3.5">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-brand-light">
-                  <item.icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
+                  <item.icon className="h-[18px] w-[18px]" />
                 </span>
                 <div>
                   <p className="text-sm font-black">{item.title}</p>
@@ -39,29 +51,22 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </ul>
         </div>
 
-        <div className="relative">
-          <div className="max-w-lg rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur">
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((index) => (
-                <Star key={index} className="h-4 w-4 fill-sun text-sun" />
-              ))}
-            </div>
-            <p className="mt-4 text-lg font-black leading-7">
-              &ldquo;Clear offers, protected payments, and no confusion about who is responsible for what.&rdquo;
-            </p>
-            <div className="mt-5 flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-sm font-black">AK</span>
-              <div>
-                <p className="text-sm font-black">Marketplace member</p>
-                <p className="text-xs text-white/40">Verified on Workly</p>
-              </div>
-              <BadgeCheck className="ml-auto h-5 w-5 text-brand-light" />
+        <div className="relative max-w-lg rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur">
+          <div className="flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/20 text-brand-light">
+              <LockKeyhole className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-black">Account integrity comes first</p>
+              <p className="mt-1 text-[13px] leading-5 text-white/50">
+                Email accounts receive verification, Google login cannot silently create a membership, and staff access is invitation-only.
+              </p>
             </div>
           </div>
         </div>
       </aside>
 
-      <main className="flex items-center justify-center px-4 py-12 sm:px-8">{children}</main>
+      <main className="flex items-center justify-center px-4 py-10 sm:px-8 sm:py-12">{children}</main>
     </div>
   );
 }
