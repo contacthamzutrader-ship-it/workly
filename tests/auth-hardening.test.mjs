@@ -46,6 +46,16 @@ test("onboarding cannot finish an incomplete freelancer profile", async () => {
   assert.match(onboarding, /profileUpdatedAt: serverTimestamp\(\)/);
 });
 
+test("profile editor uses the same real completion standards", async () => {
+  const profile = await read("app/profile/page.tsx");
+  assert.match(profile, /normalizedBio\.length < 20/);
+  assert.match(profile, /normalizedTitle\.length < 3/);
+  assert.match(profile, /skills\.length === 0/);
+  assert.match(profile, /profileUpdatedAt: serverTimestamp\(\)/);
+  assert.match(profile, /Trust score" value=\{trust \?\? "—"\}/);
+  assert.doesNotMatch(profile, /compactProfileImage/);
+});
+
 test("mode switching recalculates readiness and incomplete profiles lose marketplace actions", async () => {
   const auth = await read("lib/auth-context.tsx");
   assert.match(auth, /function profileReadyForRole/);
