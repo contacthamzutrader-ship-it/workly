@@ -50,6 +50,7 @@ test("mode switching recalculates readiness and incomplete profiles lose marketp
   const auth = await read("lib/auth-context.tsx");
   assert.match(auth, /function profileReadyForRole/);
   assert.match(auth, /profileComplete: nextProfileComplete/);
+  assert.match(auth, /profile\.onboarded && profileReadyForRole\(profile, role\)/);
   assert.match(auth, /canPostTask: base\.canPostTask && ready/);
   assert.match(auth, /canSendOffer: base\.canSendOffer && ready/);
 });
@@ -65,10 +66,13 @@ test("Firestore blocks privileged defaults and respects the signup gate", async 
   assert.match(rules, /get\('profileComplete', false\) == false/);
 });
 
-test("posting and bidding require a completed onboarded profile in security rules", async () => {
+test("posting and bidding verify actual profile fields instead of trusting a legacy flag", async () => {
   const rules = await read("firestore.rules");
-  assert.match(rules, /userDoc\(\)\.onboarded == true/);
-  assert.match(rules, /userDoc\(\)\.profileComplete == true/);
+  assert.match(rules, /function memberReadyForMarketplace\(\)/);
+  assert.match(rules, /userDoc\(\)\.get\('bio', ''\)\.size\(\) >= 20/);
+  assert.match(rules, /userDoc\(\)\.get\('professionalTitle', ''\)\.size\(\) >= 3/);
+  assert.match(rules, /userDoc\(\)\.get\('skills', \[\]\)\.size\(\) > 0/);
+  assert.match(rules, /&& memberReadyForMarketplace\(\)/);
 });
 
 test("login redirects remain internal", async () => {
