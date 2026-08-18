@@ -55,6 +55,15 @@ export interface WorklyProfile {
   createdAt?: unknown;
 }
 
+interface SignInResult {
+  isOwner: boolean;
+  onboarded: boolean;
+}
+
+interface GoogleSignInResult extends SignInResult {
+  isNewUser: boolean;
+}
+
 interface AuthContextValue {
   user: User | null;
   profile: WorklyProfile | null;
@@ -68,9 +77,9 @@ interface AuthContextValue {
   loading: boolean;
   /** True while Firebase is known but the profile document has not arrived. */
   profileLoading: boolean;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<SignInResult>;
   signUpWithEmail: (input: { email: string; password: string; name: string; role: MemberRole }) => Promise<void>;
-  signInWithGoogle: (role?: MemberRole) => Promise<{ isNewUser: boolean; isOwner: boolean }>;
+  signInWithGoogle: (role?: MemberRole) => Promise<GoogleSignInResult>;
   switchRole: (role: MemberRole) => Promise<void>;
   markOnboarded: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -172,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const requireExistingProfile = useCallback(async (current: User) => {
+  const requireExistingProfile = useCallback(async (current: User): Promise<Record<string, any>> => {
     if (!db) throw new Error("Workly profile storage is not configured.");
     const reference = doc(db, "users", current.uid);
     const existing = await getDoc(reference);
@@ -251,11 +260,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadStaff]);
 
   const signInWithEmail = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string): Promise<SignInResult> => {
       const instance = requireAuth();
       const credential = await signInWithEmailAndPassword(instance, email.trim().toLowerCase(), password);
       try {
-        await requireExistingProfile(credential.user);
+        const stored = await requireExistingProfile(credential.user);
+        return {
+          isOwner: isOwnerEmail(credential.user.email),
+          onboarded: stored.onboarded === true,
+        };
       } catch (error) {
         await firebaseSignOut(instance).catch(() => undefined);
         throw error;
@@ -297,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signInWithGoogle = useCallback(
-    async (role?: MemberRole) => {
+    async (role?: MemberRole): Promise<GoogleSignInResult> => {
       const instance = requireAuth();
       if (!db) throw new Error("Workly profile storage is not configured.");
 
@@ -306,11 +319,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const credential = await signInWithPopup(instance, provider);
       const isNewUser = getAdditionalUserInfo(credential)?.isNewUser === true;
       const owner = isOwnerEmail(credential.user.email);
+      let onboarded = false;
 
       if (isNewUser) {
         if (owner) {
-          await requireExistingProfile(credential.user);
-          return { isNewUser: true, isOwner: true };
+          const stored = await requireExistingProfile(credential.user);
+          return { isNewUser: true, isOwner: true, onboarded: stored.onboarded === true };
         }
 
         // Google on the login screen must never become an accidental signup.
@@ -336,20 +350,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               credential.user
             )
           );
+          onboarded = false;
         } catch (error) {
           await removeIncompleteFirebaseUser(credential.user);
           throw error;
         }
       } else {
         try {
-          await requireExistingProfile(credential.user);
+          const stored = await requireExistingProfile(credential.user);
+          onboarded = stored.onboarded === true;
         } catch (error) {
           await firebaseSignOut(instance).catch(() => undefined);
           throw error;
         }
       }
 
-      return { isNewUser, isOwner: owner };
+      return { isNewUser, isOwner: owner, onboarded };
     },
     [requireExistingProfile]
   );
@@ -409,7 +425,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role,
       staff,
       permissions: staff?.permissions ?? [],
-      capabilities: user ? capabilitiesFor(role, staff) : EMPTY_CAPABILITIES,
+      capabilities: user && profile ? capabilitiesFor(role, staff) : EMPTY_CAPABILITIES,
       isOwner: staff?.isOwner === true || isOwnerEmail(user?.email),
       isStaff: !!staff,
       loading,
