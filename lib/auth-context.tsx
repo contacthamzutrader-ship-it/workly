@@ -108,7 +108,7 @@ function profileReadyForRole(profile: WorklyProfile, role: MemberRole) {
 
 function capabilitiesForProfile(role: MemberRole, staff: StaffSession | null, profile: WorklyProfile) {
   const base = capabilitiesFor(role, staff);
-  const ready = profile.onboarded && profile.profileComplete;
+  const ready = profile.onboarded && profileReadyForRole(profile, role);
   return {
     ...base,
     canPostTask: base.canPostTask && ready,
