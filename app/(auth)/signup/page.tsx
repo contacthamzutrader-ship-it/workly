@@ -28,7 +28,7 @@ const ROLE_CARDS: { value: MemberRole; icon: typeof BriefcaseBusiness; title: st
   {
     value: "client",
     icon: BriefcaseBusiness,
-    title: "Hire for a task",
+    title: "Hire for tasks",
     summary: "Post work, compare offers and manage delivery in one place.",
   },
   {
@@ -84,7 +84,10 @@ function SignupForm() {
   useEffect(() => {
     getPlatformSettings()
       .then((settings) => setAllowSignups(settings.allowNewSignups))
-      .catch(() => setAllowSignups(true));
+      .catch(() => {
+        setAllowSignups(false);
+        setError("Account registration is temporarily unavailable because Workly could not verify signup availability.");
+      });
   }, []);
 
   const normalizedName = normalizeName(name);
@@ -109,7 +112,7 @@ function SignupForm() {
     setError("");
 
     if (allowSignups !== true) {
-      setError(allowSignups === false ? "New account creation is temporarily paused." : "Checking account availability. Please try again.");
+      setError(allowSignups === false ? "New account creation is temporarily unavailable." : "Checking account availability. Please try again.");
       return;
     }
     if (!nameValid || !emailValid || !passwordValid || !passwordsMatch) return;
@@ -134,7 +137,7 @@ function SignupForm() {
     setError("");
 
     if (allowSignups !== true) {
-      setError(allowSignups === false ? "New account creation is temporarily paused." : "Checking account availability. Please try again.");
+      setError(allowSignups === false ? "New account creation is temporarily unavailable." : "Checking account availability. Please try again.");
       return;
     }
     if (!agreed) {
@@ -164,9 +167,9 @@ function SignupForm() {
       </div>
 
       {allowSignups === false && (
-        <Alert tone="warning" title="New signups are temporarily paused" className="mb-5">
+        <Alert tone="warning" title="New signups are temporarily unavailable" className="mb-5">
           <span className="flex items-start gap-2">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0" /> Existing members can still log in while registrations are paused.
+            <Lock className="mt-0.5 h-4 w-4 shrink-0" /> Existing members can still log in. New membership creation is currently blocked.
           </span>
         </Alert>
       )}
