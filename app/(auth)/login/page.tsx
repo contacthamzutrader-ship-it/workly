@@ -13,6 +13,13 @@ import { Alert } from "@/components/ui/Feedback";
 import GoogleButton from "@/components/GoogleButton";
 import BrandLogo from "@/components/BrandLogo";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function safeInternalRedirect(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
+  return value;
+}
+
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
@@ -25,23 +32,32 @@ function LoginForm() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/dashboard";
+  const redirect = safeInternalRedirect(searchParams.get("redirect"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [attempted, setAttempted] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
 
-  const destination = () => (isOwnerEmail(email) ? "/admin" : redirect);
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailValid = EMAIL_PATTERN.test(normalizedEmail);
+  const passwordValid = password.length > 0;
+  const emailError = attempted && !emailValid ? "Enter a valid email address." : "";
+  const passwordError = attempted && !passwordValid ? "Enter your password." : "";
+  const canSubmit = emailValid && passwordValid && busy === null;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setBusy("email");
+    setAttempted(true);
     setError("");
+    if (!emailValid || !passwordValid) return;
+
+    setBusy("email");
     try {
-      await signInWithEmail(email, password);
-      router.push(destination());
+      await signInWithEmail(normalizedEmail, password);
+      router.push(isOwnerEmail(normalizedEmail) ? "/admin" : redirect);
     } catch (caught) {
       setError(authErrorMessage(caught, "We could not sign you in."));
     } finally {
@@ -50,11 +66,11 @@ function LoginForm() {
   };
 
   const google = async () => {
-    setBusy("google");
     setError("");
+    setBusy("google");
     try {
-      const { isNewUser } = await signInWithGoogle();
-      router.push(isNewUser ? "/onboarding" : redirect);
+      const { isOwner } = await signInWithGoogle();
+      router.push(isOwner ? "/admin" : redirect);
     } catch (caught) {
       setError(authErrorMessage(caught, "Google sign-in did not complete."));
     } finally {
@@ -67,11 +83,11 @@ function LoginForm() {
       <div className="mb-8">
         <BrandLogo />
         <h1 className="mt-6 text-[32px] font-black leading-tight tracking-[-0.04em] text-ink">Welcome back.</h1>
-        <p className="mt-2 text-sm font-medium text-ink-500">Your tasks, offers and payments are waiting.</p>
+        <p className="mt-2 text-sm font-medium leading-6 text-ink-500">Sign in to manage your tasks, offers and account activity.</p>
       </div>
 
       <div className="surface p-6 sm:p-8">
-        <GoogleButton onClick={google} disabled={busy !== null} />
+        <GoogleButton onClick={google} disabled={busy !== null} label={busy === "google" ? "Connecting to Google..." : "Continue with Google"} />
 
         <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-ink-100" />
@@ -80,18 +96,22 @@ function LoginForm() {
         </div>
 
         <form onSubmit={submit} className="space-y-4" noValidate>
-          <Field label="Email address" required>
+          <Field label="Email address" error={emailError} required>
             <Input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              onBlur={() => setEmail((current) => current.trim().toLowerCase())}
               autoComplete="email"
+              inputMode="email"
+              aria-invalid={Boolean(emailError)}
+              disabled={busy !== null}
               required
             />
           </Field>
 
-          <Field label="Password" required>
+          <Field label="Password" error={passwordError} required>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
@@ -100,6 +120,8 @@ function LoginForm() {
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete="current-password"
                 className="pr-12"
+                aria-invalid={Boolean(passwordError)}
+                disabled={busy !== null}
                 required
               />
               <button
@@ -121,21 +143,19 @@ function LoginForm() {
 
           {error && <Alert tone="error">{error}</Alert>}
 
-          <Button type="submit" loading={busy === "email"} disabled={busy !== null} fullWidth>
-            {busy === "email" ? "Signing in" : "Sign in"} {busy !== "email" && <ArrowRight className="h-4 w-4" />}
+          <Button type="submit" loading={busy === "email"} disabled={!canSubmit} fullWidth size="lg">
+            {busy === "email" ? "Signing in securely" : "Sign in"} {busy !== "email" && <ArrowRight className="h-4 w-4" />}
           </Button>
         </form>
 
         <p className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-ink-400">
-          <LockKeyhole className="h-3.5 w-3.5 text-brand" /> Protected by Firebase Authentication
+          <LockKeyhole className="h-3.5 w-3.5 text-brand" /> Existing Workly accounts only. New members join from Create account.
         </p>
       </div>
 
       <p className="mt-6 text-center text-sm font-medium text-ink-500">
         New to Workly?{" "}
-        <Link href="/signup" className="font-extrabold text-brand-dark hover:text-brand">
-          Create a free account
-        </Link>
+        <Link href="/signup" className="font-extrabold text-brand-dark hover:text-brand">Create a free account</Link>
       </p>
     </div>
   );
