@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  deleteUser,
   getAdditionalUserInfo,
   sendPasswordResetEmail,
   sendEmailVerification,
@@ -63,7 +64,7 @@ interface AuthContextValue {
   profileLoading: boolean;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (input: { email: string; password: string; name: string; role: MemberRole }) => Promise<void>;
-  signInWithGoogle: (role?: MemberRole) => Promise<{ isNewUser: boolean }>;
+  signInWithGoogle: (role?: MemberRole) => Promise<{ isNewUser: boolean; isOwner: boolean }>;
   switchRole: (role: MemberRole) => Promise<void>;
   markOnboarded: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -73,7 +74,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
 const EMPTY_CAPABILITIES = capabilitiesFor("client", null);
 
 function requireAuth() {
@@ -121,11 +121,15 @@ function newProfileDoc(user: User, name: string, role: MemberRole) {
   };
 }
 
-/**
- * Role chosen on the signup screen. Google sign-in bounces through a popup,
- * so the choice is stashed here for the auth-state listener that follows.
- */
-let pendingRole: MemberRole | null = null;
+async function removeIncompleteFirebaseUser(current: User) {
+  try {
+    await deleteUser(current);
+  } catch {
+    if (auth?.currentUser?.uid === current.uid) {
+      await firebaseSignOut(auth).catch(() => undefined);
+    }
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -156,11 +160,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const requireExistingProfile = useCallback(async (current: User) => {
+    if (!db) throw new Error("Workly profile storage is not configured.");
+    const reference = doc(db, "users", current.uid);
+    const existing = await getDoc(reference);
+    if (existing.exists()) return existing.data();
+
+    // The fixed owner identity may bootstrap its own member shell. Ordinary
+    // accounts are never silently recreated because doing so can resurrect a
+    // deleted/corrupt account or bypass the controlled signup flow.
+    if (isOwnerEmail(current.email)) {
+      const ownerProfile = {
+        ...newProfileDoc(current, current.displayName || "Owner", "client"),
+        onboarded: true,
+        profileComplete: true,
+      };
+      await setDoc(reference, ownerProfile);
+      return ownerProfile;
+    }
+
+    throw new Error(
+      "Your sign-in exists, but its Workly member profile is missing. Please contact Workly support instead of creating another account."
+    );
+  }, []);
+
   useEffect(() => {
     if (!auth) {
       setLoading(false);
       return;
     }
+
     const unsubscribe = onAuthStateChanged(auth, async (current) => {
       profileUnsub.current?.();
       profileUnsub.current = null;
@@ -178,23 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const reference = doc(db, "users", current.uid);
       const email = (current.email || "").toLowerCase();
 
-      // Make sure a profile document exists before subscribing, so a fresh
-      // Google account never lands in the app without a role.
-      try {
-        const existing = await getDoc(reference);
-        if (!existing.exists()) {
-          await setDoc(
-            reference,
-            isOwnerEmail(email)
-              ? { ...newProfileDoc(current, current.displayName || "Owner", "client"), onboarded: true }
-              : newProfileDoc(current, current.displayName || "", pendingRole || "client")
-          );
-        }
-      } catch {
-        // Rules may block the read for a suspended account; the listener below
-        // still reports whatever the account is allowed to see.
-      }
-
+      // Important: auth-state changes never create ordinary profile records.
+      // Profiles are created only by an explicit, validated signup action.
       profileUnsub.current = onSnapshot(
         reference,
         (snapshot) => {
@@ -209,7 +223,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       );
 
-      await loadStaff(current);
+      try {
+        await loadStaff(current);
+      } catch {
+        setStaff(null);
+      }
       setLoading(false);
     });
 
@@ -219,53 +237,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [loadStaff]);
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    const instance = requireAuth();
-    await signInWithEmailAndPassword(instance, email.trim(), password);
-  }, []);
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      const instance = requireAuth();
+      const credential = await signInWithEmailAndPassword(instance, email.trim().toLowerCase(), password);
+      try {
+        await requireExistingProfile(credential.user);
+      } catch (error) {
+        await firebaseSignOut(instance).catch(() => undefined);
+        throw error;
+      }
+    },
+    [requireExistingProfile]
+  );
 
   const signUpWithEmail = useCallback(
     async ({ email, password, name, role }: { email: string; password: string; name: string; role: MemberRole }) => {
       const instance = requireAuth();
-      pendingRole = role;
+      if (!db) throw new Error("Workly profile storage is not configured.");
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedName = name.trim().replace(/\s+/g, " ");
+      const credential = await createUserWithEmailAndPassword(instance, normalizedEmail, password);
+
       try {
-        const credential = await createUserWithEmailAndPassword(instance, email.trim(), password);
-        if (name.trim()) {
-          await updateProfile(credential.user, { displayName: name.trim() }).catch(() => undefined);
+        if (normalizedName) {
+          await updateProfile(credential.user, { displayName: normalizedName }).catch(() => undefined);
         }
-        if (db) {
-          await setDoc(doc(db, "users", credential.user.uid), newProfileDoc(credential.user, name.trim(), role), {
-            merge: true,
-          });
-        }
-        sendEmailVerification(credential.user).catch(() => undefined);
-      } finally {
-        pendingRole = null;
+
+        const profileData = newProfileDoc(credential.user, normalizedName, role);
+        await setDoc(doc(db, "users", credential.user.uid), profileData);
+        setProfile(profileFromSnapshot(credential.user.uid, normalizedEmail, profileData, credential.user));
+
+        await sendEmailVerification(credential.user, {
+          url: `${window.location.origin}/dashboard`,
+          handleCodeInApp: false,
+        }).catch(() => undefined);
+      } catch (error) {
+        // Never leave an Auth-only account behind when its required Workly
+        // profile could not be created.
+        await removeIncompleteFirebaseUser(credential.user);
+        throw error;
       }
     },
     []
   );
 
-  const signInWithGoogle = useCallback(async (role: MemberRole = "client") => {
-    const instance = requireAuth();
-    pendingRole = role;
-    try {
+  const signInWithGoogle = useCallback(
+    async (role?: MemberRole) => {
+      const instance = requireAuth();
+      if (!db) throw new Error("Workly profile storage is not configured.");
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       const credential = await signInWithPopup(instance, provider);
       const isNewUser = getAdditionalUserInfo(credential)?.isNewUser === true;
-      if (isNewUser && db) {
-        await setDoc(
-          doc(db, "users", credential.user.uid),
-          newProfileDoc(credential.user, credential.user.displayName || "", role),
-          { merge: true }
-        );
+      const owner = isOwnerEmail(credential.user.email);
+
+      if (isNewUser) {
+        if (owner) {
+          await requireExistingProfile(credential.user);
+          return { isNewUser: true, isOwner: true };
+        }
+
+        // Google on the login screen must never become an accidental signup.
+        // A role is supplied only by the dedicated signup flow after the user
+        // has chosen account type and accepted the signup terms.
+        if (!role) {
+          await removeIncompleteFirebaseUser(credential.user);
+          throw new Error("No Workly account was found for this Google account. Use Create account to join first.");
+        }
+
+        try {
+          const profileData = newProfileDoc(
+            credential.user,
+            credential.user.displayName?.trim().replace(/\s+/g, " ") || "",
+            role
+          );
+          await setDoc(doc(db, "users", credential.user.uid), profileData);
+          setProfile(
+            profileFromSnapshot(
+              credential.user.uid,
+              (credential.user.email || "").toLowerCase(),
+              profileData,
+              credential.user
+            )
+          );
+        } catch (error) {
+          await removeIncompleteFirebaseUser(credential.user);
+          throw error;
+        }
+      } else {
+        try {
+          await requireExistingProfile(credential.user);
+        } catch (error) {
+          await firebaseSignOut(instance).catch(() => undefined);
+          throw error;
+        }
       }
-      return { isNewUser };
-    } finally {
-      pendingRole = null;
-    }
-  }, []);
+
+      return { isNewUser, isOwner: owner };
+    },
+    [requireExistingProfile]
+  );
 
   const switchRole = useCallback(async (role: MemberRole) => {
     const instance = requireAuth();
@@ -288,7 +362,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = useCallback(async (email: string) => {
     const instance = requireAuth();
-    await sendPasswordResetEmail(instance, email.trim());
+    await sendPasswordResetEmail(instance, email.trim().toLowerCase());
   }, []);
 
   const resendVerification = useCallback(async () => {
@@ -296,7 +370,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!instance.currentUser) throw new Error("Sign in first.");
     await sendEmailVerification(instance.currentUser, {
       url: `${window.location.origin}/dashboard`,
-      handleCodeInApp: true,
+      handleCodeInApp: false,
     });
   }, []);
 
