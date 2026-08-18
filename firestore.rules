@@ -70,7 +70,9 @@ service cloud.firestore {
           && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
         || (signedIn() && request.auth.uid == uid
           && signupsAllowed()
+          && request.auth.token.email != null
           && request.resource.data.uid == uid
+          && request.resource.data.email == request.auth.token.email
           && publicRole(request.resource.data.role)
           && request.resource.data.isPrivate == false
           && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
