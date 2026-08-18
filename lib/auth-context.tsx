@@ -98,6 +98,24 @@ function requireAuth() {
   return auth;
 }
 
+function profileReadyForRole(profile: WorklyProfile, role: MemberRole) {
+  const baseReady =
+    profile.name.trim().length >= 2 && profile.city.trim().length >= 2 && profile.bio.trim().length >= 20;
+  if (!baseReady) return false;
+  if (role === "client") return true;
+  return profile.professionalTitle.trim().length >= 3 && profile.skills.length > 0;
+}
+
+function capabilitiesForProfile(role: MemberRole, staff: StaffSession | null, profile: WorklyProfile) {
+  const base = capabilitiesFor(role, staff);
+  const ready = profile.onboarded && profile.profileComplete;
+  return {
+    ...base,
+    canPostTask: base.canPostTask && ready,
+    canSendOffer: base.canSendOffer && ready,
+  };
+}
+
 function profileFromSnapshot(uid: string, email: string, data: Record<string, any>, user?: User | null): WorklyProfile {
   return {
     uid,
@@ -370,17 +388,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [requireExistingProfile]
   );
 
-  const switchRole = useCallback(async (role: MemberRole) => {
-    const instance = requireAuth();
-    const current = instance.currentUser;
-    if (!current || !db) throw new Error("Sign in before changing how you use Workly.");
-    await setDoc(
-      doc(db, "users", current.uid),
-      { role: toStoredRole(role), isTasker: role === "freelancer", roleUpdatedAt: serverTimestamp() },
-      { merge: true }
-    );
-    setProfile((previous) => (previous ? { ...previous, role } : previous));
-  }, []);
+  const switchRole = useCallback(
+    async (role: MemberRole) => {
+      const instance = requireAuth();
+      const current = instance.currentUser;
+      if (!current || !db) throw new Error("Sign in before changing how you use Workly.");
+      const nextProfileComplete = profile ? profileReadyForRole(profile, role) : false;
+      await setDoc(
+        doc(db, "users", current.uid),
+        {
+          role: toStoredRole(role),
+          isTasker: role === "freelancer",
+          profileComplete: nextProfileComplete,
+          roleUpdatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      setProfile((previous) =>
+        previous ? { ...previous, role, profileComplete: profileReadyForRole(previous, role) } : previous
+      );
+    },
+    [profile]
+  );
 
   const markOnboarded = useCallback(async () => {
     const instance = requireAuth();
@@ -425,7 +454,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role,
       staff,
       permissions: staff?.permissions ?? [],
-      capabilities: user && profile ? capabilitiesFor(role, staff) : EMPTY_CAPABILITIES,
+      capabilities: user && profile ? capabilitiesForProfile(role, staff, profile) : EMPTY_CAPABILITIES,
       isOwner: staff?.isOwner === true || isOwnerEmail(user?.email),
       isStaff: !!staff,
       loading,
