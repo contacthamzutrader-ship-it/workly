@@ -43,6 +43,7 @@ test("Firestore blocks privileged defaults and respects the signup gate", async 
   const rules = await read("firestore.rules");
   assert.match(rules, /function signupsAllowed\(\)/);
   assert.match(rules, /&& signupsAllowed\(\)/);
+  assert.match(rules, /request\.resource\.data\.email == request\.auth\.token\.email/);
   assert.match(rules, /get\('wallet', 0\) == 0/);
   assert.match(rules, /get\('verified', false\) == false/);
   assert.match(rules, /get\('suspended', false\) == false/);
