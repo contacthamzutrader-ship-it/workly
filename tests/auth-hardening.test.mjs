@@ -16,7 +16,14 @@ test("Google login cannot silently create an ordinary Workly member", async () =
   const login = await read("app/(auth)/login/page.tsx");
   assert.match(auth, /Google on the login screen must never become an accidental signup/);
   assert.match(auth, /No Workly account was found for this Google account/);
-  assert.match(login, /const \{ isOwner \} = await signInWithGoogle\(\)/);
+  assert.match(login, /const \{ isOwner, onboarded \} = await signInWithGoogle\(\)/);
+});
+
+test("incomplete existing accounts return to onboarding after login", async () => {
+  const auth = await read("lib/auth-context.tsx");
+  const login = await read("app/(auth)/login/page.tsx");
+  assert.match(auth, /onboarded: stored\.onboarded === true/);
+  assert.match(login, /onboarded \? redirect : "\/onboarding"/);
 });
 
 test("signup requires validated identity fields, password confirmation and terms", async () => {
