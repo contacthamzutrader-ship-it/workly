@@ -1,45 +1,29 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/lib/auth-context";
+import { db } from "@/lib/firebase";
 import { syncPublicProfile } from "@/lib/public-profile";
 
 export default function PublicProfileSync() {
-  const { user, profile, loading, profileLoading } = useAuth();
-  const fingerprint = useMemo(() => {
-    if (!profile) return "";
-    return JSON.stringify({
-      uid: profile.uid,
-      role: profile.role,
-      name: profile.name,
-      avatarUrl: profile.avatarUrl,
-      city: profile.city,
-      bio: profile.bio,
-      professionalTitle: profile.professionalTitle,
-      skills: profile.skills,
-      hourlyRate: profile.hourlyRate,
-      experienceYears: profile.experienceYears,
-      languages: profile.languages,
-      availability: profile.availability,
-      portfolioUrl: profile.portfolioUrl,
-      certifications: profile.certifications,
-      organization: profile.organization,
-      hiringNeeds: profile.hiringNeeds,
-      profileComplete: profile.profileComplete,
-      onboarded: profile.onboarded,
-      interviewStatus: profile.interviewStatus,
-      verified: profile.verified,
-      trustScore: profile.trustScore,
-    });
-  }, [profile]);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (loading || profileLoading || !user || !profile || !fingerprint) return;
-    const timer = window.setTimeout(() => {
-      syncPublicProfile().catch(() => undefined);
-    }, 350);
-    return () => window.clearTimeout(timer);
-  }, [loading, profileLoading, user, profile, fingerprint]);
+    if (loading || !user || !db) return;
+    let timer: number | undefined;
+    const unsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+      if (!snapshot.exists()) return;
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        syncPublicProfile().catch(() => undefined);
+      }, 350);
+    });
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [loading, user]);
 
   return null;
 }
