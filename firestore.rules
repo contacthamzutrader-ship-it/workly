@@ -128,7 +128,6 @@ service cloud.firestore {
         && request.resource.data.get('requireInterviewToBid', false) is bool;
     }
 
-    // Private account record. Public discovery uses /public_profiles instead.
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || canReadUserRecords() || hasPermission('managePayments'));
       allow create: if (ownerAccount() && request.auth.uid == uid
@@ -145,13 +144,14 @@ service cloud.firestore {
       }
     }
 
-    // Server-authored public projection: no email, wallet, suspension metadata or private operational fields.
     match /public_profiles/{uid} {
-      allow read: if true;
+      allow read: if resource.data.role == 'customer'
+        || resource.data.get('discoverable', false) == true
+        || (signedIn() && request.auth.uid == uid)
+        || hasPermission('manageUsers');
       allow write: if false;
     }
 
-    // Marketplace state transitions are server-authorized through /api/marketplace.
     match /tasks/{taskId} {
       allow read: if (resource.data.visibility == 'public'
           && !(resource.data.status in ['draft', 'pending', 'rejected']))
@@ -252,7 +252,6 @@ service cloud.firestore {
         || hasPermission('manageUsers')
         || hasPermission('approveTasks')
       );
-      // Interview creation/answering is server-owned. Human review may update only review fields.
       allow create, delete: if false;
       allow update: if hasPermission('manageUsers')
         && request.resource.data.userId == resource.data.userId
@@ -277,7 +276,6 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Append-only accountability trail. Server writes are preferred; direct staff writes are constrained to self-attribution.
     match /audit_logs/{entryId} {
       allow read: if hasPermission('manageAdmins') || hasPermission('manageUsers') || hasPermission('managePayments');
       allow create: if activeStaff()
@@ -285,7 +283,5 @@ service cloud.firestore {
         && request.resource.data.actorEmail == request.auth.token.email;
       allow update, delete: if false;
     }
-
-    // Any collection not declared above remains denied by default.
   }
 }
