@@ -20,8 +20,7 @@ export type MarketplaceAction =
   | "approve_private_task"
   | "add_review"
   | "create_conversation"
-  | "send_message"
-  | "sync_public_profile";
+  | "send_message";
 
 export async function marketplaceAction<T = Record<string, unknown>>(
   action: MarketplaceAction,
@@ -44,5 +43,17 @@ export async function marketplaceAction<T = Record<string, unknown>>(
   if (!response.ok) {
     throw new Error(typeof data?.error === "string" ? data.error : "That action could not be completed.");
   }
+
+  if (action === "add_review" && typeof payload.taskId === "string") {
+    await fetch("/api/trust/recalculate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ taskId: payload.taskId }),
+    }).catch(() => undefined);
+  }
+
   return data as T;
 }
