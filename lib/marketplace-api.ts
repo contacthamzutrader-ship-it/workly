@@ -20,7 +20,8 @@ export type MarketplaceAction =
   | "approve_private_task"
   | "add_review"
   | "create_conversation"
-  | "send_message";
+  | "send_message"
+  | "sync_public_profile";
 
 export async function marketplaceAction<T = Record<string, unknown>>(
   action: MarketplaceAction,
