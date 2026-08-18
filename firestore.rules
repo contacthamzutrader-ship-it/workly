@@ -38,6 +38,17 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/settings/platform)
         || get(/databases/$(database)/documents/settings/platform).data.get('allowNewSignups', true) == true;
     }
+    function memberReadyForMarketplace() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().get('onboarded', false) == true
+        && userDoc().get('name', '').size() >= 2
+        && userDoc().get('city', '').size() >= 2
+        && userDoc().get('bio', '').size() >= 20
+        && (userDoc().role != 'tasker'
+          || (userDoc().get('professionalTitle', '').size() >= 3
+            && userDoc().get('skills', []).size() > 0));
+    }
     function sameProtectedUserFields() {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
@@ -106,8 +117,7 @@ service cloud.firestore {
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
       allow create: if (hasRole(['customer'])
-          && userDoc().onboarded == true
-          && userDoc().profileComplete == true
+          && memberReadyForMarketplace()
           && request.resource.data.posterId == request.auth.uid)
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
@@ -130,8 +140,7 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
         || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
       allow create: if (hasRole(['tasker'])
-          && userDoc().onboarded == true
-          && userDoc().profileComplete == true
+          && memberReadyForMarketplace()
           && request.resource.data.bidderId == request.auth.uid
           && task(request.resource.data.taskId).status == 'open'
           && (task(request.resource.data.taskId).visibility == 'public'
