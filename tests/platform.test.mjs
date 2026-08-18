@@ -100,7 +100,7 @@ test("staff authorization is permission-based and member self-updates exclude pr
   for (const permission of ["manageUsers", "managePayments", "manageAdmins", "approveTasks"]) {
     assert.ok(rules.includes(`hasPermission('${permission}')`));
   }
-  const self = section(rules, "function selfUserUpdateAllowed", "function managedUserUpdateAllowed");
+  const self = section(rules, "function selfUserUpdateAllowed", "function validSignupDocument");
   for (const protectedField of ["wallet", "verified", "suspended", "trustScore", "trustPenalty", "isPrivate"]) {
     assert.ok(!self.includes(`'${protectedField}'`), `${protectedField} must not be self-writable`);
   }
