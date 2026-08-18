@@ -34,6 +34,10 @@ service cloud.firestore {
     function publicRole(role) {
       return role in ['customer', 'tasker'];
     }
+    function signupsAllowed() {
+      return !exists(/databases/$(database)/documents/settings/platform)
+        || get(/databases/$(database)/documents/settings/platform).data.get('allowNewSignups', true) == true;
+    }
     function sameProtectedUserFields() {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
@@ -65,13 +69,24 @@ service cloud.firestore {
       allow create: if (ownerAccount() && request.auth.uid == uid
           && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
         || (signedIn() && request.auth.uid == uid
+          && signupsAllowed()
           && request.resource.data.uid == uid
           && publicRole(request.resource.data.role)
           && request.resource.data.isPrivate == false
+          && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
+          && request.resource.data.get('wallet', 0) == 0
+          && request.resource.data.get('verified', false) == false
+          && request.resource.data.get('suspended', false) == false
+          && request.resource.data.get('trustScore', -1) == -1
+          && request.resource.data.get('onboarded', false) == false
+          && request.resource.data.get('profileComplete', false) == false
           && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
           && request.resource.data.get('interviewScore', -1) == -1
           && request.resource.data.get('interviewSummary', '') == ''
-          && request.resource.data.get('interviewTopSkills', []).size() == 0);
+          && request.resource.data.get('interviewTopSkills', []).size() == 0
+          && request.resource.data.get('interviewAttemptNumber', 0) == 0
+          && request.resource.data.get('interviewVerifiedAt', '') == ''
+          && request.resource.data.get('interviewUpdatedAt', '') == '');
       allow update: if isAdmin()
         || (signedIn() && request.auth.uid == uid
           && sameProtectedUserFields()
