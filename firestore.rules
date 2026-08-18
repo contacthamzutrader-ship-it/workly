@@ -34,6 +34,21 @@ service cloud.firestore {
     function publicRole(role) {
       return role in ['customer', 'tasker'];
     }
+    function signupsAllowed() {
+      return !exists(/databases/$(database)/documents/settings/platform)
+        || get(/databases/$(database)/documents/settings/platform).data.get('allowNewSignups', true) == true;
+    }
+    function memberReadyForMarketplace() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().get('onboarded', false) == true
+        && userDoc().get('name', '').size() >= 2
+        && userDoc().get('city', '').size() >= 2
+        && userDoc().get('bio', '').size() >= 20
+        && (userDoc().role != 'tasker'
+          || (userDoc().get('professionalTitle', '').size() >= 3
+            && userDoc().get('skills', []).size() > 0));
+    }
     function sameProtectedUserFields() {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
@@ -65,13 +80,26 @@ service cloud.firestore {
       allow create: if (ownerAccount() && request.auth.uid == uid
           && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
         || (signedIn() && request.auth.uid == uid
+          && signupsAllowed()
+          && request.auth.token.email != null
           && request.resource.data.uid == uid
+          && request.resource.data.email == request.auth.token.email
           && publicRole(request.resource.data.role)
           && request.resource.data.isPrivate == false
+          && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
+          && request.resource.data.get('wallet', 0) == 0
+          && request.resource.data.get('verified', false) == false
+          && request.resource.data.get('suspended', false) == false
+          && request.resource.data.get('trustScore', -1) == -1
+          && request.resource.data.get('onboarded', false) == false
+          && request.resource.data.get('profileComplete', false) == false
           && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
           && request.resource.data.get('interviewScore', -1) == -1
           && request.resource.data.get('interviewSummary', '') == ''
-          && request.resource.data.get('interviewTopSkills', []).size() == 0);
+          && request.resource.data.get('interviewTopSkills', []).size() == 0
+          && request.resource.data.get('interviewAttemptNumber', 0) == 0
+          && request.resource.data.get('interviewVerifiedAt', '') == ''
+          && request.resource.data.get('interviewUpdatedAt', '') == '');
       allow update: if isAdmin()
         || (signedIn() && request.auth.uid == uid
           && sameProtectedUserFields()
@@ -88,7 +116,9 @@ service cloud.firestore {
         || (signedIn() && (resource.data.posterId == request.auth.uid
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
-      allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
+      allow create: if (hasRole(['customer'])
+          && memberReadyForMarketplace()
+          && request.resource.data.posterId == request.auth.uid)
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
         || (signedIn() && resource.data.posterId == request.auth.uid)
@@ -109,7 +139,9 @@ service cloud.firestore {
     match /bids/{bidId} {
       allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
         || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
-      allow create: if (hasRole(['tasker']) && request.resource.data.bidderId == request.auth.uid
+      allow create: if (hasRole(['tasker'])
+          && memberReadyForMarketplace()
+          && request.resource.data.bidderId == request.auth.uid
           && task(request.resource.data.taskId).status == 'open'
           && (task(request.resource.data.taskId).visibility == 'public'
             || hasPrivateInvite(request.resource.data.taskId))

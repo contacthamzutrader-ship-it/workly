@@ -34,13 +34,14 @@ test("members can switch between client and freelancer on one account", async ()
   assert.match(settings, /How you use Workly/);
 });
 
-test("new accounts are routed through onboarding", async () => {
+test("new and incomplete accounts are routed through onboarding", async () => {
   const signup = await read("app/(auth)/signup/page.tsx");
   const login = await read("app/(auth)/login/page.tsx");
   const onboarding = await read("app/onboarding/page.tsx");
   assert.match(signup, /router\.push\("\/onboarding"\)/);
-  assert.match(login, /isNewUser \? "\/onboarding"/);
+  assert.match(login, /onboarded \? redirect : "\/onboarding"/);
   assert.match(onboarding, /onboarded: true/);
+  assert.doesNotMatch(onboarding, /Skip for now/);
 });
 
 test("password reset and email verification are reachable", async () => {
@@ -205,7 +206,6 @@ test("security rules protect privileged collections and self-escalation", async 
   assert.match(rules, /match \/admins\/\{uid\}/);
   assert.match(rules, /hasPermission\('manageAdmins'\)/);
   assert.match(rules, /match \/wallet_txs\/\{transactionId\}/);
-  // A member may not verify themselves, lift their own suspension or edit trust.
   assert.match(rules, /get\('verified', false\) == resource\.data\.get\('verified', false\)/);
   assert.match(rules, /get\('suspended', false\) == resource\.data\.get\('suspended', false\)/);
   assert.match(rules, /get\('trustScore', -1\) == resource\.data\.get\('trustScore', -1\)/);
@@ -223,7 +223,8 @@ test("profiles use durable image storage with upload restrictions", async () => 
   const storageRules = await read("storage.rules");
   assert.match(profile, /profile-images\/\$\{user\.uid\}\/avatar/);
   assert.match(profile, /5 \* 1024 \* 1024/);
-  assert.match(profile, /compactProfileImage/);
+  assert.match(profile, /uploadBytes/);
+  assert.doesNotMatch(profile, /compactProfileImage|toDataURL/);
   assert.match(storageRules, /request\.auth\.uid == uid/);
   assert.match(storageRules, /image\/\(jpeg\|png\|webp\)/);
 });

@@ -1,8 +1,8 @@
 // Central role + capability model for Workly.
 //
 // There are exactly two things a member can choose for themselves:
-//   - client      (posts work, hires, funds and releases)
-//   - freelancer  (browses work, sends offers, delivers, gets paid)
+//   - client      (posts work, hires and manages delivery)
+//   - freelancer  (browses work, sends offers and delivers)
 //
 // Everything above that is *staff* and can only ever be granted by the owner
 // or by an admin who holds the `manageAdmins` permission. Staff status is
@@ -47,8 +47,8 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
 };
 
 export const MEMBER_ROLE_BLURB: Record<MemberRole, string> = {
-  client: "Post work, compare offers, and pay only when you approve the result.",
-  freelancer: "Find work that fits your skills, send offers, deliver, and get paid.",
+  client: "Post work, compare offers, and manage delivery from one place.",
+  freelancer: "Find work that fits your skills, send offers, deliver, and build your Workly track record.",
 };
 
 export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {

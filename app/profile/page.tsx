@@ -16,13 +16,13 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
-import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
 import { CATEGORIES, listReviewsForUser, type Review } from "@/lib/tasks";
-import { hasPermission } from "@/lib/roles";
-import { MEMBER_ROLE_LABELS, type MemberRole } from "@/lib/roles";
+import { hasPermission, MEMBER_ROLE_LABELS } from "@/lib/roles";
 import { interviewStatusLabel, interviewStatusTone, type InterviewStatus } from "@/lib/interview";
 import Button from "@/components/ui/Button";
 import Input, { Field, Select, Textarea } from "@/components/ui/Input";
@@ -32,8 +32,22 @@ import { Stat } from "@/components/ui/Badge";
 
 const AVAILABILITY = ["Available now", "Part-time", "Weekends only", "Booked until further notice"];
 
+function normalizeName(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function isHttpUrl(value: string) {
+  if (!value.trim()) return true;
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export default function ProfilePage() {
-  const { user, profile, role, staff, isStaff, loading, switchRole } = useAuth();
+  const { user, profile, role, staff, isStaff, loading } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -115,6 +129,13 @@ export default function ProfilePage() {
     })();
   }, [user]);
 
+  useEffect(
+    () => () => {
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    },
+    [avatarPreview]
+  );
+
   if (loading || !user) return <PageLoader />;
 
   const isFreelancer = role === "freelancer";
@@ -124,7 +145,10 @@ export default function ProfilePage() {
 
   const pickAvatar = (file: File | null) => {
     setAvatarFile(file);
-    setAvatarPreview(file ? URL.createObjectURL(file) : "");
+    setAvatarPreview((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return file ? URL.createObjectURL(file) : "";
+    });
   };
 
   const toggleSkill = (skill: string) =>
@@ -137,54 +161,98 @@ export default function ProfilePage() {
     setBusy(true);
     setError("");
     setSaved(false);
+
     try {
       if (!db) throw new Error("Workly is not connected to Firebase.");
+
+      const normalizedName = normalizeName(name);
+      const normalizedCity = city.trim();
+      const normalizedBio = bio.trim();
+      const normalizedTitle = professionalTitle.trim();
+      const rate = hourlyRate.trim() ? Number(hourlyRate) : 0;
+      const years = experienceYears.trim() ? Number(experienceYears) : 0;
+
+      if (normalizedName.length < 2 || normalizedName.length > 80) {
+        throw new Error("Enter your real full name using 2 to 80 characters.");
+      }
+      if (normalizedCity.length < 2 || normalizedCity.length > 100) {
+        throw new Error("Enter a valid city or location.");
+      }
+      if (normalizedBio.length < 20 || normalizedBio.length > 600) {
+        throw new Error("Your profile introduction must be between 20 and 600 characters.");
+      }
+      if (isFreelancer && normalizedTitle.length < 3) {
+        throw new Error("Add a clear professional title before saving your freelancer profile.");
+      }
+      if (isFreelancer && skills.length === 0) {
+        throw new Error("Select at least one service category before saving your freelancer profile.");
+      }
+      if (!Number.isFinite(rate) || rate < 0 || rate > 1_000_000) {
+        throw new Error("Enter a valid hourly rate between 0 and 1,000,000 PKR.");
+      }
+      if (!Number.isFinite(years) || years < 0 || years > 80) {
+        throw new Error("Enter a valid number of years of experience.");
+      }
+      if (!isHttpUrl(portfolioUrl)) {
+        throw new Error("Enter a valid portfolio URL beginning with http:// or https://.");
+      }
 
       let uploadedAvatar = avatarUrl;
       if (avatarFile) {
         if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) {
           throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
         }
+        if (!storage) throw new Error("Profile photo storage is not configured yet.");
         try {
-          if (!storage) throw new Error("Storage unavailable");
           const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
           await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
           uploadedAvatar = await getDownloadURL(avatarRef);
         } catch {
-          uploadedAvatar = await compactProfileImage(avatarFile);
+          throw new Error("We could not upload your profile photo. Please retry with a JPG, PNG or WebP image under 5 MB.");
         }
       }
 
       const data: Record<string, unknown> = {
-        name: name.trim(),
-        bio: bio.trim(),
-        city: city.trim(),
+        name: normalizedName,
+        bio: normalizedBio,
+        city: normalizedCity,
         avatarUrl: uploadedAvatar,
         onboarded: true,
-        profileComplete: Boolean(name.trim() && bio.trim() && city.trim() && (!isFreelancer || skills.length > 0)),
-        profileUpdatedAt: new Date().toISOString(),
+        profileComplete: true,
+        profileUpdatedAt: serverTimestamp(),
       };
 
       if (isFreelancer) {
-        data.professionalTitle = professionalTitle.trim();
+        data.professionalTitle = normalizedTitle;
         data.skills = skills;
-        data.hourlyRate = Math.max(0, Number(hourlyRate) || 0);
-        data.experienceYears = Math.max(0, Number(experienceYears) || 0);
-        data.languages = languages.split(",").map((item) => item.trim()).filter(Boolean);
+        data.hourlyRate = rate;
+        data.experienceYears = years;
+        data.languages = languages.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 10);
         data.availability = availability;
         data.portfolioUrl = portfolioUrl.trim();
-        data.certifications = certifications.split(",").map((item) => item.trim()).filter(Boolean);
+        data.certifications = certifications.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
       } else {
-        data.organization = organization.trim();
-        data.hiringNeeds = hiringNeeds.trim();
+        data.organization = organization.trim().slice(0, 120);
+        data.hiringNeeds = hiringNeeds.trim().slice(0, 600);
       }
 
       if (hasPermission(staff, "manageUsers")) data.isPrivate = isPrivate;
 
       await setDoc(doc(db, "users", user.uid), data, { merge: true });
+      if (user.displayName !== normalizedName) {
+        await updateProfile(user, { displayName: normalizedName }).catch(() => undefined);
+      }
+
+      setName(normalizedName);
+      setCity(normalizedCity);
+      setBio(normalizedBio);
+      setProfessionalTitle(normalizedTitle);
       setAvatarUrl(uploadedAvatar);
       setAvatarFile(null);
-      setAvatarPreview("");
+      setAvatarPreview((previous) => {
+        if (previous) URL.revokeObjectURL(previous);
+        return "";
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 4000);
     } catch (caught) {
@@ -197,7 +265,6 @@ export default function ProfilePage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-5xl">
-        {/* Header card */}
         <section className="surface overflow-hidden">
           <div className="h-24 bg-gradient-to-r from-brand to-brand-light" />
           <div className="px-6 pb-6 sm:px-8 sm:pb-8">
@@ -234,9 +301,7 @@ export default function ProfilePage() {
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm font-medium text-ink-500">
-                  {professionalTitle || organization || user.email}
-                </p>
+                <p className="mt-1 text-sm font-medium text-ink-500">{professionalTitle || organization || user.email}</p>
               </div>
 
               <Link href={`/u/${user.uid}`} className="pb-1">
@@ -248,7 +313,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Stats */}
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat icon={Star} label="Average rating" value={averageRating} tone="bg-amber-50 text-amber-600" />
           <Stat icon={CheckCircle2} label="Tasks completed" value={tasksDone} tone="bg-emerald-50 text-emerald-600" />
@@ -258,10 +322,9 @@ export default function ProfilePage() {
             value={completionRate === null ? "—" : `${completionRate}%`}
             tone="bg-indigo-50 text-indigo-600"
           />
-          <Stat icon={TrendingUp} label="Trust score" value={trust ?? 70} tone="bg-brand-50 text-brand" />
+          <Stat icon={TrendingUp} label="Trust score" value={trust ?? "—"} tone="bg-brand-50 text-brand" />
         </div>
 
-        {/* Interview */}
         {isFreelancer && (
           <section className="mt-5 overflow-hidden rounded-3xl bg-ink p-6 text-white shadow-elevated sm:p-7">
             <div className="flex flex-wrap items-center gap-5">
@@ -307,7 +370,6 @@ export default function ProfilePage() {
           </section>
         )}
 
-        {/* Edit form */}
         <form onSubmit={save} className="mt-5 space-y-6">
           <section className="surface p-6 sm:p-8">
             <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
@@ -316,28 +378,30 @@ export default function ProfilePage() {
               </span>
               <div>
                 <h2 className="font-black text-ink">Basic details</h2>
-                <p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p>
+                <p className="text-xs font-medium text-ink-400">Required before marketplace actions are unlocked</p>
               </div>
             </div>
 
             <div className="space-y-5">
-              <Field label="Full name" required>
-                <Input value={name} onChange={(event) => setName(event.target.value)} required />
+              <Field label="Full name" hint="2–80 characters" required>
+                <Input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} autoComplete="name" required />
               </Field>
-              <Field label="City" required>
-                <Input value={city} onChange={(event) => setCity(event.target.value)} placeholder="e.g. Lahore" />
+              <Field label="City or location" required>
+                <Input value={city} onChange={(event) => setCity(event.target.value)} maxLength={100} placeholder="e.g. Lahore" required />
               </Field>
-              <Field label="About you" hint={`${bio.length}/600`}>
+              <Field label="About you" hint={`${bio.length}/600 · minimum 20 characters`} required>
                 <Textarea
                   rows={4}
+                  minLength={20}
                   maxLength={600}
                   value={bio}
                   onChange={(event) => setBio(event.target.value)}
                   placeholder={
                     isFreelancer
-                      ? "What you do, the results you deliver, and why clients keep coming back."
+                      ? "What you do, the results you deliver, and how you work reliably."
                       : "What your business or household needs, and how you like to work with freelancers."
                   }
+                  required
                 />
               </Field>
             </div>
@@ -351,20 +415,22 @@ export default function ProfilePage() {
                 </span>
                 <div>
                   <h2 className="font-black text-ink">Freelancer details</h2>
-                  <p className="text-xs font-medium text-ink-400">This is what clients compare when choosing an offer</p>
+                  <p className="text-xs font-medium text-ink-400">Required before you can send offers</p>
                 </div>
               </div>
 
               <div className="space-y-5">
-                <Field label="Professional title">
+                <Field label="Professional title" hint="At least 3 characters" required>
                   <Input
                     value={professionalTitle}
                     onChange={(event) => setProfessionalTitle(event.target.value)}
                     placeholder="e.g. Full-stack developer"
+                    maxLength={100}
+                    required
                   />
                 </Field>
 
-                <Field label="Service categories" hint={`${skills.length}/10 selected`}>
+                <Field label="Service categories" hint={`${skills.length}/10 selected · choose at least one`} required>
                   <div className="flex flex-wrap gap-2">
                     {CATEGORIES.map((item) => {
                       const selected = skills.includes(item);
@@ -387,13 +453,21 @@ export default function ProfilePage() {
                 </Field>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Hourly rate (PKR)">
-                    <Input type="number" min={0} value={hourlyRate} onChange={(event) => setHourlyRate(event.target.value)} />
-                  </Field>
-                  <Field label="Years of experience">
+                  <Field label="Hourly rate (PKR)" hint="Optional">
                     <Input
                       type="number"
                       min={0}
+                      max={1000000}
+                      step={100}
+                      value={hourlyRate}
+                      onChange={(event) => setHourlyRate(event.target.value)}
+                    />
+                  </Field>
+                  <Field label="Years of experience" hint="Optional">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={80}
                       value={experienceYears}
                       onChange={(event) => setExperienceYears(event.target.value)}
                     />
@@ -403,14 +477,12 @@ export default function ProfilePage() {
                   </Field>
                   <Field label="Availability">
                     <Select value={availability} onChange={(event) => setAvailability(event.target.value)}>
-                      {AVAILABILITY.map((item) => (
-                        <option key={item}>{item}</option>
-                      ))}
+                      {AVAILABILITY.map((item) => <option key={item}>{item}</option>)}
                     </Select>
                   </Field>
                 </div>
 
-                <Field label="Portfolio URL" hint="Optional">
+                <Field label="Portfolio URL" hint="Optional · http:// or https://">
                   <Input
                     type="url"
                     value={portfolioUrl}
@@ -435,7 +507,7 @@ export default function ProfilePage() {
                 </span>
                 <div>
                   <h2 className="font-black text-ink">Client details</h2>
-                  <p className="text-xs font-medium text-ink-400">Freelancers see this when deciding whether to bid</p>
+                  <p className="text-xs font-medium text-ink-400">Useful context for freelancers considering your tasks</p>
                 </div>
               </div>
 
@@ -444,12 +516,14 @@ export default function ProfilePage() {
                   <Input
                     value={organization}
                     onChange={(event) => setOrganization(event.target.value)}
+                    maxLength={120}
                     placeholder="Your business or team"
                   />
                 </Field>
-                <Field label="What do you usually hire for?">
+                <Field label="What do you usually hire for?" hint={`${hiringNeeds.length}/600 · optional`}>
                   <Textarea
                     rows={4}
+                    maxLength={600}
                     value={hiringNeeds}
                     onChange={(event) => setHiringNeeds(event.target.value)}
                     placeholder="Tell freelancers what kind of help you regularly need."
@@ -477,10 +551,10 @@ export default function ProfilePage() {
           )}
 
           {error && <Alert tone="error">{error}</Alert>}
-          {saved && <Alert tone="success">Your profile has been saved.</Alert>}
+          {saved && <Alert tone="success">Your profile has been saved and account readiness has been recalculated.</Alert>}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" loading={busy}>
+            <Button type="submit" loading={busy} disabled={busy}>
               <Save className="h-4 w-4" /> Save profile
             </Button>
             <Link href="/settings" className="text-sm font-bold text-ink-500 hover:text-ink">
@@ -512,29 +586,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-}
-
-async function compactProfileImage(file: File): Promise<string> {
-  const objectUrl = URL.createObjectURL(file);
-  try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const element = new Image();
-      element.onload = () => resolve(element);
-      element.onerror = () => reject(new Error("The selected image could not be read."));
-      element.src = objectUrl;
-    });
-    const maxSide = 512;
-    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(image.width * scale));
-    canvas.height = Math.max(1, Math.round(image.height * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Image processing is not supported in this browser.");
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const encoded = canvas.toDataURL("image/jpeg", 0.76);
-    if (encoded.length > 700_000) throw new Error("Please choose a smaller profile image.");
-    return encoded;
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
 }
