@@ -1,0 +1,186 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function hasRole(roles) {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().role in roles;
+    }
+    function ownerAccount() {
+      return signedIn() && request.auth.token.email == 'contact.hamzutrader@gmail.com';
+    }
+    function adminRecord() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
+    }
+    function isAdmin() {
+      return ownerAccount()
+        || hasRole(['super_admin'])
+        || (signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+    function isModerator() {
+      return isAdmin() || hasRole(['moderator']);
+    }
+    function hasPermission(permission) {
+      return ownerAccount()
+        || hasRole(['super_admin'])
+        || (signedIn()
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+          && permission in adminRecord().permissions);
+    }
+    function publicRole(role) {
+      return role in ['customer', 'tasker'];
+    }
+    function sameProtectedUserFields() {
+      return request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
+        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0);
+    }
+    function task(taskId) {
+      return get(/databases/$(database)/documents/tasks/$(taskId)).data;
+    }
+    function hasPrivateInvite(taskId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/task_invites/$(taskId))
+        && get(/databases/$(database)/documents/task_invites/$(taskId)).data.userId == request.auth.uid;
+    }
+
+    match /users/{uid} {
+      allow read: if resource.data.isPrivate != true || (signedIn() && request.auth.uid == uid) || isAdmin();
+      allow create: if (ownerAccount() && request.auth.uid == uid
+          && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
+        || (signedIn() && request.auth.uid == uid
+          && request.resource.data.uid == uid
+          && publicRole(request.resource.data.role)
+          && request.resource.data.isPrivate == false);
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+          && sameProtectedUserFields()
+          && publicRole(resource.data.role)
+          && publicRole(request.resource.data.role));
+      allow delete: if hasPermission('manageUsers');
+    }
+
+    match /tasks/{taskId} {
+      allow read: if (resource.data.visibility == 'public' && resource.data.status != 'pending')
+        || (signedIn() && (resource.data.posterId == request.auth.uid
+          || resource.data.assignedTo == request.auth.uid || isModerator()))
+        || hasPrivateInvite(taskId);
+      allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
+        || (isAdmin() && request.resource.data.posterId == request.auth.uid);
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.posterId == request.auth.uid)
+        || (signedIn() && resource.data.assignedTo == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']))
+        || (hasRole(['tasker']) && resource.data.status == 'open'
+          && (resource.data.visibility == 'public' || hasPrivateInvite(taskId))
+          && request.resource.data.bidsCount == resource.data.bidsCount + 1
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bidsCount']));
+      allow delete: if (signedIn() && resource.data.posterId == request.auth.uid) || isAdmin();
+    }
+
+    match /bids/{bidId} {
+      allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
+        || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
+      allow create: if (hasRole(['tasker']) && request.resource.data.bidderId == request.auth.uid
+          && task(request.resource.data.taskId).status == 'open'
+          && (task(request.resource.data.taskId).visibility == 'public'
+            || hasPrivateInvite(request.resource.data.taskId))
+          && task(request.resource.data.taskId).posterId != request.auth.uid)
+        || isAdmin();
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.bidderId == request.auth.uid
+          && resource.data.status == 'pending'
+          && request.resource.data.taskId == resource.data.taskId
+          && request.resource.data.bidderId == resource.data.bidderId)
+        || (signedIn() && task(resource.data.taskId).posterId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow delete: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.fromId == request.auth.uid
+        && (task(request.resource.data.taskId).posterId == request.auth.uid
+          || task(request.resource.data.taskId).assignedTo == request.auth.uid)
+        && request.resource.data.toId != request.auth.uid;
+      allow update, delete: if hasPermission('manageContent');
+    }
+
+    match /conversations/{convId} {
+      function participant(data) {
+        return signedIn() && request.auth.uid in data.participants;
+      }
+      allow read: if participant(resource.data);
+      allow create: if participant(request.resource.data)
+        && task(request.resource.data.taskId).status in ['assigned', 'in_progress', 'completed'];
+      allow update: if participant(resource.data);
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        function conversationParticipant() {
+          return signedIn()
+            && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
+        }
+        allow read: if conversationParticipant();
+        allow create: if conversationParticipant() && request.resource.data.fromId == request.auth.uid;
+        allow update, delete: if hasPermission('manageContent');
+      }
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn();
+      allow update: if signedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAdmin();
+    }
+
+    match /wallet_txs/{transactionId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
+      allow create: if isAdmin()
+        || (signedIn() && request.resource.data.userId == request.auth.uid
+          && request.resource.data.type in ['hold', 'payment'])
+        || (signedIn() && request.resource.data.type == 'release'
+          && task(request.resource.data.taskId).posterId == request.auth.uid
+          && task(request.resource.data.taskId).assignedTo == request.resource.data.userId);
+      allow update, delete: if hasPermission('managePayments');
+    }
+
+    match /disputes/{disputeId} {
+      allow read: if signedIn() && (resource.data.openedBy == request.auth.uid
+        || resource.data.respondentId == request.auth.uid || hasPermission('managePayments'));
+      allow create: if signedIn() && request.resource.data.openedBy == request.auth.uid
+        && (task(request.resource.data.taskId).posterId == request.auth.uid
+          || task(request.resource.data.taskId).assignedTo == request.auth.uid);
+      allow update: if hasPermission('managePayments');
+    }
+
+    match /admins/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow create, update, delete: if hasPermission('manageAdmins');
+    }
+
+    match /task_invites/{taskId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if hasRole(['tasker'])
+        && request.resource.data.taskId == taskId
+        && request.resource.data.userId == request.auth.uid
+        && task(taskId).visibility == 'private'
+        && task(taskId).status == 'open'
+        && request.resource.data.token == task(taskId).shareToken;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{documentId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
