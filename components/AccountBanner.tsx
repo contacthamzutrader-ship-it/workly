@@ -44,7 +44,7 @@ export default function AccountBanner() {
 
   if (!user.emailVerified && user.providerData.some((provider) => provider.providerId === "password")) {
     return (
-      <Strip tone="bg-$warning-500" icon={MailCheck} onDismiss={() => setDismissed(true)}>
+      <Strip tone="bg-ink" icon={MailCheck} onDismiss={() => setDismissed(true)}>
         <span>Confirm your email address to keep your account secure.</span>
         <button
           onClick={async () => {
