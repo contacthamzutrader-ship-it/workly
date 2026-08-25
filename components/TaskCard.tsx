@@ -5,18 +5,18 @@ import { formatPKR, timeAgo } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/Badge";
 
 const CATEGORY_TONES: Record<string, string> = {
-  Cleaning: "bg-sky-50 text-sky-700",
-  Handyman: "bg-orange-50 text-orange-700",
-  Delivery: "bg-violet-50 text-violet-700",
-  Gardening: "bg-emerald-50 text-emerald-700",
-  "IT & Web": "bg-indigo-50 text-indigo-700",
-  Design: "bg-pink-50 text-pink-700",
-  Moving: "bg-amber-50 text-amber-700",
-  "Pet Care": "bg-teal-50 text-teal-700",
-  Tutoring: "bg-cyan-50 text-cyan-700",
-  "Business & Admin": "bg-slate-100 text-slate-700",
+  Cleaning: "bg-$info-50 text-$info-700",
+  Handyman: "bg-$warning-50 text-$warning-700",
+  Delivery: "bg-$deep-50 text-$deep-700",
+  Gardening: "bg-$success-50 text-$success-700",
+  "IT & Web": "bg-$info-50 text-$info-700",
+  Design: "bg-$danger-50 text-$danger-700",
+  Moving: "bg-$warning-50 text-$warning-700",
+  "Pet Care": "bg-$success-50 text-$success-700",
+  Tutoring: "bg-$brand-50 text-$brand-700",
+  "Business & Admin": "bg-$ink-100 text-$ink-700",
   Photography: "bg-fuchsia-50 text-fuchsia-700",
-  Cooking: "bg-rose-50 text-rose-700",
+  Cooking: "bg-$danger-50 text-$danger-700",
 };
 
 export default function TaskCard({

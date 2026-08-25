@@ -40,12 +40,12 @@ type LedgerEntry = {
 };
 
 const ENTRY_STYLES: Record<LedgerEntry["type"], { tone: string; icon: typeof Banknote; sign: string }> = {
-  deposit: { tone: "bg-emerald-50 text-emerald-600", icon: ArrowDownLeft, sign: "+" },
+  deposit: { tone: "bg-$success-50 text-$success-600", icon: ArrowDownLeft, sign: "+" },
   release: { tone: "bg-brand-50 text-brand", icon: CheckCircle2, sign: "+" },
-  refund: { tone: "bg-sky-50 text-sky-600", icon: ArrowDownLeft, sign: "+" },
-  payment: { tone: "bg-indigo-50 text-indigo-600", icon: Banknote, sign: "" },
-  hold: { tone: "bg-amber-50 text-amber-700", icon: Clock3, sign: "−" },
-  withdraw: { tone: "bg-rose-50 text-rose-600", icon: ArrowUpRight, sign: "−" },
+  refund: { tone: "bg-$info-50 text-$info-600", icon: ArrowDownLeft, sign: "+" },
+  payment: { tone: "bg-$info-50 text-$info-600", icon: Banknote, sign: "" },
+  hold: { tone: "bg-$warning-50 text-$warning-700", icon: Clock3, sign: "−" },
+  withdraw: { tone: "bg-$danger-50 text-$danger-600", icon: ArrowUpRight, sign: "−" },
 };
 
 export default function WalletPage() {
@@ -182,7 +182,7 @@ export default function WalletPage() {
           <div className="surface p-6">
             <div className="flex items-center justify-between">
               <p className="text-sm font-black text-ink-500">Awaiting your review</p>
-              <Send className="h-5 w-5 text-indigo-600" />
+              <Send className="h-5 w-5 text-$info-600" />
             </div>
             <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-ink">{pendingApproval.length}</p>
             <p className="mt-1.5 text-xs text-ink-400">Deliveries needing a decision</p>
@@ -190,9 +190,9 @@ export default function WalletPage() {
         </div>
 
         {pendingApproval.length > 0 && (
-          <section className="mb-6 rounded-3xl border border-indigo-200 bg-indigo-50 p-6">
+          <section className="mb-6 rounded-3xl border border-$info-200 bg-$info-50 p-6">
             <div className="mb-4 flex items-center gap-2">
-              <Send className="h-5 w-5 text-indigo-600" />
+              <Send className="h-5 w-5 text-$info-600" />
               <h2 className="text-sm font-black text-ink">Deliveries waiting for you ({pendingApproval.length})</h2>
             </div>
             <ul className="space-y-2">
@@ -200,7 +200,7 @@ export default function WalletPage() {
                 <li key={task.id}>
                   <Link
                     href={`/tasks/${task.id}`}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-white p-4 transition hover:border-indigo-400"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-$info-200 bg-white p-4 transition hover:border-$info-400"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-black text-ink">{task.title}</p>
@@ -208,7 +208,7 @@ export default function WalletPage() {
                         Approve to release {formatPKR(task.heldAmount || 0)} to {task.assignedName}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-indigo-100 px-3 py-1.5 text-xs font-black text-indigo-700">
+                    <span className="shrink-0 rounded-full bg-$info-100 px-3 py-1.5 text-xs font-black text-$info-700">
                       {formatPKR(task.heldAmount || 0)}
                     </span>
                   </Link>
@@ -267,7 +267,7 @@ export default function WalletPage() {
                     <div className="shrink-0 text-right">
                       <p
                         className={`text-sm font-black ${
-                          style.sign === "+" ? "text-emerald-600" : style.sign === "−" ? "text-rose-600" : "text-ink"
+                          style.sign === "+" ? "text-$success-600" : style.sign === "−" ? "text-$danger-600" : "text-ink"
                         }`}
                       >
                         {style.sign}

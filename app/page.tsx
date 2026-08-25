@@ -32,12 +32,12 @@ import Button from "@/components/ui/Button";
 import TaskCard from "@/components/TaskCard";
 
 const CATEGORY_TILES = [
-  { icon: Wrench, name: "Handyman", blurb: "Plumbing, electrical & repairs", tone: "bg-orange-50 text-orange-600" },
-  { icon: Laptop2, name: "IT & Web", blurb: "Apps, sites & support", tone: "bg-indigo-50 text-indigo-600" },
-  { icon: Paintbrush, name: "Design", blurb: "Branding & creative", tone: "bg-pink-50 text-pink-600" },
-  { icon: Truck, name: "Moving", blurb: "Delivery & relocation", tone: "bg-sky-50 text-sky-600" },
-  { icon: BriefcaseBusiness, name: "Business & Admin", blurb: "Admin & marketing", tone: "bg-amber-50 text-amber-700" },
-  { icon: Hammer, name: "Furniture Assembly", blurb: "Assembly & maintenance", tone: "bg-emerald-50 text-emerald-700" },
+  { icon: Wrench, name: "Handyman", blurb: "Plumbing, electrical & repairs", tone: "bg-$warning-50 text-$warning-600" },
+  { icon: Laptop2, name: "IT & Web", blurb: "Apps, sites & support", tone: "bg-$info-50 text-$info-600" },
+  { icon: Paintbrush, name: "Design", blurb: "Branding & creative", tone: "bg-$danger-50 text-$danger-600" },
+  { icon: Truck, name: "Moving", blurb: "Delivery & relocation", tone: "bg-$info-50 text-$info-600" },
+  { icon: BriefcaseBusiness, name: "Business & Admin", blurb: "Admin & marketing", tone: "bg-$warning-50 text-$warning-700" },
+  { icon: Hammer, name: "Furniture Assembly", blurb: "Assembly & maintenance", tone: "bg-$success-50 text-$success-700" },
 ];
 
 const SAMPLE_FEED = [

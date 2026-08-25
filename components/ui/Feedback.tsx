@@ -5,9 +5,9 @@ type Tone = "info" | "success" | "warning" | "error";
 
 const TONES: Record<Tone, { wrap: string; icon: typeof Info }> = {
   info: { wrap: "border-brand-200 bg-brand-50 text-brand-700", icon: Info },
-  success: { wrap: "border-emerald-200 bg-emerald-50 text-emerald-800", icon: CheckCircle2 },
-  warning: { wrap: "border-amber-200 bg-amber-50 text-amber-800", icon: AlertTriangle },
-  error: { wrap: "border-rose-200 bg-rose-50 text-rose-800", icon: XCircle },
+  success: { wrap: "border-$success-200 bg-$success-50 text-$success-800", icon: CheckCircle2 },
+  warning: { wrap: "border-$warning-200 bg-$warning-50 text-$warning-800", icon: AlertTriangle },
+  error: { wrap: "border-$danger-200 bg-$danger-50 text-$danger-800", icon: XCircle },
 };
 
 export function Alert({

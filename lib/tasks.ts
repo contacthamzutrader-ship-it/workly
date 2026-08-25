@@ -87,16 +87,16 @@ export const ACTIVE_STATUSES: TaskStatus[] = [
 
 export const TASK_STATUS_META: Record<TaskStatus, { label: string; tone: string; hint: string }> = {
   draft: { label: "Draft", tone: "bg-ink-50 text-ink-500 border-ink-200", hint: "Not submitted yet." },
-  pending: { label: "In review", tone: "bg-amber-50 text-amber-700 border-amber-200", hint: "Workly is checking this task before it goes live." },
-  rejected: { label: "Rejected", tone: "bg-rose-50 text-rose-700 border-rose-200", hint: "This task did not pass review." },
+  pending: { label: "In review", tone: "bg-$warning-50 text-$warning-700 border-$warning-200", hint: "Workly is checking this task before it goes live." },
+  rejected: { label: "Rejected", tone: "bg-$danger-50 text-$danger-700 border-$danger-200", hint: "This task did not pass review." },
   open: { label: "Open for offers", tone: "bg-brand-50 text-brand-dark border-brand-200", hint: "Freelancers can send offers." },
-  assigned: { label: "Hired", tone: "bg-blue-50 text-blue-700 border-blue-200", hint: "A freelancer has been selected." },
-  in_progress: { label: "In progress", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", hint: "Work has started." },
-  submitted: { label: "Delivered", tone: "bg-violet-50 text-violet-700 border-violet-200", hint: "Waiting for the client to review the delivery." },
-  changes_requested: { label: "Changes requested", tone: "bg-orange-50 text-orange-700 border-orange-200", hint: "The client asked for revisions." },
-  completed: { label: "Completed", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", hint: "Approved and closed." },
+  assigned: { label: "Hired", tone: "bg-$info-50 text-$info-700 border-$info-200", hint: "A freelancer has been selected." },
+  in_progress: { label: "In progress", tone: "bg-$info-50 text-$info-700 border-$info-200", hint: "Work has started." },
+  submitted: { label: "Delivered", tone: "bg-$deep-50 text-$deep-700 border-$deep-200", hint: "Waiting for the client to review the delivery." },
+  changes_requested: { label: "Changes requested", tone: "bg-$warning-50 text-$warning-700 border-$warning-200", hint: "The client asked for revisions." },
+  completed: { label: "Completed", tone: "bg-$success-50 text-$success-700 border-$success-200", hint: "Approved and closed." },
   cancelled: { label: "Cancelled", tone: "bg-ink-100 text-ink-600 border-ink-200", hint: "This task was cancelled." },
-  disputed: { label: "In dispute", tone: "bg-rose-50 text-rose-700 border-rose-200", hint: "Workly support is reviewing this contract." },
+  disputed: { label: "In dispute", tone: "bg-$danger-50 text-$danger-700 border-$danger-200", hint: "Workly support is reviewing this contract." },
 };
 
 /** Ordered milestones shown on the task tracker. */

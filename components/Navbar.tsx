@@ -159,7 +159,7 @@ export default function Navbar() {
               >
                 <Bell className="h-[18px] w-[18px]" />
                 {unread > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-$danger-500 px-1 text-[10px] font-black text-white">
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
@@ -246,7 +246,7 @@ export default function Navbar() {
                           await signOut();
                           router.push("/");
                         }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-50"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold text-$danger-600 transition hover:bg-$danger-50"
                       >
                         <LogOut className="h-4 w-4" /> Sign out
                       </button>
@@ -339,7 +339,7 @@ export default function Navbar() {
                     await signOut();
                     router.push("/");
                   }}
-                  className="mt-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-rose-600"
+                  className="mt-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-bold text-$danger-600"
                 >
                   <LogOut className="h-4 w-4" /> Sign out
                 </button>

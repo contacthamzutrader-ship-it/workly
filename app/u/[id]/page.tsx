@@ -109,7 +109,7 @@ export default function PublicProfilePage() {
                     {data.name || "Workly member"}
                   </h1>
                   {data.interviewStatus === "verified" && (
-                    <BadgeCheck className="h-6 w-6 text-emerald-600" aria-label="Workly interviewed" />
+                    <BadgeCheck className="h-6 w-6 text-$success-600" aria-label="Workly interviewed" />
                   )}
                 </div>
                 <p className="mt-1 text-sm font-bold text-brand-dark">
@@ -118,7 +118,7 @@ export default function PublicProfilePage() {
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
                   <Badge tone="bg-brand-50 text-brand-dark border-brand-200">{MEMBER_ROLE_LABELS[role]}</Badge>
                   {data.verified && (
-                    <Badge tone="bg-emerald-50 text-emerald-700 border-emerald-200">
+                    <Badge tone="bg-$success-50 text-$success-700 border-$success-200">
                       <ShieldCheck className="h-3 w-3" /> ID verified
                     </Badge>
                   )}
@@ -173,19 +173,19 @@ export default function PublicProfilePage() {
         </section>
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat icon={Star} label={`${reviews.length} reviews`} value={average} tone="bg-amber-50 text-amber-600" />
+          <Stat icon={Star} label={`${reviews.length} reviews`} value={average} tone="bg-$warning-50 text-$warning-600" />
           <Stat
             icon={CheckCircle2}
             label="Tasks completed"
             value={data.tasksCompleted ?? "—"}
-            tone="bg-emerald-50 text-emerald-600"
+            tone="bg-$success-50 text-$success-600"
           />
           <Stat icon={TrendingUp} label="Trust score" value={data.trustScore ?? 70} tone="bg-brand-50 text-brand" />
           <Stat
             icon={ShieldCheck}
             label="Interview"
             value={data.interviewStatus === "verified" ? "Verified" : "Pending"}
-            tone="bg-indigo-50 text-indigo-600"
+            tone="bg-$info-50 text-$info-600"
           />
         </div>
 

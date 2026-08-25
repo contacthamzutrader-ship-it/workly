@@ -314,7 +314,7 @@ function SignupForm() {
               </span>
             </label>
 
-            {attempted && !agreed && !error && <p className="text-xs font-bold text-rose-600">You must accept the signup terms to continue.</p>}
+            {attempted && !agreed && !error && <p className="text-xs font-bold text-$danger-600">You must accept the signup terms to continue.</p>}
             {error && <Alert tone="error">{error}</Alert>}
 
             <Button type="submit" loading={busy === "email"} disabled={!canSubmit} fullWidth size="lg">

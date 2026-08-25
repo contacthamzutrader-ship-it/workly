@@ -79,10 +79,10 @@ export function interviewStatusLabel(status?: string) {
 
 export function interviewStatusTone(status?: string) {
   switch (status) {
-    case "verified": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "awaiting_review": return "bg-amber-50 text-amber-700 border-amber-200";
-    case "in_progress": return "bg-blue-50 text-blue-700 border-blue-200";
-    case "needs_improvement": return "bg-rose-50 text-rose-700 border-rose-200";
+    case "verified": return "bg-$success-50 text-$success-700 border-$success-200";
+    case "awaiting_review": return "bg-$warning-50 text-$warning-700 border-$warning-200";
+    case "in_progress": return "bg-$info-50 text-$info-700 border-$info-200";
+    case "needs_improvement": return "bg-$danger-50 text-$danger-700 border-$danger-200";
     default: return "bg-ink-50 text-ink-500 border-ink-100";
   }
 }

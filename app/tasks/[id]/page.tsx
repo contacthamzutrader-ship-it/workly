@@ -305,7 +305,7 @@ function TaskDetail() {
                   <Badge tone="bg-ink text-white border-ink">Private</Badge>
                 )}
                 {task.urgency === "urgent" && (
-                  <Badge tone="bg-rose-50 text-rose-700 border-rose-200">
+                  <Badge tone="bg-$danger-50 text-$danger-700 border-$danger-200">
                     <Zap className="h-3 w-3" /> Urgent
                   </Badge>
                 )}
@@ -465,12 +465,12 @@ function TaskDetail() {
                                 {bid.bidderName}
                               </Link>
                               {bid.interviewed && (
-                                <Badge tone="bg-emerald-50 text-emerald-700 border-emerald-200">
+                                <Badge tone="bg-$success-50 text-$success-700 border-$success-200">
                                   <ShieldCheck className="h-3 w-3" /> Verified
                                 </Badge>
                               )}
                               {bid.fresh && (
-                                <Badge tone="bg-sky-50 text-sky-700 border-sky-200">
+                                <Badge tone="bg-$info-50 text-$info-700 border-$info-200">
                                   <Sparkles className="h-3 w-3" /> New talent
                                 </Badge>
                               )}
@@ -830,7 +830,7 @@ function TaskDetail() {
                   <Row label={`Service fee (${Math.round(PLATFORM_FEE * 100)}%)`} value={`−${formatPKR(feeAmount)}`} />
                   <Row label="Freelancer receives" value={formatPKR(takeHome)} strong />
                   {task.paymentReleased && (
-                    <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs font-black text-emerald-700">
+                    <div className="mt-3 flex items-center gap-2 rounded-xl bg-$success-50 p-3 text-xs font-black text-$success-700">
                       <CheckCircle2 className="h-4 w-4" /> Payment released {timeAgo(task.paidAt)}
                     </div>
                   )}
@@ -927,7 +927,7 @@ function TaskDetail() {
                     ) : (
                       <button
                         onClick={() => setShowCancel(true)}
-                        className="mt-3 block w-full rounded-xl border border-ink-200 px-3 py-2.5 text-xs font-black text-ink-500 transition hover:border-rose-200 hover:text-rose-600"
+                        className="mt-3 block w-full rounded-xl border border-ink-200 px-3 py-2.5 text-xs font-black text-ink-500 transition hover:border-$danger-200 hover:text-$danger-600"
                       >
                         Cancel this task
                       </button>
@@ -977,7 +977,7 @@ function TaskDetail() {
                     ) : (
                       <button
                         onClick={() => setShowDispute(true)}
-                        className="mt-2 block w-full rounded-xl border border-ink-200 px-3 py-2.5 text-xs font-black text-ink-500 transition hover:border-amber-200 hover:text-amber-700"
+                        className="mt-2 block w-full rounded-xl border border-ink-200 px-3 py-2.5 text-xs font-black text-ink-500 transition hover:border-$warning-200 hover:text-$warning-700"
                       >
                         Raise a dispute
                       </button>

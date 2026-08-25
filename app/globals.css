@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --brand: #176bff;
-  --ink: #07182e;
-  --canvas: #f5f7fb;
+  --brand: #228b22;
+  --ink: #1e293b;
+  --deep: #00501f;
+  --canvas: #f9f9f9;
 }
 
 html,
@@ -37,8 +38,8 @@ p {
 }
 
 ::selection {
-  background: #bdd6ff;
-  color: #07182e;
+  background: #b5ddb5;
+  color: #1e293b;
 }
 
 button,
@@ -54,7 +55,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgb(23 107 255 / 0.22);
+  outline: 3px solid rgb(34 139 34 / 0.25);
   outline-offset: 2px;
 }
 
@@ -73,8 +74,8 @@ textarea:focus-visible {
   }
   .soft-grid {
     background-image:
-      linear-gradient(rgb(23 107 255 / 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(23 107 255 / 0.045) 1px, transparent 1px);
+      linear-gradient(rgb(34 139 34 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(34 139 34 / 0.05) 1px, transparent 1px);
     background-size: 34px 34px;
   }
   .noise {

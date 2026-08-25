@@ -47,7 +47,7 @@ export function checkPassword(value: string): PasswordCheck {
   if (/\d/.test(value) && /[^\w\s]/.test(value)) score += 1;
 
   const labels = ["Too short", "Weak", "Okay", "Strong", "Very strong"];
-  const tones = ["bg-ink-200", "bg-rose-500", "bg-amber-500", "bg-emerald-500", "bg-emerald-600"];
+  const tones = ["bg-ink-200", "bg-$danger-500", "bg-$warning-500", "bg-$success-500", "bg-$success-600"];
   const clamped = Math.min(4, score) as 0 | 1 | 2 | 3 | 4;
   return { score: clamped, label: labels[clamped], tone: tones[clamped], problems };
 }

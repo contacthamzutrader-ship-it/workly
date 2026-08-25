@@ -47,7 +47,7 @@ export function Field({
         {hint && <span className="text-xs font-medium text-ink-400">{hint}</span>}
       </div>
       {children}
-      {error && <p className="mt-1.5 text-xs font-bold text-rose-600">{error}</p>}
+      {error && <p className="mt-1.5 text-xs font-bold text-$danger-600">{error}</p>}
     </div>
   );
 }

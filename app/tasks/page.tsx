@@ -296,14 +296,14 @@ function BrowseTasks() {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">
-                  Marketplace {live && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
+                  Marketplace {live && <span className="inline-flex items-center gap-1 rounded-full bg-$success-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
                 </p>
                 <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
                   {loading ? "Finding opportunities…" : `${tasks.length} open ${tasks.length === 1 ? "task" : "tasks"}`}
                 </h2>
               </div>
               <div className="flex items-center gap-2">
-                {live && <span className="hidden text-xs font-bold text-emerald-600 sm:inline">Realtime</span>}
+                {live && <span className="hidden text-xs font-bold text-$success-600 sm:inline">Realtime</span>}
                 {activeFilterCount > 0 && (
                   <button onClick={clear} className="flex items-center gap-1.5 text-xs font-black text-ink-400 hover:text-ink">
                     <X className="h-3.5 w-3.5" /> Clear {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}

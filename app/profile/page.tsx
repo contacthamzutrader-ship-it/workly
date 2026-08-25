@@ -291,7 +291,7 @@ export default function ProfilePage() {
               <div className="min-w-0 flex-1 pb-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-black tracking-[-0.035em] text-ink">{name || "Your profile"}</h1>
-                  {interviewStatus === "verified" && <BadgeCheck className="h-5 w-5 text-emerald-600" />}
+                  {interviewStatus === "verified" && <BadgeCheck className="h-5 w-5 text-$success-600" />}
                   <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-brand-dark">
                     {MEMBER_ROLE_LABELS[role]}
                   </span>
@@ -314,13 +314,13 @@ export default function ProfilePage() {
         </section>
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat icon={Star} label="Average rating" value={averageRating} tone="bg-amber-50 text-amber-600" />
-          <Stat icon={CheckCircle2} label="Tasks completed" value={tasksDone} tone="bg-emerald-50 text-emerald-600" />
+          <Stat icon={Star} label="Average rating" value={averageRating} tone="bg-$warning-50 text-$warning-600" />
+          <Stat icon={CheckCircle2} label="Tasks completed" value={tasksDone} tone="bg-$success-50 text-$success-600" />
           <Stat
             icon={Percent}
             label="Completion rate"
             value={completionRate === null ? "—" : `${completionRate}%`}
-            tone="bg-indigo-50 text-indigo-600"
+            tone="bg-$info-50 text-$info-600"
           />
           <Stat icon={TrendingUp} label="Trust score" value={trust ?? "—"} tone="bg-brand-50 text-brand" />
         </div>
@@ -410,7 +410,7 @@ export default function ProfilePage() {
           {isFreelancer ? (
             <section className="surface p-6 sm:p-8">
               <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-$info-50 text-$info-600">
                   <BadgeCheck className="h-4 w-4" />
                 </span>
                 <div>
@@ -502,7 +502,7 @@ export default function ProfilePage() {
           ) : (
             <section className="surface p-6 sm:p-8">
               <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-700">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-$warning-50 text-$warning-700">
                   <ShieldCheck className="h-4 w-4" />
                 </span>
                 <div>

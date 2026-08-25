@@ -22,12 +22,12 @@ export default function MaintenanceBanner() {
   // Staff still sees a distinct maintenance warning so they know why the site looks gated.
   if (showMaintenance) {
     return (
-      <div className="relative z-40 border-b border-amber-300 bg-amber-500 px-4 py-3 text-sm font-black text-white">
+      <div className="relative z-40 border-b border-$warning-300 bg-$warning-500 px-4 py-3 text-sm font-black text-white">
         <div className="page-shell flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2">
             <Settings className="h-4 w-4" /> Workly is in maintenance mode — only staff and ongoing tasks are fully accessible.
           </span>
-          {isStaff && <span className="rounded-full bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-amber-700">Staff view</span>}
+          {isStaff && <span className="rounded-full bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-$warning-700">Staff view</span>}
         </div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function MaintenanceBanner() {
 
   if (gateSignups) {
     return (
-      <div className="relative z-40 border-b border-sky-200 bg-sky-50 px-4 py-2.5 text-xs font-bold text-sky-800">
+      <div className="relative z-40 border-b border-$info-200 bg-$info-50 px-4 py-2.5 text-xs font-bold text-$info-800">
         <div className="page-shell flex items-center gap-2">
           <ShieldCheck className="h-3.5 w-3.5" /> New signups are temporarily paused by the Workly team. Existing members are not affected.
         </div>

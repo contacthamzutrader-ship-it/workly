@@ -317,14 +317,14 @@ export default function AdminPage() {
                       label: "People",
                       value: members.length,
                       note: `${analytics.clients} clients · ${analytics.freelancers} freelancers`,
-                      tone: "bg-blue-50 text-blue-600",
+                      tone: "bg-$info-50 text-$info-600",
                     },
                     {
                       icon: BriefcaseBusiness,
                       label: "All tasks",
                       value: allTasks.length,
                       note: `${pending.length} awaiting review`,
-                      tone: "bg-violet-50 text-violet-600",
+                      tone: "bg-$deep-50 text-$deep-600",
                     },
                     {
                       icon: CheckCircle2,
@@ -338,7 +338,7 @@ export default function AdminPage() {
                       label: "Platform revenue",
                       value: formatPKR(analytics.revenue),
                       note: `${Math.round(PLATFORM_FEE * 100)}% of ${formatPKR(analytics.volume)} volume`,
-                      tone: "bg-amber-50 text-amber-700",
+                      tone: "bg-$warning-50 text-$warning-700",
                     },
                   ].map((stat) => (
                     <div key={stat.label} className="surface p-4 sm:p-5">
@@ -388,13 +388,13 @@ export default function AdminPage() {
                     {can("approveTasks") && (
                       <button
                         onClick={() => setTab("approvals")}
-                        className="w-full rounded-3xl bg-amber-50 p-6 text-left transition hover:bg-amber-100"
+                        className="w-full rounded-3xl bg-$warning-50 p-6 text-left transition hover:bg-$warning-100"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-amber-700">
+                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-$warning-700">
                             <Clock3 className="h-5 w-5" />
                           </span>
-                          <ArrowRight className="h-4 w-4 text-amber-700" />
+                          <ArrowRight className="h-4 w-4 text-$warning-700" />
                         </div>
                         <p className="mt-5 text-3xl font-black text-ink">{pending.length}</p>
                         <p className="mt-1 text-sm font-black text-ink">Tasks need a decision</p>
@@ -426,7 +426,7 @@ export default function AdminPage() {
                         className="surface w-full p-5 text-left transition hover:border-brand-200"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                          <span className="grid h-11 w-11 place-items-center rounded-xl bg-$info-50 text-$info-600">
                             <Bot className="h-5 w-5" />
                           </span>
                           <div>
@@ -448,7 +448,7 @@ export default function AdminPage() {
                   title="Pending approval"
                   eyebrow="Decision queue"
                   action={
-                    <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-700">
+                    <span className="rounded-full bg-$warning-50 px-3 py-1.5 text-xs font-black text-$warning-700">
                       {pending.length} waiting
                     </span>
                   }
@@ -465,7 +465,7 @@ export default function AdminPage() {
                                 <Badge>{task.category}</Badge>
                                 <Badge tone="bg-brand-50 text-brand-dark border-brand-200">{formatPKR(task.budget)}</Badge>
                                 {task.moderation === "review" && (
-                                  <Badge tone="bg-amber-50 text-amber-700 border-amber-200">AI flagged</Badge>
+                                  <Badge tone="bg-$warning-50 text-$warning-700 border-$warning-200">AI flagged</Badge>
                                 )}
                               </div>
                               <h3 className="mt-3 text-lg font-black text-ink">{task.title}</h3>
@@ -523,7 +523,7 @@ export default function AdminPage() {
 
                           {rejectFor === task.id && (
                             <form
-                              className="mt-4 space-y-3 rounded-2xl border border-rose-200 bg-rose-50 p-4"
+                              className="mt-4 space-y-3 rounded-2xl border border-$danger-200 bg-$danger-50 p-4"
                               onSubmit={(event) => {
                                 event.preventDefault();
                                 run(
@@ -739,7 +739,7 @@ export default function AdminPage() {
                 title="Freelancer interview review"
                 eyebrow="Human-in-the-loop vetting"
                 action={
-                  <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700">
+                  <span className="rounded-full bg-$info-50 px-3 py-1.5 text-xs font-black text-$info-700">
                     {pendingInterviews.length} awaiting
                   </span>
                 }
@@ -763,9 +763,9 @@ export default function AdminPage() {
                                 <Badge
                                   tone={
                                     record.status === "verified"
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      ? "bg-$success-50 text-$success-700 border-$success-200"
                                       : record.status === "awaiting_review"
-                                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                                        ? "bg-$warning-50 text-$warning-700 border-$warning-200"
                                         : "bg-ink-50 text-ink-500 border-ink-200"
                                   }
                                 >
@@ -824,10 +824,10 @@ export default function AdminPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   {[
-                    { label: "Gross volume", value: formatPKR(analytics.volume), tone: "bg-blue-50 text-blue-600" },
-                    { label: "Platform revenue", value: formatPKR(analytics.revenue), tone: "bg-emerald-50 text-emerald-600" },
-                    { label: "Ledger entries", value: String(transactions.length), tone: "bg-violet-50 text-violet-600" },
-                    { label: "Open disputes", value: String(openDisputes.length), tone: "bg-rose-50 text-rose-600" },
+                    { label: "Gross volume", value: formatPKR(analytics.volume), tone: "bg-$info-50 text-$info-600" },
+                    { label: "Platform revenue", value: formatPKR(analytics.revenue), tone: "bg-$success-50 text-$success-600" },
+                    { label: "Ledger entries", value: String(transactions.length), tone: "bg-$deep-50 text-$deep-600" },
+                    { label: "Open disputes", value: String(openDisputes.length), tone: "bg-$danger-50 text-$danger-600" },
                   ].map((item) => (
                     <div key={item.label} className="surface p-5">
                       <span className={`inline-grid h-10 w-10 place-items-center rounded-xl ${item.tone}`}>
@@ -858,8 +858,8 @@ export default function AdminPage() {
                               <Badge
                                 tone={
                                   dispute.status === "resolved"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                    : "bg-rose-50 text-rose-700 border-rose-200"
+                                    ? "bg-$success-50 text-$success-700 border-$success-200"
+                                    : "bg-$danger-50 text-$danger-700 border-$danger-200"
                                 }
                               >
                                 {dispute.status}
@@ -916,11 +916,11 @@ export default function AdminPage() {
                             <Badge
                               tone={
                                 entry.type === "release"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  ? "bg-$success-50 text-$success-700 border-$success-200"
                                   : entry.type === "hold"
-                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    ? "bg-$warning-50 text-$warning-700 border-$warning-200"
                                     : entry.type === "refund"
-                                      ? "bg-sky-50 text-sky-700 border-sky-200"
+                                      ? "bg-$info-50 text-$info-700 border-$info-200"
                                       : "bg-ink-50 text-ink-600 border-ink-200"
                               }
                             >
@@ -1010,9 +1010,9 @@ export default function AdminPage() {
                               </td>
                               <td className="p-4">
                                 {member.suspended ? (
-                                  <Badge tone="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>
+                                  <Badge tone="bg-$danger-50 text-$danger-700 border-$danger-200">Suspended</Badge>
                                 ) : member.verified ? (
-                                  <Badge tone="bg-emerald-50 text-emerald-700 border-emerald-200">Verified</Badge>
+                                  <Badge tone="bg-$success-50 text-$success-700 border-$success-200">Verified</Badge>
                                 ) : (
                                   <Badge>Active</Badge>
                                 )}
@@ -1059,7 +1059,7 @@ export default function AdminPage() {
                                         "Verification updated."
                                       )
                                     }
-                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-emerald-300 hover:text-emerald-700"
+                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-$success-300 hover:text-$success-700"
                                   >
                                     {member.verified ? "Unverify" : "Verify"}
                                   </button>
@@ -1082,7 +1082,7 @@ export default function AdminPage() {
                                         "Account status updated."
                                       )
                                     }
-                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-rose-300 hover:text-rose-700"
+                                    className="rounded-lg border border-ink-200 px-2.5 py-1.5 text-[11px] font-black text-ink-500 transition hover:border-$danger-300 hover:text-$danger-700"
                                   >
                                     {member.suspended ? "Restore" : "Suspend"}
                                   </button>
@@ -1283,7 +1283,7 @@ function StaffTab({
                       <Badge tone="bg-brand-50 text-brand-dark border-brand-200">
                         {STAFF_ROLE_LABELS[record.staffRole]}
                       </Badge>
-                      {record.suspended && <Badge tone="bg-rose-50 text-rose-700 border-rose-200">Suspended</Badge>}
+                      {record.suspended && <Badge tone="bg-$danger-50 text-$danger-700 border-$danger-200">Suspended</Badge>}
                     </div>
                     <p className="mt-0.5 truncate text-xs text-ink-400">{record.email}</p>
                     <div className="mt-2.5 flex flex-wrap gap-1.5">

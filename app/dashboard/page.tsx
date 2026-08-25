@@ -154,26 +154,26 @@ export default function DashboardPage() {
           {isClient ? (
             <>
               <Stat icon={BriefcaseBusiness} label="Tasks posted" value={postedTasks.length} />
-              <Stat icon={Gavel} label="Offers received" value={clientMetrics.offers} tone="bg-indigo-50 text-indigo-600" />
+              <Stat icon={Gavel} label="Offers received" value={clientMetrics.offers} tone="bg-$info-50 text-$info-600" />
               <Stat
                 icon={Inbox}
                 label="Awaiting your review"
                 value={clientMetrics.awaiting.length}
-                tone="bg-violet-50 text-violet-600"
+                tone="bg-$deep-50 text-$deep-600"
               />
-              <Stat icon={Wallet} label="Total released" value={formatPKR(clientMetrics.spent)} tone="bg-amber-50 text-amber-700" />
+              <Stat icon={Wallet} label="Total released" value={formatPKR(clientMetrics.spent)} tone="bg-$warning-50 text-$warning-700" />
             </>
           ) : (
             <>
               <Stat icon={Gavel} label="Offers pending" value={freelancerMetrics.pending.length} />
-              <Stat icon={BadgeCheck} label="Jobs won" value={freelancerMetrics.won.length} tone="bg-indigo-50 text-indigo-600" />
+              <Stat icon={BadgeCheck} label="Jobs won" value={freelancerMetrics.won.length} tone="bg-$info-50 text-$info-600" />
               <Stat
                 icon={CalendarClock}
                 label="Active jobs"
                 value={freelancerMetrics.active.length}
-                tone="bg-violet-50 text-violet-600"
+                tone="bg-$deep-50 text-$deep-600"
               />
-              <Stat icon={Wallet} label="Earned" value={formatPKR(freelancerMetrics.earned)} tone="bg-emerald-50 text-emerald-700" />
+              <Stat icon={Wallet} label="Earned" value={formatPKR(freelancerMetrics.earned)} tone="bg-$success-50 text-$success-700" />
             </>
           )}
         </div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
             </div>
 
             <Link href="/wallet" className="surface group flex items-center gap-4 p-5 transition hover:border-brand-200">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-amber-700">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-$warning-50 text-$warning-700">
                 <Wallet className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
@@ -398,7 +398,7 @@ function FreelancerWorkspace({ tasks, bids, busy }: { tasks: Task[]; bids: Bid[]
             {activeJobs.map((task) => (
               <li key={task.id}>
                 <Link href={`/tasks/${task.id}`} className="group flex items-center gap-4 p-5 transition hover:bg-ink-50/70 sm:p-6">
-                  <span className="hidden h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 sm:grid">
+                  <span className="hidden h-11 w-11 shrink-0 place-items-center rounded-xl bg-$info-50 text-$info-600 sm:grid">
                     <CalendarClock className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -443,9 +443,9 @@ function FreelancerWorkspace({ tasks, bids, busy }: { tasks: Task[]; bids: Bid[]
                     <p
                       className={`mt-1 text-[10px] font-black uppercase tracking-wider ${
                         bid.status === "selected"
-                          ? "text-emerald-600"
+                          ? "text-$success-600"
                           : bid.status === "rejected"
-                            ? "text-rose-500"
+                            ? "text-$danger-500"
                             : bid.status === "withdrawn"
                               ? "text-ink-400"
                               : "text-brand"

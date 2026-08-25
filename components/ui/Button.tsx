@@ -15,8 +15,8 @@ const VARIANTS: Record<Variant, string> = {
   secondary: "bg-ink text-white shadow-sm hover:bg-ink-800 hover:-translate-y-0.5 active:translate-y-0",
   ghost: "border border-ink-200 bg-white text-ink hover:border-ink-300 hover:bg-ink-50 active:scale-[0.99]",
   soft: "bg-brand-50 text-brand-dark hover:bg-brand-100 active:scale-[0.99]",
-  danger: "bg-rose-600 text-white hover:bg-rose-700 active:scale-[0.99]",
-  success: "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.99]",
+  danger: "bg-$danger-600 text-white hover:bg-$danger-700 active:scale-[0.99]",
+  success: "bg-$success-600 text-white hover:bg-$success-700 active:scale-[0.99]",
 };
 
 const SIZES: Record<Size, string> = {

@@ -124,8 +124,8 @@ export default function SupportPage() {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
-              <AlertTriangle className="h-5 w-5 text-amber-700" />
+            <div className="rounded-3xl border border-$warning-200 bg-$warning-50 p-6">
+              <AlertTriangle className="h-5 w-5 text-$warning-700" />
               <h3 className="mt-4 text-base font-black text-ink">Never pay off-platform</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600">
                 If anyone asks you to pay by bank transfer, mobile wallet or cash outside Workly, stop and report it. Off-platform

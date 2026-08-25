@@ -86,7 +86,7 @@ export default function SettingsPage() {
               <Row
                 label="Email status"
                 value={user.emailVerified ? "Verified" : "Not verified"}
-                tone={user.emailVerified ? "text-emerald-600" : "text-amber-600"}
+                tone={user.emailVerified ? "text-$success-600" : "text-$warning-600"}
               />
               <Row label="Member since" value={user.metadata.creationTime?.split(" ").slice(1, 4).join(" ") || "—"} />
               <Row label="Sign-in method" value={usesPassword ? "Email & password" : "Google"} />
@@ -254,11 +254,11 @@ export default function SettingsPage() {
             </Button>
           </section>
 
-          <section className="rounded-3xl border border-rose-200 bg-rose-50/60 p-6 sm:p-7">
-            <h2 className="flex items-center gap-2 text-lg font-black text-rose-700">
+          <section className="rounded-3xl border border-$danger-200 bg-$danger-50/60 p-6 sm:p-7">
+            <h2 className="flex items-center gap-2 text-lg font-black text-$danger-700">
               <Trash2 className="h-5 w-5" /> Close your account
             </h2>
-            <p className="mt-1.5 text-sm leading-6 text-rose-800/80">
+            <p className="mt-1.5 text-sm leading-6 text-$danger-800/80">
               Account closure is handled by Workly support so open tasks, contracts, disputes and required account records can be reviewed before closure. Support will provide the next steps for your account.
             </p>
             <Link href="/support#contact" className="mt-4 inline-block">

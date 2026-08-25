@@ -26,20 +26,20 @@ import { EmptyState, PageLoader, Skeleton } from "@/components/ui/Feedback";
 const ICONS: Record<string, { icon: typeof Bell; tone: string }> = {
   bid: { icon: Gavel, tone: "bg-brand-50 text-brand" },
   bid_rejected: { icon: XCircle, tone: "bg-ink-50 text-ink-500" },
-  selected: { icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-600" },
+  selected: { icon: CheckCircle2, tone: "bg-$success-50 text-$success-600" },
   task_approved: { icon: ShieldCheck, tone: "bg-brand-50 text-brand" },
-  task_rejected: { icon: XCircle, tone: "bg-rose-50 text-rose-600" },
-  work_started: { icon: CheckCircle2, tone: "bg-indigo-50 text-indigo-600" },
-  work_submitted: { icon: CheckCircle2, tone: "bg-violet-50 text-violet-600" },
-  changes_requested: { icon: ShieldAlert, tone: "bg-amber-50 text-amber-700" },
-  payment_released: { icon: Banknote, tone: "bg-emerald-50 text-emerald-600" },
-  payment_request: { icon: Banknote, tone: "bg-indigo-50 text-indigo-600" },
+  task_rejected: { icon: XCircle, tone: "bg-$danger-50 text-$danger-600" },
+  work_started: { icon: CheckCircle2, tone: "bg-$info-50 text-$info-600" },
+  work_submitted: { icon: CheckCircle2, tone: "bg-$deep-50 text-$deep-600" },
+  changes_requested: { icon: ShieldAlert, tone: "bg-$warning-50 text-$warning-700" },
+  payment_released: { icon: Banknote, tone: "bg-$success-50 text-$success-600" },
+  payment_request: { icon: Banknote, tone: "bg-$info-50 text-$info-600" },
   private_assignment: { icon: ShieldCheck, tone: "bg-ink text-white" },
-  message: { icon: MessageSquare, tone: "bg-sky-50 text-sky-600" },
-  security: { icon: ShieldAlert, tone: "bg-rose-50 text-rose-600" },
+  message: { icon: MessageSquare, tone: "bg-$info-50 text-$info-600" },
+  security: { icon: ShieldAlert, tone: "bg-$danger-50 text-$danger-600" },
   cancelled: { icon: XCircle, tone: "bg-ink-50 text-ink-500" },
-  dispute: { icon: ShieldAlert, tone: "bg-rose-50 text-rose-600" },
-  review: { icon: Star, tone: "bg-amber-50 text-amber-600" },
+  dispute: { icon: ShieldAlert, tone: "bg-$danger-50 text-$danger-600" },
+  review: { icon: Star, tone: "bg-$warning-50 text-$warning-600" },
 };
 
 export default function NotificationsPage() {
@@ -92,7 +92,7 @@ export default function NotificationsPage() {
               <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand">
                 <Bell className="h-7 w-7" />
                 {unread.length > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-black">
+                  <span className="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-$danger-500 px-1 text-[11px] font-black">
                     {unread.length > 9 ? "9+" : unread.length}
                   </span>
                 )}

@@ -179,7 +179,7 @@ export default function FreelancerInterviewPage() {
                 ["At least one skill", readiness.skills],
               ].map(([label, done]) => (
                 <div key={String(label)} className="flex items-center gap-3 rounded-2xl bg-ink-50 p-4">
-                  <span className={`grid h-8 w-8 place-items-center rounded-full ${done ? "bg-emerald-100 text-emerald-700" : "bg-white text-ink-300"}`}>{done ? <Check className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-current" />}</span>
+                  <span className={`grid h-8 w-8 place-items-center rounded-full ${done ? "bg-$success-100 text-$success-700" : "bg-white text-ink-300"}`}>{done ? <Check className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-current" />}</span>
                   <span className={`text-sm font-extrabold ${done ? "text-ink" : "text-ink-500"}`}>{label}</span>
                 </div>
               ))}
@@ -197,7 +197,7 @@ export default function FreelancerInterviewPage() {
       <div className="bg-canvas py-10 sm:py-14">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
           <Link href="/profile" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink-500 hover:text-ink"><ArrowLeft className="h-4 w-4" /> Back to profile</Link>
-          <div className={`mt-6 overflow-hidden rounded-[34px] p-7 text-white shadow-elevated sm:p-10 ${isVerified ? "bg-emerald-700" : "bg-ink"}`}>
+          <div className={`mt-6 overflow-hidden rounded-[34px] p-7 text-white shadow-elevated sm:p-10 ${isVerified ? "bg-$success-700" : "bg-ink"}`}>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <span className={`grid h-14 w-14 place-items-center rounded-2xl ${isVerified ? "bg-white/15" : "bg-brand"}`}>{isVerified ? <BadgeCheck className="h-7 w-7" /> : <CheckCircle2 className="h-7 w-7" />}</span>
@@ -248,7 +248,7 @@ export default function FreelancerInterviewPage() {
           <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
             <section className="overflow-hidden rounded-[30px] border border-ink-100 bg-white shadow-card">
               <div className="bg-ink p-6 text-white sm:p-8">
-                <div className="flex items-center gap-3"><span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-brand"><Bot className="h-6 w-6" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-ink bg-emerald-400" /></span><div><p className="font-black">Aira</p><p className="text-xs font-semibold text-white/45">Structured interview agent</p></div></div>
+                <div className="flex items-center gap-3"><span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-brand"><Bot className="h-6 w-6" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-ink bg-$success-400" /></span><div><p className="font-black">Aira</p><p className="text-xs font-semibold text-white/45">Structured interview agent</p></div></div>
                 <div className="mt-6 flex items-center justify-between text-xs font-bold"><span className="text-white/50">Question {session.questionIndex + 1} of {session.totalQuestions}</span><span className="text-brand-300">{progress}% complete</span></div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-brand-light transition-all" style={{ width: `${Math.max(8, progress)}%` }} /></div>
               </div>
@@ -265,17 +265,17 @@ export default function FreelancerInterviewPage() {
                   placeholder="Write your answer here..."
                   className="mt-6 w-full resize-y rounded-2xl border border-ink-200 bg-ink-50/50 px-4 py-4 text-sm font-medium leading-6 text-ink placeholder:text-ink-300 focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/10"
                 />
-                <div className="mt-2 flex items-center justify-between text-[11px] font-bold"><span className={answer.trim().length >= INTERVIEW_MIN_ANSWER_LENGTH ? "text-emerald-600" : "text-ink-400"}>{answer.trim().length < INTERVIEW_MIN_ANSWER_LENGTH ? `${INTERVIEW_MIN_ANSWER_LENGTH - answer.trim().length} more characters recommended` : "Detailed enough to submit"}</span><span className="text-ink-300">{answer.length}/{INTERVIEW_MAX_ANSWER_LENGTH}</span></div>
-                {error && <div role="alert" className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-bold text-red-700">{error}</div>}
+                <div className="mt-2 flex items-center justify-between text-[11px] font-bold"><span className={answer.trim().length >= INTERVIEW_MIN_ANSWER_LENGTH ? "text-$success-600" : "text-ink-400"}>{answer.trim().length < INTERVIEW_MIN_ANSWER_LENGTH ? `${INTERVIEW_MIN_ANSWER_LENGTH - answer.trim().length} more characters recommended` : "Detailed enough to submit"}</span><span className="text-ink-300">{answer.length}/{INTERVIEW_MAX_ANSWER_LENGTH}</span></div>
+                {error && <div role="alert" className="mt-4 rounded-xl border border-$danger-100 bg-$danger-50 p-3 text-sm font-bold text-$danger-700">{error}</div>}
                 <div className="mt-6 flex flex-col gap-3 border-t border-ink-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="flex items-center gap-2 text-xs font-semibold text-ink-400"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Each answer is saved securely</p>
+                  <p className="flex items-center gap-2 text-xs font-semibold text-ink-400"><CheckCircle2 className="h-4 w-4 text-$success-600" /> Each answer is saved securely</p>
                   <Button type="submit" disabled={busy || answer.trim().length < INTERVIEW_MIN_ANSWER_LENGTH} className="gap-2 px-6">{busy ? "Aira is reviewing..." : session.questionIndex + 1 === session.totalQuestions ? "Submit interview" : "Save & next question"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
                 </div>
               </form>
             </section>
 
             <aside className="space-y-4 lg:sticky lg:top-24">
-              <div className="surface p-5"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Already covered</p><div className="mt-4 space-y-3">{session.answers.map((item, index) => <div key={`${item.competency}-${index}`} className="flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-50 text-emerald-700"><Check className="h-3.5 w-3.5" /></span><span className="text-xs font-extrabold capitalize text-ink-500">{item.competency.replace(/([A-Z])/g, " $1")}</span></div>)}{session.answers.length === 0 && <p className="text-xs leading-5 text-ink-400">Your completed competencies will appear here.</p>}</div></div>
+              <div className="surface p-5"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Already covered</p><div className="mt-4 space-y-3">{session.answers.map((item, index) => <div key={`${item.competency}-${index}`} className="flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-$success-50 text-$success-700"><Check className="h-3.5 w-3.5" /></span><span className="text-xs font-extrabold capitalize text-ink-500">{item.competency.replace(/([A-Z])/g, " $1")}</span></div>)}{session.answers.length === 0 && <p className="text-xs leading-5 text-ink-400">Your completed competencies will appear here.</p>}</div></div>
               <div className="rounded-3xl bg-brand-50 p-5"><LockKeyhole className="h-5 w-5 text-brand" /><h2 className="mt-3 text-sm font-black text-ink">No surveillance</h2><p className="mt-2 text-xs leading-5 text-ink-500">Workly does not use video, face, voice, eye movement, emotion, or personality scoring.</p></div>
             </aside>
           </div>
@@ -309,13 +309,13 @@ export default function FreelancerInterviewPage() {
                 "The AI evaluates job-related evidence only; it does not analyze protected traits or biometrics.",
                 "A human reviewer makes the badge decision and can override the automated summary.",
                 "Do not include client secrets, passwords, private contact details, or confidential files.",
-              ].map((item) => <div key={item} className="flex gap-3"><span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700"><Check className="h-3 w-3" /></span><p className="text-xs font-semibold leading-5 text-ink-500">{item}</p></div>)}
+              ].map((item) => <div key={item} className="flex gap-3"><span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-$success-50 text-$success-700"><Check className="h-3 w-3" /></span><p className="text-xs font-semibold leading-5 text-ink-500">{item}</p></div>)}
             </div>
             <label className="mt-7 flex cursor-pointer items-start gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-4">
               <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand" />
               <span><span className="block text-sm font-extrabold text-ink">I understand and agree to this AI-assisted interview</span><span className="mt-1 block text-[11px] leading-5 text-ink-400">I can stop and return later. My submitted answers remain available to authorized reviewers.</span></span>
             </label>
-            {error && <div role="alert" className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-bold text-red-700">{error}</div>}
+            {error && <div role="alert" className="mt-4 rounded-xl border border-$danger-100 bg-$danger-50 p-3 text-sm font-bold text-$danger-700">{error}</div>}
             <Button onClick={start} disabled={!consent || busy} className="mt-5 w-full gap-2">{busy ? <><RefreshCw className="h-4 w-4 animate-spin" /> Preparing your interview...</> : <>Begin interview <ArrowRight className="h-4 w-4" /></>}</Button>
             <p className="mt-3 text-center text-[10px] font-semibold text-ink-300">Do not refresh while Aira is preparing the next question.</p>
           </div>

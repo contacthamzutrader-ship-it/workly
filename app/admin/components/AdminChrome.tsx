@@ -98,7 +98,7 @@ export function AdminTabs({
           {typeof tab.count === "number" && tab.count > 0 && (
             <span
               className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] ${
-                active === tab.id ? "bg-brand text-white" : "bg-amber-100 text-amber-700"
+                active === tab.id ? "bg-brand text-white" : "bg-$warning-100 text-$warning-700"
               }`}
             >
               {tab.count}

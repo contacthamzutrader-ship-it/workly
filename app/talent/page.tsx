@@ -148,13 +148,13 @@ export default function TalentPage() {
         <div className="mb-4 mt-6 flex items-center justify-between">
           <div>
             <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">
-              Talent {live && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
+              Talent {live && <span className="inline-flex items-center gap-1 rounded-full bg-$success-500 px-2 py-0.5 text-[10px] font-black text-white">● Live</span>}
             </p>
             <h2 className="mt-1 text-xl font-black tracking-[-0.03em] text-ink">
               {loading ? "Finding talent…" : `${filtered.length} ${filtered.length === 1 ? "freelancer" : "freelancers"}`}
             </h2>
           </div>
-          {live && <span className="hidden text-xs font-bold text-emerald-600 sm:inline">Realtime</span>}
+          {live && <span className="hidden text-xs font-bold text-$success-600 sm:inline">Realtime</span>}
         </div>
 
         {loading ? (
@@ -194,7 +194,7 @@ export default function TalentPage() {
                         {person.name || "Workly freelancer"}
                       </p>
                       {person.interviewStatus === "verified" && (
-                        <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+                        <BadgeCheck className="h-4 w-4 shrink-0 text-$success-600" />
                       )}
                     </div>
                     <p className="mt-0.5 truncate text-xs font-bold text-brand-dark">

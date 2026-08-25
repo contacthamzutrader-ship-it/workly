@@ -230,7 +230,7 @@ export default function PostTaskPage() {
                         </p>
                         <span
                           className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${
-                            suggestion.moderation === "approved" ? "bg-white text-brand-dark" : "bg-amber-100 text-amber-700"
+                            suggestion.moderation === "approved" ? "bg-white text-brand-dark" : "bg-$warning-100 text-$warning-700"
                           }`}
                         >
                           {suggestion.moderation === "approved" ? "Looks safe" : "Manual review"}
