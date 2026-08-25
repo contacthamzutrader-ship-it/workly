@@ -214,7 +214,7 @@ export default function DashboardPage() {
                 <Wallet className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-ink-400">Workly balance</p>
+                <p className="text-xs font-bold text-ink-400">Parwaz balance</p>
                 <p className="mt-0.5 text-lg font-black text-ink">{formatPKR(profile?.wallet || 0)}</p>
               </div>
               <ArrowRight className="h-4 w-4 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand" />
@@ -238,7 +238,7 @@ export default function DashboardPage() {
                   <p className="text-sm font-black text-ink">Your service fee</p>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-ink-500">
-                  Workly takes {Math.round(PLATFORM_FEE * 100)}% of each completed job. You always see your exact take-home
+                  Parwaz takes {Math.round(PLATFORM_FEE * 100)}% of each completed job. You always see your exact take-home
                   before sending an offer.
                 </p>
               </div>
@@ -320,7 +320,7 @@ function ClientWorkspace({ tasks, busy }: { tasks: Task[]; busy: boolean }) {
           title={tasks.length === 0 ? "No tasks posted yet" : "Nothing in this view"}
           description={
             tasks.length === 0
-              ? "Post your first task and Workly will route it to professionals who actually match."
+              ? "Post your first task and Parwaz will route it to professionals who actually match."
               : "Try a different filter to see the rest of your tasks."
           }
           action={

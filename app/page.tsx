@@ -66,7 +66,7 @@ const whyCards = [
 
 const clientSteps = [
   { icon: ClipboardList, step: "01", title: "Post a Job", body: "Describe your project and requirements." },
-  { icon: BrainCircuit, step: "02", title: "AI Finds Talent", body: "Workly recommends relevant freelancers." },
+  { icon: BrainCircuit, step: "02", title: "AI Finds Talent", body: "Parwaz recommends relevant freelancers." },
   { icon: Handshake, step: "03", title: "Hire & Fund", body: "Select a freelancer and secure the payment." },
   { icon: CheckCircle2, step: "04", title: "Get Work Done", body: "Review the project and release payment." },
 ];
@@ -180,7 +180,7 @@ export default function Home() {
               <div className="relative rounded-[28px] border border-ink-100 bg-white p-5 shadow-elevated backdrop-blur sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-ink-400">Workly matching</p>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-ink-400">Parwaz matching</p>
                     <p className="mt-1 text-xl font-black text-ink">Matched for you</p>
                   </div>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-extrabold text-white"><Zap className="h-3.5 w-3.5" /> Live</span>
@@ -265,7 +265,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-center text-[11px] font-semibold text-ink-300">Target figures at launch — live statistics update automatically once Workly goes live.</p>
+            <p className="mt-6 text-center text-[11px] font-semibold text-ink-300">Target figures at launch — live statistics update automatically once Parwaz goes live.</p>
           </div>
         </div>
       </section>
@@ -289,13 +289,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Workly */}
+      {/* Why Parwaz */}
       <section id="why" className="bg-white py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Workly?</span>
+            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Parwaz?</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Workly is built to fix what breaks trust online — verification, discovery, and safety.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Parwaz is built to fix what breaks trust online — verification, discovery, and safety.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {whyCards.map((card) => (
@@ -386,9 +386,9 @@ export default function Home() {
         <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="page-shell relative">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> Workly features</span>
+            <span className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> Parwaz features</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">AI That Works for You.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Workly is built into every part of Workly — from the first assessment to the final payment.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Parwaz is built into every part of Parwaz — from the first assessment to the final payment.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {aiCards.map((card) => (
@@ -399,7 +399,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every match, ranking, and review runs through Workly.</p>
+          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every match, ranking, and review runs through Parwaz.</p>
         </div>
       </section>
 
@@ -459,7 +459,7 @@ export default function Home() {
             <div className="relative">
               <span className="inline-flex items-center gap-2 rounded-full border border-brand-300/30 bg-brand/10 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em] text-deep"><Sparkles className="h-3.5 w-3.5" /> Ready when you are</span>
               <h2 className="mx-auto mt-6 max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project is <span className="text-brand-300">AI-matched.</span></h2>
-              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-deep">Join free, verify your skills with Workly, and get matched with work you&apos;re great at — from both sides of the table.</p>
+              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-deep">Join free, verify your skills with Parwaz, and get matched with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Find Freelancers <ArrowRight className="h-4 w-4" /></Link>
                 <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-white/20 bg-white/5 px-7 text-sm font-extrabold text-deep transition hover:bg-white/10"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>

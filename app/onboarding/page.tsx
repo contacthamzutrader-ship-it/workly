@@ -93,14 +93,14 @@ export default function OnboardingPage() {
 
   const steps = useMemo(
     () => [
-      { title: "Choose your Workly mode", subtitle: "Your mode controls the actions and dashboard you see." },
+      { title: "Choose your Parwaz mode", subtitle: "Your mode controls the actions and dashboard you see." },
       { title: "Complete your member profile", subtitle: "A real name, location and useful introduction are required." },
       {
         title: chosenRole === "freelancer" ? "Set up your professional profile" : "Tell us what you usually hire for",
         subtitle:
           chosenRole === "freelancer"
             ? "Add enough detail for clients to understand what you actually do."
-            : "This helps Workly make your posting experience more relevant.",
+            : "This helps Parwaz make your posting experience more relevant.",
       },
     ],
     [chosenRole]
@@ -113,8 +113,8 @@ export default function OnboardingPage() {
       <div className="bg-canvas py-16">
         <div className="page-shell max-w-xl">
           <div className="surface p-6 sm:p-8">
-            <Alert tone="error" title="Your Workly profile could not be loaded">
-              Your sign-in is active, but the required member profile is missing. For account safety, Workly will not silently create a replacement profile.
+            <Alert tone="error" title="Your Parwaz profile could not be loaded">
+              Your sign-in is active, but the required member profile is missing. For account safety, Parwaz will not silently create a replacement profile.
             </Alert>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button
@@ -162,7 +162,7 @@ export default function OnboardingPage() {
       return;
     }
     if (!db) {
-      setError("Workly profile storage is not configured.");
+      setError("Parwaz profile storage is not configured.");
       return;
     }
 
@@ -380,7 +380,7 @@ export default function OnboardingPage() {
                   />
                 </Field>
                 <Alert tone="info" title="Your first task comes next">
-                  After setup, Workly takes you directly to the task posting flow.
+                  After setup, Parwaz takes you directly to the task posting flow.
                 </Alert>
               </>
             )}

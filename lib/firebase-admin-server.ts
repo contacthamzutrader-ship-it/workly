@@ -43,7 +43,7 @@ export function getFirebaseAdmin(): FirebaseAdminServices {
   const projectId =
     process.env.FIREBASE_PROJECT_ID ||
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
-    "workly-c7458";
+    "Parwaz-c7458";
 
   const app = getApps().length
     ? getApp()

@@ -11,11 +11,11 @@ test("failed profile creation rolls back the Firebase auth user", async () => {
   assert.doesNotMatch(auth, /pendingRole/);
 });
 
-test("Google login cannot silently create an ordinary Workly member", async () => {
+test("Google login cannot silently create an ordinary Parwaz member", async () => {
   const auth = await read("lib/auth-context.tsx");
   const login = await read("app/(auth)/login/page.tsx");
   assert.match(auth, /Google on the login screen must never become an accidental signup/);
-  assert.match(auth, /No Workly account was found for this Google account/);
+  assert.match(auth, /No Parwaz account was found for this Google account/);
   assert.match(login, /const \{ isOwner, onboarded \} = await signInWithGoogle\(\)/);
 });
 

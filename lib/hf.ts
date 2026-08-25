@@ -1,4 +1,4 @@
-// Client boundary for Workly's AI task quality, moderation and categorisation.
+// Client boundary for Parwaz's AI task quality, moderation and categorisation.
 // Model calls stay server-side so HUGGINGFACE_API_KEY remains private.
 
 export type TaskSuggestion = {

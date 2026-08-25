@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
     if (!userSnap.exists) return apiError("Complete account setup before starting the interview.", 404);
     const userData = userSnap.data() || {};
-    if (userData.role !== "tasker") return apiError("The Workly interview is available to freelancer accounts.", 403);
+    if (userData.role !== "tasker") return apiError("The Parwaz interview is available to freelancer accounts.", 403);
 
     const interviewRef = db.collection("interviews").doc(decoded.uid);
 
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       const previous = existingSnap.exists ? existingSnap.data() as InterviewRecord : null;
       const attemptNumber = (previous?.attemptNumber || 0) + 1;
       if (attemptNumber > 3) {
-        return apiError("You have reached the self-service retake limit. Contact Workly support for help.", 429);
+        return apiError("You have reached the self-service retake limit. Contact Parwaz support for help.", 429);
       }
 
       const firstQuestion = await generateQuestion(profile, []);

@@ -27,7 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-brand-300">
-            <Sparkles className="h-3.5 w-3.5" /> Workly membership
+            <Sparkles className="h-3.5 w-3.5" /> Parwaz membership
           </span>
           <h1 className="mt-8 max-w-lg text-[44px] font-black leading-[1.02] tracking-[-0.05em] xl:text-5xl">
             One account. Hire and get hired.

@@ -45,12 +45,12 @@ export default function MessagesPage() {
                 const snapshot = await getDoc(doc(db!, "users", other));
                 if (snapshot.exists()) {
                   nameMap[other] = {
-                    name: snapshot.data().name || "Workly member",
+                    name: snapshot.data().name || "Parwaz member",
                     avatarUrl: snapshot.data().avatarUrl || "",
                   };
                 }
               } catch {
-                nameMap[other] = { name: "Workly member" };
+                nameMap[other] = { name: "Parwaz member" };
               }
             }
             try {
@@ -157,7 +157,7 @@ export default function MessagesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline justify-between gap-3">
                           <p className="truncate font-black text-ink transition group-hover:text-brand-dark">
-                            {person?.name || "Workly member"}
+                            {person?.name || "Parwaz member"}
                           </p>
                           <span className="shrink-0 text-[11px] font-bold text-ink-400">
                             {timeAgo(conversation.updatedAt)}
@@ -182,7 +182,7 @@ export default function MessagesPage() {
         </section>
 
         <p className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-ink-400">
-          <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Keep every conversation on Workly — it is your evidence if a
+          <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Keep every conversation on Parwaz — it is your evidence if a
           dispute happens.
         </p>
       </div>

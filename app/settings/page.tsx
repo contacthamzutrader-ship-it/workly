@@ -70,7 +70,7 @@ export default function SettingsPage() {
           </span>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-ink sm:text-4xl">Account settings</h1>
           <p className="mt-2 text-sm font-medium text-ink-500">
-            Control how you use Workly, how you sign in, and what your account can do.
+            Control how you use Parwaz, how you sign in, and what your account can do.
           </p>
         </header>
 
@@ -112,7 +112,7 @@ export default function SettingsPage() {
           </section>
 
           <section className="surface p-6 sm:p-7">
-            <h2 className="text-lg font-black text-ink">How you use Workly</h2>
+            <h2 className="text-lg font-black text-ink">How you use Parwaz</h2>
             {isStaff ? (
               <p className="mt-1.5 rounded-xl bg-ink p-3 text-xs font-bold text-white">
                 Staff accounts use the control centre and do not switch between client and freelancer mode.
@@ -141,7 +141,7 @@ export default function SettingsPage() {
                         () => switchRole(option.value),
                         option.value === "freelancer" && !freelancerReady
                           ? "Freelancer mode is active. Complete your freelancer profile before sending offers."
-                          : `You are now using Workly as a ${MEMBER_ROLE_LABELS[option.value].toLowerCase()}.`
+                          : `You are now using Parwaz as a ${MEMBER_ROLE_LABELS[option.value].toLowerCase()}.`
                       )
                     }
                     disabled={isStaff || active || action !== ""}
@@ -176,7 +176,7 @@ export default function SettingsPage() {
 
             {!isStaff && role === "freelancer" && !freelancerReady && (
               <Alert tone="info" title="Complete your freelancer profile" className="mt-4">
-                Add a meaningful bio, location, professional title and at least one service category before Workly unlocks offer submission.
+                Add a meaningful bio, location, professional title and at least one service category before Parwaz unlocks offer submission.
                 <Link href="/profile" className="ml-1 font-extrabold text-brand-dark hover:text-brand">
                   Complete profile →
                 </Link>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
             </h2>
             <p className="mt-1.5 text-sm text-ink-500">
               {usesPassword
-                ? `Workly will send password recovery instructions to ${user.email}. Use only the most recent recovery email you requested.`
+                ? `Parwaz will send password recovery instructions to ${user.email}. Use only the most recent recovery email you requested.`
                 : "You sign in with Google, so your password is managed by your Google account."}
             </p>
             {usesPassword && (
@@ -259,7 +259,7 @@ export default function SettingsPage() {
               <Trash2 className="h-5 w-5" /> Close your account
             </h2>
             <p className="mt-1.5 text-sm leading-6 text-$danger-800/80">
-              Account closure is handled by Workly support so open tasks, contracts, disputes and required account records can be reviewed before closure. Support will provide the next steps for your account.
+              Account closure is handled by Parwaz support so open tasks, contracts, disputes and required account records can be reviewed before closure. Support will provide the next steps for your account.
             </p>
             <Link href="/support#contact" className="mt-4 inline-block">
               <Button variant="danger" size="sm">Contact support</Button>

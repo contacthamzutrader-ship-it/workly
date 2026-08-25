@@ -93,7 +93,7 @@ const EMPTY_CAPABILITIES = capabilitiesFor("client", null);
 
 function requireAuth() {
   if (!auth || !db) {
-    throw new Error("Workly is not connected to Firebase yet. Add your NEXT_PUBLIC_FIREBASE_* keys.");
+    throw new Error("Parwaz is not connected to Firebase yet. Add your NEXT_PUBLIC_FIREBASE_* keys.");
   }
   return auth;
 }
@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const requireExistingProfile = useCallback(async (current: User): Promise<Record<string, any>> => {
-    if (!db) throw new Error("Workly profile storage is not configured.");
+    if (!db) throw new Error("Parwaz profile storage is not configured.");
     const reference = doc(db, "users", current.uid);
     const existing = await getDoc(reference);
     if (existing.exists()) return existing.data();
@@ -220,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     throw new Error(
-      "Your sign-in exists, but its Workly member profile is missing. Please contact Workly support instead of creating another account."
+      "Your sign-in exists, but its Parwaz member profile is missing. Please contact Parwaz support instead of creating another account."
     );
   }, []);
 
@@ -298,7 +298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithEmail = useCallback(
     async ({ email, password, name, role }: { email: string; password: string; name: string; role: MemberRole }) => {
       const instance = requireAuth();
-      if (!db) throw new Error("Workly profile storage is not configured.");
+      if (!db) throw new Error("Parwaz profile storage is not configured.");
 
       const normalizedEmail = email.trim().toLowerCase();
       const normalizedName = name.trim().replace(/\s+/g, " ");
@@ -318,7 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           handleCodeInApp: false,
         }).catch(() => undefined);
       } catch (error) {
-        // Never leave an Auth-only account behind when its required Workly
+        // Never leave an Auth-only account behind when its required Parwaz
         // profile could not be created.
         await removeIncompleteFirebaseUser(credential.user);
         throw error;
@@ -330,7 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = useCallback(
     async (role?: MemberRole): Promise<GoogleSignInResult> => {
       const instance = requireAuth();
-      if (!db) throw new Error("Workly profile storage is not configured.");
+      if (!db) throw new Error("Parwaz profile storage is not configured.");
 
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
@@ -350,7 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // has chosen account type and accepted the signup terms.
         if (!role) {
           await removeIncompleteFirebaseUser(credential.user);
-          throw new Error("No Workly account was found for this Google account. Use Create account to join first.");
+          throw new Error("No Parwaz account was found for this Google account. Use Create account to join first.");
         }
 
         try {
@@ -392,7 +392,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (role: MemberRole) => {
       const instance = requireAuth();
       const current = instance.currentUser;
-      if (!current || !db) throw new Error("Sign in before changing how you use Workly.");
+      if (!current || !db) throw new Error("Sign in before changing how you use Parwaz.");
       const nextProfileComplete = profile ? profileReadyForRole(profile, role) : false;
       await setDoc(
         doc(db, "users", current.uid),

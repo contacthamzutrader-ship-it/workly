@@ -87,7 +87,7 @@ export const ACTIVE_STATUSES: TaskStatus[] = [
 
 export const TASK_STATUS_META: Record<TaskStatus, { label: string; tone: string; hint: string }> = {
   draft: { label: "Draft", tone: "bg-ink-50 text-ink-500 border-ink-200", hint: "Not submitted yet." },
-  pending: { label: "In review", tone: "bg-$warning-50 text-$warning-700 border-$warning-200", hint: "Workly is checking this task before it goes live." },
+  pending: { label: "In review", tone: "bg-$warning-50 text-$warning-700 border-$warning-200", hint: "Parwaz is checking this task before it goes live." },
   rejected: { label: "Rejected", tone: "bg-$danger-50 text-$danger-700 border-$danger-200", hint: "This task did not pass review." },
   open: { label: "Open for offers", tone: "bg-brand-50 text-brand-dark border-brand-200", hint: "Freelancers can send offers." },
   assigned: { label: "Hired", tone: "bg-$info-50 text-$info-700 border-$info-200", hint: "A freelancer has been selected." },
@@ -96,7 +96,7 @@ export const TASK_STATUS_META: Record<TaskStatus, { label: string; tone: string;
   changes_requested: { label: "Changes requested", tone: "bg-$warning-50 text-$warning-700 border-$warning-200", hint: "The client asked for revisions." },
   completed: { label: "Completed", tone: "bg-$success-50 text-$success-700 border-$success-200", hint: "Approved and closed." },
   cancelled: { label: "Cancelled", tone: "bg-ink-100 text-ink-600 border-ink-200", hint: "This task was cancelled." },
-  disputed: { label: "In dispute", tone: "bg-$danger-50 text-$danger-700 border-$danger-200", hint: "Workly support is reviewing this contract." },
+  disputed: { label: "In dispute", tone: "bg-$danger-50 text-$danger-700 border-$danger-200", hint: "Parwaz support is reviewing this contract." },
 };
 
 /** Ordered milestones shown on the task tracker. */
@@ -190,7 +190,7 @@ export interface Review {
 }
 
 function needDb() {
-  if (!db) throw new Error("Workly is not connected to Firebase yet.");
+  if (!db) throw new Error("Parwaz is not connected to Firebase yet.");
   return db;
 }
 
@@ -519,7 +519,7 @@ export async function selectBid(
     const posterSnapshot = await transaction.get(posterRef);
     const walletBalance = posterSnapshot.data()?.wallet ?? 0;
     if (walletBalance < amount) {
-      throw new Error(`Add ${formatPKR(amount - walletBalance)} to your Workly balance before hiring for this offer.`);
+      throw new Error(`Add ${formatPKR(amount - walletBalance)} to your Parwaz balance before hiring for this offer.`);
     }
 
     transaction.update(posterRef, { wallet: walletBalance - amount });
@@ -750,7 +750,7 @@ export async function openDispute(input: {
     userId: input.respondentId,
     type: "dispute",
     title: "A dispute was opened",
-    body: "Workly support will review the task history and get in touch.",
+    body: "Parwaz support will review the task history and get in touch.",
     link: `/tasks/${input.taskId}`,
   });
 }
@@ -780,7 +780,7 @@ export async function approveTask(
     visibility,
     approvalMode: "manual",
     approvedAt: serverTimestamp(),
-    approvedBy: approvedBy || "Workly team",
+    approvedBy: approvedBy || "Parwaz team",
     approvalNote:
       visibility === "public" ? "Approved for the public marketplace" : "Approved for private invitation",
     updatedAt: serverTimestamp(),
@@ -871,7 +871,7 @@ export async function approvePrivateTask(input: {
       bidderId: input.providerId,
       bidderName: input.providerName,
       amount: data.budget,
-      message: "Managed private fulfilment by a Workly verified provider.",
+      message: "Managed private fulfilment by a Parwaz verified provider.",
       status: "selected",
       isManaged: true,
       createdAt: serverTimestamp(),
@@ -890,7 +890,7 @@ export async function approvePrivateTask(input: {
       paymentReleased: false,
       approvedAt: serverTimestamp(),
       approvedBy: input.approvedBy,
-      approvalNote: "Privately approved and assigned to a Workly managed provider",
+      approvalNote: "Privately approved and assigned to a Parwaz managed provider",
       updatedAt: serverTimestamp(),
     });
     transaction.set(doc(collection(database, "wallet_txs")), {

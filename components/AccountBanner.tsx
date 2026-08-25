@@ -23,7 +23,7 @@ export default function AccountBanner() {
     return (
       <Strip tone="bg-$danger-600" icon={ShieldAlert}>
         <span>
-          Your account is suspended and cannot post tasks or send offers. Contact Workly support to resolve this.
+          Your account is suspended and cannot post tasks or send offers. Contact Parwaz support to resolve this.
         </span>
       </Strip>
     );
@@ -33,7 +33,7 @@ export default function AccountBanner() {
     return (
       <Strip tone="bg-ink" icon={Sparkles} onDismiss={() => setDismissed(true)}>
         <span>
-          Finish your {role === "freelancer" ? "freelancer" : "client"} profile so Workly can match you properly.
+          Finish your {role === "freelancer" ? "freelancer" : "client"} profile so Parwaz can match you properly.
         </span>
         <Link href="/onboarding" className="inline-flex items-center gap-1 font-black underline underline-offset-2">
           Complete setup <ArrowRight className="h-3.5 w-3.5" />
@@ -68,7 +68,7 @@ export default function AccountBanner() {
   if (role === "freelancer" && profile.interviewStatus === "not_started" && pathname !== "/profile/interview") {
     return (
       <Strip tone="bg-brand" icon={AlertTriangle} onDismiss={() => setDismissed(true)}>
-        <span>Verified freelancers win more work. Take the short Workly skills interview.</span>
+        <span>Verified freelancers win more work. Take the short Parwaz skills interview.</span>
         <Link href="/profile/interview" className="inline-flex items-center gap-1 font-black underline underline-offset-2">
           Start interview <ArrowRight className="h-3.5 w-3.5" />
         </Link>

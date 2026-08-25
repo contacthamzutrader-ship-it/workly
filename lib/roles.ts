@@ -1,4 +1,4 @@
-// Central role + capability model for Workly.
+// Central role + capability model for Parwaz.
 //
 // There are exactly two things a member can choose for themselves:
 //   - client      (posts work, hires and manages delivery)
@@ -48,7 +48,7 @@ export const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
 
 export const MEMBER_ROLE_BLURB: Record<MemberRole, string> = {
   client: "Post work, compare offers, and manage delivery from one place.",
-  freelancer: "Find work that fits your skills, send offers, deliver, and build your Workly track record.",
+  freelancer: "Find work that fits your skills, send offers, deliver, and build your Parwaz track record.",
 };
 
 export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {

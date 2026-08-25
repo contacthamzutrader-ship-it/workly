@@ -200,7 +200,7 @@ export default function Navbar() {
                     {!isStaff && (
                       <div className="border-b border-ink-100 p-3">
                         <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">
-                          Using Workly as
+                          Using Parwaz as
                         </p>
                         <div className="grid grid-cols-2 gap-1.5">
                           {(["client", "freelancer"] as MemberRole[]).map((option) => (
@@ -267,7 +267,7 @@ export default function Navbar() {
                 href="/signup"
                 className="inline-flex min-h-11 items-center gap-2 rounded-[14px] bg-brand px-4 text-sm font-bold text-white shadow-glow transition hover:bg-brand-dark"
               >
-                <Sparkles className="h-4 w-4" /> Join Workly
+                <Sparkles className="h-4 w-4" /> Join Parwaz
               </Link>
             </>
           )}

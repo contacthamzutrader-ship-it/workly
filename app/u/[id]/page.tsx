@@ -70,7 +70,7 @@ export default function PublicProfilePage() {
           <EmptyState
             icon={UserRound}
             title="Profile not available"
-            description="This member may have left Workly, or their profile is private."
+            description="This member may have left Parwaz, or their profile is private."
             action={
               <Link href="/talent">
                 <Button variant="ghost">
@@ -106,10 +106,10 @@ export default function PublicProfilePage() {
               <div className="min-w-0 flex-1 pb-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-black tracking-[-0.035em] text-ink sm:text-3xl">
-                    {data.name || "Workly member"}
+                    {data.name || "Parwaz member"}
                   </h1>
                   {data.interviewStatus === "verified" && (
-                    <BadgeCheck className="h-6 w-6 text-$success-600" aria-label="Workly interviewed" />
+                    <BadgeCheck className="h-6 w-6 text-$success-600" aria-label="Parwaz interviewed" />
                   )}
                 </div>
                 <p className="mt-1 text-sm font-bold text-brand-dark">

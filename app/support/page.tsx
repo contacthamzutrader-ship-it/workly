@@ -54,7 +54,7 @@ const TOPICS = [
       ["How verification works", "/how-it-works#safety"],
       ["Report a task or message", "#contact"],
       ["Raise a dispute", "/dashboard"],
-      ["Why payments must stay on Workly", "/how-it-works#safety"],
+      ["Why payments must stay on Parwaz", "/how-it-works#safety"],
     ],
   },
 ];
@@ -111,11 +111,11 @@ export default function SupportPage() {
             <h2 className="mt-5 text-2xl font-black tracking-[-0.035em]">Talk to a human</h2>
             <p className="mt-3 max-w-xl text-sm leading-7 text-white/60">
               For anything about a specific task, payment or account, email us with the task link. Support reads the full
-              on-platform record before replying, so please keep everything on Workly.
+              on-platform record before replying, so please keep everything on Parwaz.
             </p>
             <a href={`mailto:${OWNER_EMAIL}`} className="mt-6 inline-block">
               <Button className="bg-white text-ink shadow-none hover:bg-brand-100">
-                Email Workly support <ArrowRight className="h-4 w-4" />
+                Email Parwaz support <ArrowRight className="h-4 w-4" />
               </Button>
             </a>
             <p className="mt-4 text-xs font-semibold text-white/40">
@@ -128,7 +128,7 @@ export default function SupportPage() {
               <AlertTriangle className="h-5 w-5 text-$warning-700" />
               <h3 className="mt-4 text-base font-black text-ink">Never pay off-platform</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600">
-                If anyone asks you to pay by bank transfer, mobile wallet or cash outside Workly, stop and report it. Off-platform
+                If anyone asks you to pay by bank transfer, mobile wallet or cash outside Parwaz, stop and report it. Off-platform
                 payments have no protection and no dispute route.
               </p>
             </div>
@@ -140,7 +140,7 @@ export default function SupportPage() {
                 How posting, offers, hiring, delivery and payment work end to end.
               </p>
               <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-brand-dark">
-                How Workly works <ArrowRight className="h-3.5 w-3.5" />
+                How Parwaz works <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </Link>
 

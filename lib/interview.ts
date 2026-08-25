@@ -71,7 +71,7 @@ export function interviewStatusLabel(status?: string) {
   switch (status) {
     case "in_progress": return "Interview in progress";
     case "awaiting_review": return "Human review pending";
-    case "verified": return "Workly interviewed";
+    case "verified": return "Parwaz interviewed";
     case "needs_improvement": return "Retake available";
     default: return "Interview not started";
   }

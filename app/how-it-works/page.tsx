@@ -22,7 +22,7 @@ import { PLATFORM_FEE } from "@/lib/tasks";
 
 const CLIENT_STEPS = [
   { icon: BriefcaseBusiness, title: "Post your task", body: "Describe the outcome, set a budget, and choose your timing. Posting is always free." },
-  { icon: ShieldCheck, title: "Workly reviews it", body: "Smart checks or a human moderator confirm the task is genuine before freelancers see it." },
+  { icon: ShieldCheck, title: "Parwaz reviews it", body: "Smart checks or a human moderator confirm the task is genuine before freelancers see it." },
   { icon: Gavel, title: "Compare real offers", body: "Each offer shows a price, a plan, a delivery time and the freelancer's verified track record." },
   { icon: Wallet, title: "Hire and fund", body: "Choose an offer. The agreed amount is held against the contract so both sides are protected." },
   { icon: MessageSquare, title: "Track the work", body: "A private chat opens with your freelancer. Everything stays on the record." },
@@ -31,7 +31,7 @@ const CLIENT_STEPS = [
 
 const FREELANCER_STEPS = [
   { icon: HardHat, title: "Build your profile", body: "Add your skills, rate and real examples. Complete profiles rank far higher in matching." },
-  { icon: Sparkles, title: "Get verified", body: "Take the short Workly skills interview. A human reviewer approves your badge." },
+  { icon: Sparkles, title: "Get verified", body: "Take the short Parwaz skills interview. A human reviewer approves your badge." },
   { icon: Send, title: "Send sharp offers", body: "Explain your approach and timeline. You always see your exact take-home before sending." },
   { icon: CheckCircle2, title: "Get hired", body: "When a client accepts, funds are already held. You can start with confidence." },
   { icon: Send, title: "Deliver the work", body: "Submit your delivery note. The client reviews it and either approves or asks for changes." },
@@ -41,7 +41,7 @@ const FREELANCER_STEPS = [
 const FAQS = [
   {
     question: "What does it cost?",
-    answer: `Posting a task is free. Workly takes a ${Math.round(PLATFORM_FEE * 100)}% service fee from the freelancer's payment on completed work. The fee is shown before an offer is sent and fixed at the moment of hire.`,
+    answer: `Posting a task is free. Parwaz takes a ${Math.round(PLATFORM_FEE * 100)}% service fee from the freelancer's payment on completed work. The fee is shown before an offer is sent and fixed at the moment of hire.`,
   },
   {
     question: "Can I be both a client and a freelancer?",
@@ -49,14 +49,14 @@ const FAQS = [
   },
   {
     question: "When is money released?",
-    answer: "The agreed amount is held when you hire. It is released only when you approve the delivery. If you cancel before approval, held funds return to your Workly balance.",
+    answer: "The agreed amount is held when you hire. It is released only when you approve the delivery. If you cancel before approval, held funds return to your Parwaz balance.",
   },
   {
     question: "What if something goes wrong?",
-    answer: "Start with the private task chat — most issues are solved there. If not, either side can raise a dispute and a Workly reviewer looks at the full on-platform record before deciding.",
+    answer: "Start with the private task chat — most issues are solved there. If not, either side can raise a dispute and a Parwaz reviewer looks at the full on-platform record before deciding.",
   },
   {
-    question: "Why must I keep everything on Workly?",
+    question: "Why must I keep everything on Parwaz?",
     answer: "Off-platform payments and contact sharing remove every protection you have: no held funds, no evidence trail, no dispute process. Our systems flag attempts to move work off the platform.",
   },
   {
@@ -76,7 +76,7 @@ export default function HowItWorksPage() {
         <div className="pointer-events-none absolute inset-0 soft-grid opacity-70" />
         <div className="page-shell relative py-16 text-center sm:py-20">
           <span className="eyebrow mx-auto">
-            <Sparkles className="h-3.5 w-3.5" /> How Workly works
+            <Sparkles className="h-3.5 w-3.5" /> How Parwaz works
           </span>
           <h1 className="mx-auto mt-6 max-w-3xl text-balance text-4xl font-black leading-[1.03] tracking-[-0.05em] text-ink sm:text-6xl">
             Simple to use. Serious about protection.
@@ -143,7 +143,7 @@ export default function HowItWorksPage() {
                   ["Client pays", "The accepted offer amount, held at hire."],
                   [`Service fee (${Math.round(PLATFORM_FEE * 100)}%)`, "Deducted from the freelancer's payment, disclosed up front."],
                   ["Freelancer receives", "The offer amount minus the service fee, on approval."],
-                  ["Cancelled before approval", "Held funds return to the client's Workly balance."],
+                  ["Cancelled before approval", "Held funds return to the client's Parwaz balance."],
                 ].map(([term, description]) => (
                   <div key={term} className="border-l-2 border-brand pl-4">
                     <dt className="text-sm font-black">{term}</dt>
@@ -159,7 +159,7 @@ export default function HowItWorksPage() {
                 <p className="text-sm font-black">Honest status of live payments</p>
               </div>
               <p className="mt-4 text-sm leading-7 text-white/60">
-                Workly currently records contract balances internally. Before real customer money moves, we must complete
+                Parwaz currently records contract balances internally. Before real customer money moves, we must complete
                 marketplace and held-funds approval with a State Bank of Pakistan-regulated payment provider, with signed
                 server-side webhooks and a proper double-entry ledger.
               </p>
@@ -186,7 +186,7 @@ export default function HowItWorksPage() {
             { icon: ShieldCheck, title: "Reviewed tasks", body: "Public tasks pass smart checks or human moderation before anyone can bid." },
             { icon: Star, title: "Human-reviewed badges", body: "Verified freelancers showed real evidence to a real reviewer." },
             { icon: MessageSquare, title: "On-record chat", body: "Every message is part of the task trail if a dispute ever happens." },
-            { icon: Scale, title: "Neutral disputes", body: "A Workly reviewer looks at the evidence. AI summarises; humans decide." },
+            { icon: Scale, title: "Neutral disputes", body: "A Parwaz reviewer looks at the evidence. AI summarises; humans decide." },
           ].map((item) => (
             <div key={item.title} className="surface p-6">
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand">

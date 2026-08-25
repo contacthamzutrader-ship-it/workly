@@ -163,7 +163,7 @@ export default function ProfilePage() {
     setSaved(false);
 
     try {
-      if (!db) throw new Error("Workly is not connected to Firebase.");
+      if (!db) throw new Error("Parwaz is not connected to Firebase.");
 
       const normalizedName = normalizeName(name);
       const normalizedCity = city.trim();
@@ -333,7 +333,7 @@ export default function ProfilePage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-black">Workly skills interview</h2>
+                  <h2 className="text-lg font-black">Parwaz skills interview</h2>
                   <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${interviewStatusTone(interviewStatus)}`}>
                     {interviewStatusLabel(interviewStatus)}
                   </span>

@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
         <BrandLogo />
         <h1 className="mt-6 text-[32px] font-black leading-tight tracking-[-0.04em] text-ink">Reset your password.</h1>
         <p className="mt-2 text-sm font-medium leading-6 text-ink-500">
-          Enter the email for your Workly account. We will send password recovery instructions if the account is eligible.
+          Enter the email for your Parwaz account. We will send password recovery instructions if the account is eligible.
         </p>
       </div>
 

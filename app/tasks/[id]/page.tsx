@@ -596,7 +596,7 @@ function TaskDetail() {
                         <span>{formatPKR(Number(offerAmount))}</span>
                       </div>
                       <div className="mt-1.5 flex justify-between font-semibold text-ink-500">
-                        <span>Workly service fee ({Math.round(PLATFORM_FEE * 100)}%)</span>
+                        <span>Parwaz service fee ({Math.round(PLATFORM_FEE * 100)}%)</span>
                         <span>−{formatPKR(Math.round(Number(offerAmount) * PLATFORM_FEE))}</span>
                       </div>
                       <div className="mt-2.5 flex justify-between border-t border-ink-200 pt-2.5 text-base font-black text-ink">
@@ -863,7 +863,7 @@ function TaskDetail() {
               )}
               {user && requireVerified && role === "freelancer" && profile?.interviewStatus !== "verified" && task.status === "open" && !myOffer && !isPoster && (
                 <Alert tone="warning" className="mt-5" title="Interview verification required">
-                  This marketplace currently requires a verified Workly interview before freelancers can bid.{" "}
+                  This marketplace currently requires a verified Parwaz interview before freelancers can bid.{" "}
                   <Link href="/profile/interview" className="font-black text-brand-dark underline">
                     Take the interview
                   </Link>{" "}
@@ -953,7 +953,7 @@ function TaskDetail() {
                                 respondentId,
                                 reason: disputeReason,
                               }),
-                            "A Workly reviewer will look at this contract."
+                            "A Parwaz reviewer will look at this contract."
                           ).then(() => setShowDispute(false));
                         }}
                       >

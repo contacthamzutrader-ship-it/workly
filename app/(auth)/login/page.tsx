@@ -148,12 +148,12 @@ function LoginForm() {
         </form>
 
         <p className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-ink-400">
-          <LockKeyhole className="h-3.5 w-3.5 text-brand" /> Existing Workly accounts only. New members join from Create account.
+          <LockKeyhole className="h-3.5 w-3.5 text-brand" /> Existing Parwaz accounts only. New members join from Create account.
         </p>
       </div>
 
       <p className="mt-6 text-center text-sm font-medium text-ink-500">
-        New to Workly?{" "}
+        New to Parwaz?{" "}
         <Link href="/signup" className="font-extrabold text-brand-dark hover:text-brand">Create a free account</Link>
       </p>
     </div>

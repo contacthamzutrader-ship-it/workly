@@ -191,7 +191,7 @@ export default function TalentPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="truncate font-black text-ink transition group-hover:text-brand-dark">
-                        {person.name || "Workly freelancer"}
+                        {person.name || "Parwaz freelancer"}
                       </p>
                       {person.interviewStatus === "verified" && (
                         <BadgeCheck className="h-4 w-4 shrink-0 text-$success-600" />

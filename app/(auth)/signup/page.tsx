@@ -86,7 +86,7 @@ function SignupForm() {
       .then((settings) => setAllowSignups(settings.allowNewSignups))
       .catch(() => {
         setAllowSignups(false);
-        setError("Account registration is temporarily unavailable because Workly could not verify signup availability.");
+        setError("Account registration is temporarily unavailable because Parwaz could not verify signup availability.");
       });
   }, []);
 
@@ -162,7 +162,7 @@ function SignupForm() {
         <BrandLogo />
         <h1 className="mt-6 text-[32px] font-black leading-tight tracking-[-0.04em] text-ink">Create your account.</h1>
         <p className="mt-2 text-sm font-medium leading-6 text-ink-500">
-          Choose how you want to use Workly, then create one secure member account.
+          Choose how you want to use Parwaz, then create one secure member account.
         </p>
       </div>
 
@@ -310,7 +310,7 @@ function SignupForm() {
                 className="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand focus:ring-brand"
               />
               <span className="text-[12px] font-semibold leading-5 text-ink-600">
-                I agree to Workly&apos;s marketplace signup terms and understand that platform work, communication and payments must follow Workly policy.
+                I agree to Parwaz&apos;s marketplace signup terms and understand that platform work, communication and payments must follow Parwaz policy.
               </span>
             </label>
 

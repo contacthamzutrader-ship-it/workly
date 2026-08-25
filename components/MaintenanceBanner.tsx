@@ -25,7 +25,7 @@ export default function MaintenanceBanner() {
       <div className="relative z-40 border-b border-$warning-300 bg-$warning-500 px-4 py-3 text-sm font-black text-white">
         <div className="page-shell flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2">
-            <Settings className="h-4 w-4" /> Workly is in maintenance mode — only staff and ongoing tasks are fully accessible.
+            <Settings className="h-4 w-4" /> Parwaz is in maintenance mode — only staff and ongoing tasks are fully accessible.
           </span>
           {isStaff && <span className="rounded-full bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-$warning-700">Staff view</span>}
         </div>
@@ -37,7 +37,7 @@ export default function MaintenanceBanner() {
     return (
       <div className="relative z-40 border-b border-$info-200 bg-$info-50 px-4 py-2.5 text-xs font-bold text-$info-800">
         <div className="page-shell flex items-center gap-2">
-          <ShieldCheck className="h-3.5 w-3.5" /> New signups are temporarily paused by the Workly team. Existing members are not affected.
+          <ShieldCheck className="h-3.5 w-3.5" /> New signups are temporarily paused by the Parwaz team. Existing members are not affected.
         </div>
       </div>
     );

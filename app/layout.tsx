@@ -14,21 +14,21 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(origin),
     title: {
-      default: "Workly - Pakistan's trusted work marketplace",
-      template: "%s | Workly",
+      default: "Parwaz - Pakistan's trusted work marketplace",
+      template: "%s | Parwaz",
     },
     description,
     icons: {
-      icon: "/workly-mark.png",
-      shortcut: "/workly-mark.png",
-      apple: "/workly-mark.png",
+      icon: "/Parwaz.jpeg",
+      shortcut: "/Parwaz.jpeg",
+      apple: "/Parwaz.jpeg",
     },
     openGraph: {
       type: "website",
-      siteName: "Workly",
+      siteName: "Parwaz",
       title: "The right person for every task.",
       description,
-      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Workly - Pakistan's trusted work marketplace" }],
+      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Parwaz - Pakistan's trusted work marketplace" }],
     },
     twitter: {
       card: "summary_large_image",

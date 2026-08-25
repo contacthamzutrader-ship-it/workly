@@ -163,7 +163,7 @@ export default function WalletPage() {
               <Landmark className="h-5 w-5 text-brand" />
             </div>
             <p className="mt-2 text-4xl font-black tracking-[-0.04em] text-ink">{formatPKR(profile?.wallet || 0)}</p>
-            <p className="mt-1.5 text-xs text-ink-400">Usable for hiring on Workly</p>
+            <p className="mt-1.5 text-xs text-ink-400">Usable for hiring on Parwaz</p>
           </div>
 
           <div className="surface bg-brand-50 p-6">
@@ -219,7 +219,7 @@ export default function WalletPage() {
         )}
 
         <Alert tone="warning" title="Live payment onboarding is still in progress" className="mb-6">
-          These are internal contract records, not a bank balance or regulated escrow. Before Workly accepts real
+          These are internal contract records, not a bank balance or regulated escrow. Before Parwaz accepts real
           customer money, we must complete merchant and marketplace/held-funds approval with a State Bank of
           Pakistan-regulated provider. The production flow is checkout → verified webhook → held funds → approval →
           payout. Balances are never editable in the browser.

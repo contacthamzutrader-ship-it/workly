@@ -42,7 +42,7 @@ export function AdminHeader({
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-black tracking-[-0.03em]">Workly Control</h1>
+              <h1 className="text-2xl font-black tracking-[-0.03em]">Parwaz Control</h1>
               <span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-brand-300">
                 {session.isOwner ? "Owner" : STAFF_ROLE_LABELS[session.role]}
               </span>

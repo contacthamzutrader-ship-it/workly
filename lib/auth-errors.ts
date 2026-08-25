@@ -1,8 +1,8 @@
 /** Turns Firebase auth error codes into plain, useful sentences. */
 const MESSAGES: Record<string, string> = {
   "auth/invalid-email": "That email address does not look right.",
-  "auth/user-disabled": "This account has been disabled. Contact Workly support.",
-  "auth/user-not-found": "No Workly account uses that email. Create one instead.",
+  "auth/user-disabled": "This account has been disabled. Contact Parwaz support.",
+  "auth/user-not-found": "No Parwaz account uses that email. Create one instead.",
   "auth/wrong-password": "That password is not correct. Try again or reset it.",
   "auth/invalid-credential": "Email or password is incorrect.",
   "auth/invalid-login-credentials": "Email or password is incorrect.",
@@ -15,7 +15,7 @@ const MESSAGES: Record<string, string> = {
   "auth/network-request-failed": "Network problem. Check your connection and try again.",
   "auth/account-exists-with-different-credential":
     "This email is already registered with a different sign-in method.",
-  "auth/operation-not-allowed": "This sign-in method is not enabled for Workly yet.",
+  "auth/operation-not-allowed": "This sign-in method is not enabled for Parwaz yet.",
   "auth/requires-recent-login": "For security, sign in again before making this change.",
 };
 

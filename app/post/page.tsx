@@ -143,7 +143,7 @@ export default function PostTaskPage() {
               What do you need done?
             </h1>
             <p className="mt-3 max-w-xl text-base font-medium text-ink-500">
-              Share the outcome, budget and timing. Workly routes it safely from there.
+              Share the outcome, budget and timing. Parwaz routes it safely from there.
             </p>
           </div>
           <div className="w-full max-w-xs">
@@ -218,7 +218,7 @@ export default function PostTaskPage() {
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3.5 text-sm font-black text-brand-dark transition hover:bg-brand-100 disabled:opacity-55"
                     >
                       <WandSparkles className="h-4 w-4" />
-                      {aiBusy ? "Workly AI is reviewing your task…" : "Improve this with Workly AI"}
+                      {aiBusy ? "Parwaz AI is reviewing your task…" : "Improve this with Parwaz AI"}
                     </button>
                   )}
 
@@ -362,13 +362,13 @@ export default function PostTaskPage() {
 
                   <Alert tone="info" title={autoMode ? "Smart review is on" : "Your task goes to the review queue"}>
                     {autoMode
-                      ? "Workly AI checks safe, complete tasks and can publish them instantly. Anything uncertain goes to a human moderator."
-                      : "A Workly moderator will approve your task before freelancers can see it. This usually takes a short while."}
+                      ? "Parwaz AI checks safe, complete tasks and can publish them instantly. Anything uncertain goes to a human moderator."
+                      : "A Parwaz moderator will approve your task before freelancers can see it. This usually takes a short while."}
                   </Alert>
 
                   <p className="flex items-start gap-2 text-xs font-medium leading-5 text-ink-500">
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                    By posting, you agree to keep communication and payment on Workly. This protects both sides if
+                    By posting, you agree to keep communication and payment on Parwaz. This protects both sides if
                     anything goes wrong.
                   </p>
                 </>

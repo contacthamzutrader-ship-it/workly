@@ -30,8 +30,8 @@ test("members can switch between client and freelancer on one account", async ()
   const navbar = await read("components/Navbar.tsx");
   const settings = await read("app/settings/page.tsx");
   assert.match(auth, /switchRole: \(role: MemberRole\) => Promise<void>/);
-  assert.match(navbar, /Using Workly as/);
-  assert.match(settings, /How you use Workly/);
+  assert.match(navbar, /Using Parwaz as/);
+  assert.match(settings, /How you use Parwaz/);
 });
 
 test("new and incomplete accounts are routed through onboarding", async () => {
@@ -150,7 +150,7 @@ test("posting and bidding stay role-gated", async () => {
 
 test("freelancers see their exact take-home before sending an offer", async () => {
   const detail = await read("app/tasks/[id]/page.tsx");
-  assert.match(detail, /Workly service fee/);
+  assert.match(detail, /Parwaz service fee/);
   assert.match(detail, /You receive/);
 });
 
@@ -288,8 +288,8 @@ test("navigation adapts to the signed-in role", async () => {
 test("brand mark is used consistently", async () => {
   const layout = await read("app/layout.tsx");
   const brand = await read("components/BrandLogo.tsx");
-  assert.match(layout, /workly-mark\.png/);
-  assert.match(brand, /src="\/workly-mark\.png"/);
+  assert.match(layout, /Parwaz\.jpeg/);
+  assert.match(brand, /src="\/Parwaz\.jpeg"/);
 });
 
 test("every primary route exists", async () => {

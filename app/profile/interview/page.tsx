@@ -201,9 +201,9 @@ export default function FreelancerInterviewPage() {
             <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <span className={`grid h-14 w-14 place-items-center rounded-2xl ${isVerified ? "bg-white/15" : "bg-brand"}`}>{isVerified ? <BadgeCheck className="h-7 w-7" /> : <CheckCircle2 className="h-7 w-7" />}</span>
-                <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-white/60">{isVerified ? "Workly interviewed" : "Interview submitted"}</p>
+                <p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-white/60">{isVerified ? "Parwaz interviewed" : "Interview submitted"}</p>
                 <h1 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">{isVerified ? "Your interview badge is live." : "A human reviewer is next."}</h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">{isVerified ? "Clients can now see that your structured interview and evidence were reviewed by Workly." : "Aira prepared an evidence summary. A Workly team member—not the AI—makes the badge decision."}</p>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">{isVerified ? "Clients can now see that your structured interview and evidence were reviewed by Parwaz." : "Aira prepared an evidence summary. A Parwaz team member—not the AI—makes the badge decision."}</p>
               </div>
               {session.assessment && <div className="min-w-32 rounded-2xl bg-white/10 p-5 text-center"><p className="text-4xl font-black">{session.assessment.score}</p><p className="mt-1 text-[10px] font-black uppercase tracking-wider text-white/55">Evidence score</p></div>}
             </div>
@@ -276,7 +276,7 @@ export default function FreelancerInterviewPage() {
 
             <aside className="space-y-4 lg:sticky lg:top-24">
               <div className="surface p-5"><p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Already covered</p><div className="mt-4 space-y-3">{session.answers.map((item, index) => <div key={`${item.competency}-${index}`} className="flex items-center gap-3"><span className="grid h-7 w-7 place-items-center rounded-full bg-$success-50 text-$success-700"><Check className="h-3.5 w-3.5" /></span><span className="text-xs font-extrabold capitalize text-ink-500">{item.competency.replace(/([A-Z])/g, " $1")}</span></div>)}{session.answers.length === 0 && <p className="text-xs leading-5 text-ink-400">Your completed competencies will appear here.</p>}</div></div>
-              <div className="rounded-3xl bg-brand-50 p-5"><LockKeyhole className="h-5 w-5 text-brand" /><h2 className="mt-3 text-sm font-black text-ink">No surveillance</h2><p className="mt-2 text-xs leading-5 text-ink-500">Workly does not use video, face, voice, eye movement, emotion, or personality scoring.</p></div>
+              <div className="rounded-3xl bg-brand-50 p-5"><LockKeyhole className="h-5 w-5 text-brand" /><h2 className="mt-3 text-sm font-black text-ink">No surveillance</h2><p className="mt-2 text-xs leading-5 text-ink-500">Parwaz does not use video, face, voice, eye movement, emotion, or personality scoring.</p></div>
             </aside>
           </div>
         </div>
@@ -292,9 +292,9 @@ export default function FreelancerInterviewPage() {
           <div className="relative p-7 sm:p-10 lg:p-12">
             <div className="absolute inset-0 noise opacity-40" />
             <div className="relative">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-brand-300"><Sparkles className="h-3.5 w-3.5" /> Workly interview</span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-brand-300"><Sparkles className="h-3.5 w-3.5" /> Parwaz interview</span>
               <h1 className="mt-6 text-4xl font-black leading-[1.04] tracking-[-0.045em] sm:text-5xl">Show clients how you think—not just what you claim.</h1>
-              <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/60">Aira asks four structured questions based on your service. Your evidence is summarized for a Workly human reviewer before any badge goes live.</p>
+              <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/60">Aira asks four structured questions based on your service. Your evidence is summarized for a Parwaz human reviewer before any badge goes live.</p>
               <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                 {[[MessageSquareText, "4 questions", "Role-relevant"], [Clock3, "10–15 min", "Save as you go"], [UserRoundCheck, "Human review", "AI never decides"]].map(([Icon, title, body]: any) => <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4"><Icon className="h-5 w-5 text-brand-300" /><p className="mt-3 text-sm font-black">{title}</p><p className="mt-1 text-[11px] text-white/45">{body}</p></div>)}
               </div>
@@ -305,7 +305,7 @@ export default function FreelancerInterviewPage() {
             <div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand"><ShieldCheck className="h-5 w-5" /></span><div><h2 className="font-black">Before you begin</h2><p className="text-xs font-semibold text-ink-400">Transparent, text-only assessment</p></div></div>
             <div className="mt-7 space-y-4">
               {[
-                "Questions and answers are stored with your Workly account for reviewer access.",
+                "Questions and answers are stored with your Parwaz account for reviewer access.",
                 "The AI evaluates job-related evidence only; it does not analyze protected traits or biometrics.",
                 "A human reviewer makes the badge decision and can override the automated summary.",
                 "Do not include client secrets, passwords, private contact details, or confidential files.",

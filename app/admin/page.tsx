@@ -482,7 +482,7 @@ export default function AdminPage() {
                                   run(
                                     `publish-${task.id}`,
                                     async () => {
-                                      await approveTask(task.id!, "public", user.email || "Workly admin");
+                                      await approveTask(task.id!, "public", user.email || "Parwaz admin");
                                       await audited({ action: "task.publish", target: task.id!, detail: task.title });
                                     },
                                     "Task published to the public marketplace."
@@ -497,7 +497,7 @@ export default function AdminPage() {
                                 loading={action === `invite-${task.id}`}
                                 onClick={() =>
                                   run(`invite-${task.id}`, async () => {
-                                    const token = await approveTask(task.id!, "private", user.email || "Workly admin");
+                                    const token = await approveTask(task.id!, "private", user.email || "Parwaz admin");
                                     if (!token) throw new Error("A private token could not be generated.");
                                     const link = `${window.location.origin}/tasks/${task.id}?invite=${token}`;
                                     setInviteLink(link);
@@ -529,7 +529,7 @@ export default function AdminPage() {
                                 run(
                                   `reject-${task.id}`,
                                   async () => {
-                                    await rejectTask(task.id!, rejectReason, user.email || "Workly admin");
+                                    await rejectTask(task.id!, rejectReason, user.email || "Parwaz admin");
                                     await audited({ action: "task.reject", target: task.id!, detail: rejectReason });
                                   },
                                   "Task rejected and the client has been told why."
@@ -598,8 +598,8 @@ export default function AdminPage() {
                                       await approvePrivateTask({
                                         taskId: task.id!,
                                         providerId: provider.id,
-                                        providerName: provider.name || provider.email || "Workly provider",
-                                        approvedBy: user.email || "Workly admin",
+                                        providerName: provider.name || provider.email || "Parwaz provider",
+                                        approvedBy: user.email || "Parwaz admin",
                                       });
                                       await audited({
                                         action: "task.private_assign",
@@ -840,7 +840,7 @@ export default function AdminPage() {
                 </div>
 
                 <Alert tone="warning" title="Live payments are not enabled">
-                  These are internal contract records only. Before customer money moves, Workly needs an approved
+                  These are internal contract records only. Before customer money moves, Parwaz needs an approved
                   marketplace/held-funds agreement with a State Bank of Pakistan-regulated provider, plus signed
                   server-side webhooks.
                 </Alert>
@@ -1071,7 +1071,7 @@ export default function AdminPage() {
                                           await setUserSuspended(
                                             member.id,
                                             !member.suspended,
-                                            "Suspended by Workly staff"
+                                            "Suspended by Parwaz staff"
                                           );
                                           await audited({
                                             action: "user.suspend",
@@ -1236,7 +1236,7 @@ function StaffTab({
     setLookupError("");
     const found = await findUserByEmail(email);
     if (!found) {
-      setLookupError("No Workly member uses that email. Ask them to create an account first, then invite them.");
+      setLookupError("No Parwaz member uses that email. Ask them to create an account first, then invite them.");
       return;
     }
     await run(
@@ -1249,7 +1249,7 @@ function StaffTab({
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <Panel title="Staff team" eyebrow="Who can control Workly">
+      <Panel title="Staff team" eyebrow="Who can control Parwaz">
         <div className="border-b border-ink-100 bg-brand-50/50 p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <Avatar name="Owner" size="md" />
@@ -1399,10 +1399,10 @@ function StaffTab({
             <UserPlus className="h-5 w-5 text-brand" /> Invite staff
           </h3>
           <p className="mt-1.5 text-xs leading-5 text-ink-500">
-            The person must already have a Workly account. Access takes effect on their next page load.
+            The person must already have a Parwaz account. Access takes effect on their next page load.
           </p>
           <form onSubmit={invite} className="mt-4 space-y-3">
-            <Field label="Their Workly email" required>
+            <Field label="Their Parwaz email" required>
               <Input
                 type="email"
                 value={email}
@@ -1472,7 +1472,7 @@ function SettingsTab({
     {
       key: "autoApprove",
       title: "Smart auto-approval",
-      body: "Let Workly AI publish clean, complete tasks instantly. Anything uncertain still goes to the queue.",
+      body: "Let Parwaz AI publish clean, complete tasks instantly. Anything uncertain still goes to the queue.",
     },
     {
       key: "allowNewSignups",

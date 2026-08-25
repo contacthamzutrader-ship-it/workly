@@ -16,7 +16,7 @@ const COLUMNS: Record<string, { label: string; href: string }[]> = {
     { label: "Getting paid", href: "/how-it-works#payments" },
   ],
   Company: [
-    { label: "How Workly works", href: "/how-it-works" },
+    { label: "How Parwaz works", href: "/how-it-works" },
     { label: "Trust & safety", href: "/how-it-works#safety" },
     { label: "Help centre", href: "/support" },
     { label: "Contact support", href: "/support#contact" },
@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>&copy; {new Date().getFullYear()} Workly. All rights reserved.</span>
+          <span>&copy; {new Date().getFullYear()} Parwaz. All rights reserved.</span>
           <span>Built for Pakistan · Prices in PKR</span>
         </div>
       </div>

@@ -50,7 +50,7 @@ export default function ConversationPage() {
           const personSnapshot = await getDoc(doc(db!, "users", otherId));
           setOther({
             id: otherId,
-            name: personSnapshot.exists() ? personSnapshot.data().name || "Workly member" : "Workly member",
+            name: personSnapshot.exists() ? personSnapshot.data().name || "Parwaz member" : "Parwaz member",
             avatarUrl: personSnapshot.exists() ? personSnapshot.data().avatarUrl || "" : "",
           });
         }
@@ -187,7 +187,7 @@ export default function ConversationPage() {
                     </p>
                     {message.flagged && (
                       <p className="mt-1 flex items-center gap-1 text-[10px] font-black text-$warning-700">
-                        <AlertTriangle className="h-3 w-3" /> Flagged for review — keep payments on Workly
+                        <AlertTriangle className="h-3 w-3" /> Flagged for review — keep payments on Parwaz
                       </p>
                     )}
                   </div>
