@@ -1,432 +1,469 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment } from "react";
 import Link from "next/link";
 import {
+  ArrowDown,
   ArrowRight,
+  Award,
   BadgeCheck,
-  Banknote,
+  BrainCircuit,
   BriefcaseBusiness,
   Check,
-  ChevronRight,
-  Gavel,
-  Hammer,
-  HardHat,
+  CheckCircle2,
+  ClipboardList,
+  Compass,
+  FileCheck2,
+  Handshake,
   Laptop2,
+  Lightbulb,
+  LineChart,
+  Lock,
   MapPin,
+  MessageSquareText,
+  Mic,
   Paintbrush,
-  Search,
+  Radar,
+  Rocket,
+  SearchCheck,
+  Send,
   ShieldCheck,
+  ShieldX,
   Sparkles,
   Star,
+  Target,
   Truck,
-  UserRoundCheck,
-  WandSparkles,
+  UserPlus,
+  Users,
+  Wallet,
   Wrench,
   Zap,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { subscribePublicTasks, PLATFORM_FEE, type Task } from "@/lib/tasks";
 import { formatPKR } from "@/lib/format";
-import Button from "@/components/ui/Button";
-import TaskCard from "@/components/TaskCard";
 
-const CATEGORY_TILES = [
-  { icon: Wrench, name: "Handyman", blurb: "Plumbing, electrical & repairs", tone: "bg-$warning-50 text-$warning-600" },
-  { icon: Laptop2, name: "IT & Web", blurb: "Apps, sites & support", tone: "bg-$info-50 text-$info-600" },
-  { icon: Paintbrush, name: "Design", blurb: "Branding & creative", tone: "bg-$danger-50 text-$danger-600" },
-  { icon: Truck, name: "Moving", blurb: "Delivery & relocation", tone: "bg-$info-50 text-$info-600" },
-  { icon: BriefcaseBusiness, name: "Business & Admin", blurb: "Admin & marketing", tone: "bg-$warning-50 text-$warning-700" },
-  { icon: Hammer, name: "Furniture Assembly", blurb: "Assembly & maintenance", tone: "bg-$success-50 text-$success-700" },
+const stats = [
+  { value: "10K+", label: "Verified Freelancers" },
+  { value: "5K+", label: "Projects Completed" },
+  { value: "50+", label: "Skill Categories" },
+  { value: "AI", label: "Powered Matching" },
 ];
 
-const SAMPLE_FEED = [
+const trustCards = [
+  { icon: BadgeCheck, title: "Verified Skills", body: "AI-powered skill verification" },
+  { icon: BrainCircuit, title: "AI Matching", body: "Smart freelancer recommendations" },
+  { icon: Star, title: "Trust Scores", body: "Performance-based reputation" },
+  { icon: Lock, title: "Secure Payments", body: "Protected project payments" },
+];
+
+const whyCards = [
+  { icon: FileCheck2, title: "AI Skill Verification", body: "Freelancers can demonstrate their skills through AI-powered assessments." },
+  { icon: Users, title: "Fair Talent Discovery", body: "New and experienced freelancers get opportunities based on verified capabilities and performance." },
+  { icon: Radar, title: "Smart Recommendations", body: "AI matches clients with relevant freelancers based on project requirements." },
+  { icon: ShieldX, title: "Fraud Protection", body: "Intelligent systems identify suspicious accounts, proposals, reviews, and activities." },
+  { icon: Rocket, title: "Fresh Talent Boost", body: "Verified beginners can receive additional visibility to help them build their first reputation." },
+  { icon: Wallet, title: "Secure Transactions", body: "Protected payment workflows help create confidence between clients and freelancers." },
+];
+
+const clientSteps = [
+  { icon: ClipboardList, step: "01", title: "Post a Job", body: "Describe your project and requirements." },
+  { icon: BrainCircuit, step: "02", title: "AI Finds Talent", body: "Workly recommends relevant freelancers." },
+  { icon: Handshake, step: "03", title: "Hire & Fund", body: "Select a freelancer and secure the payment." },
+  { icon: CheckCircle2, step: "04", title: "Get Work Done", body: "Review the project and release payment." },
+];
+
+const journey = [
+  { icon: UserPlus, label: "Create Profile" },
+  { icon: FileCheck2, label: "Verify Skills" },
+  { icon: SearchCheck, label: "Discover Jobs" },
+  { icon: Send, label: "Submit Proposals" },
+  { icon: CheckCircle2, label: "Complete Projects" },
+  { icon: Star, label: "Build Reputation" },
+  { icon: Wallet, label: "Earn" },
+];
+
+const aiCards = [
+  { icon: Mic, title: "AI Interview", body: "Showcase your technical skills through intelligent assessments." },
+  { icon: LineChart, title: "AI Ranking", body: "Get ranked based on skills, performance, trust, and client satisfaction." },
+  { icon: Radar, title: "AI Recommendations", body: "Discover projects and talent relevant to your requirements." },
+  { icon: ShieldX, title: "AI Fraud Detection", body: "Identify suspicious activity and protect the marketplace." },
+  { icon: Lightbulb, title: "AI Career Insights", body: "Help freelancers understand their strengths and growth opportunities." },
+];
+
+const categories = [
+  { icon: Laptop2, name: "Web & App", count: "Build sites, apps & support" },
+  { icon: Paintbrush, name: "Design", count: "Logos, branding & creative" },
+  { icon: Wrench, name: "Handyman", count: "Fixing, assembly & maintenance" },
+  { icon: BriefcaseBusiness, name: "Virtual Assistant", count: "Admin & online support" },
+  { icon: Truck, name: "Delivery & Moving", count: "Errands, delivery & relocation" },
+  { icon: MessageSquareText, name: "Content & Writing", count: "Copy, blogs & translations" },
+];
+
+const topFreelancers = [
+  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", trust: 94, jobs: 12, rating: 4.9, avatar: "A", tag: "First job in 3 weeks" },
+  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", trust: 92, jobs: 9, rating: 4.8, avatar: "B", tag: "First job in 2 weeks" },
+  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", trust: 96, jobs: 15, rating: 5.0, avatar: "M", tag: "First job in 1 week" },
+  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", trust: 90, jobs: 8, rating: 4.7, avatar: "U", tag: "First job in 4 weeks" },
+];
+
+const heroJobs = [
   { title: "Shopify store speed optimisation", place: "Remote", bids: 8, price: 45000, match: 96 },
-  { title: "Move office furniture in DHA", place: "Lahore", bids: 5, price: 18000, match: 91 },
-  { title: "Brand identity for a chai cafe", place: "Karachi", bids: 12, price: 60000, match: 88 },
+  { title: "Social media kit for a new chai cafe", place: "Karachi", bids: 12, price: 22000, match: 91 },
 ];
 
-export default function HomePage() {
-  const { user, role } = useAuth();
-  const [liveTasks, setLiveTasks] = useState<Task[]>([]);
+const networkNodes = [
+  { x: 45, y: 70, r: 9, pulse: true },
+  { x: 120, y: 35, r: 11, pulse: false },
+  { x: 215, y: 30, r: 9, pulse: true },
+  { x: 305, y: 45, r: 12, pulse: false },
+  { x: 355, y: 90, r: 8, pulse: true },
+  { x: 355, y: 155, r: 10, pulse: false },
+  { x: 285, y: 185, r: 11, pulse: true },
+  { x: 205, y: 178, r: 8, pulse: false },
+  { x: 120, y: 185, r: 10, pulse: true },
+  { x: 55, y: 145, r: 11, pulse: false },
+];
 
-  useEffect(() => {
-    try {
-      return subscribePublicTasks({ sort: "newest" }, (tasks) =>
-        setLiveTasks(tasks.filter((task) => task.status === "open").slice(0, 6))
-      );
-    } catch {
-      setLiveTasks([]);
-    }
-  }, []);
+const networkEdges = [
+  [120, 35, 215, 30],
+  [305, 45, 355, 90],
+  [355, 155, 285, 185],
+  [285, 185, 205, 178],
+  [205, 178, 120, 185],
+  [120, 185, 55, 145],
+  [55, 145, 45, 70],
+  [45, 70, 120, 35],
+];
 
-  const primaryHref = user ? (role === "freelancer" ? "/tasks" : "/post") : "/signup";
-  const primaryLabel = user ? (role === "freelancer" ? "Find work" : "Post a task") : "Get started free";
-
+export default function Home() {
   return (
     <div className="overflow-hidden">
-      {/* ------------------------------------------------------------ Hero */}
-      <section className="relative bg-white">
-        <div className="pointer-events-none absolute inset-0 soft-grid opacity-70" />
-        <div className="pointer-events-none absolute -left-40 top-36 h-96 w-96 rounded-full bg-brand-100/70 blur-3xl" />
-        <div className="page-shell relative grid items-center gap-14 py-16 lg:grid-cols-[1.02fr_0.98fr] lg:py-24">
-          <div className="animate-fade-up">
-            <div className="eyebrow">
-              <Sparkles className="h-3.5 w-3.5" /> Built for Pakistan&apos;s next economy
-            </div>
-            <h1 className="mt-7 max-w-3xl text-balance text-[44px] font-black leading-[0.98] tracking-[-0.055em] text-ink sm:text-6xl lg:text-[74px]">
-              The right person for{" "}
-              <span className="relative whitespace-nowrap text-brand">
-                every task.
-                <span className="absolute -bottom-1 left-0 h-2 w-full -rotate-1 rounded-full bg-sun/55" />
-              </span>
-            </h1>
-            <p className="mt-7 max-w-xl text-lg font-medium leading-8 text-ink-500">
-              Post local or digital work, compare evidence-backed professionals, and pay only when you approve the
-              result.
-            </p>
-
-            <div className="mt-9 flex max-w-xl flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-2.5 shadow-elevated sm:flex-row">
-              <Link
-                href="/tasks"
-                className="flex min-h-14 flex-1 items-center gap-3 rounded-xl bg-ink-50 px-4 text-sm font-semibold text-ink-400 transition hover:bg-ink-100"
-              >
-                <Search className="h-5 w-5 text-brand" /> What do you need help with?
-              </Link>
-              <Link
-                href={primaryHref}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-black text-white shadow-glow transition hover:bg-brand-dark"
-              >
-                {primaryLabel} <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-black text-ink-500">
-              <span className="flex items-center gap-1.5">
-                <Check className="h-4 w-4 text-brand" /> Free to post
-              </span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-brand" /> Moderated marketplace
-              </span>
-              <span className="flex items-center gap-1.5">
-                <UserRoundCheck className="h-4 w-4 text-brand" /> Human-reviewed talent
-              </span>
-            </div>
+      {/* Hero */}
+      <section className="relative bg-white text-ink">
+        <div className="relative bg-brand">
+          <div className="page-shell flex items-center justify-center gap-2 py-2.5">
+            <Sparkles className="h-3.5 w-3.5 text-white" />
+            <p className="text-center text-[11px] font-extrabold uppercase tracking-[0.18em] text-white sm:text-xs">Pakistan&apos;s AI-powered freelancing marketplace</p>
           </div>
+        </div>
+        <div className="pointer-events-none absolute -left-32 top-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
 
-          <div className="relative mx-auto w-full max-w-xl lg:mx-0">
-            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-sun/20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-ink p-4 shadow-elevated sm:p-6">
-              <div className="absolute inset-0 noise opacity-50" />
-              <div className="relative flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-white/40">Work feed</p>
-                  <p className="mt-1 text-xl font-black text-white">Matched for you</p>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-black text-white">
-                  <Zap className="h-3.5 w-3.5" /> Live
-                </span>
+        <div className="page-shell relative pb-16 pt-6 lg:pb-24 lg:pt-8">
+          <div className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="animate-fade-up">
+              <h1 className="max-w-3xl text-balance text-[1.75rem] font-bold leading-[1.2] tracking-[-0.02em] text-deep sm:text-[2.125rem] lg:text-[2.375rem]">
+                Pakistan&apos;s Smarter Freelancing Marketplace,{" "}
+                <span className="whitespace-nowrap text-brand-600">Powered by AI.</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-base font-medium leading-7 text-ink-500">
+                Connect with verified talent, discover the right opportunities, and build your freelance career with intelligent AI-powered matching.
+              </p>
+
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link href="/#talent" className="inline-flex min-h-14 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700">
+                  Find Freelancers <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/signup" className="inline-flex min-h-14 items-center gap-2 rounded-xl bg-deep px-7 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-deep-800">
+                  <UserPlus className="h-4 w-4" /> Start Freelancing
+                </Link>
               </div>
-              <div className="relative mt-6 space-y-3">
-                {SAMPLE_FEED.map((item, index) => (
-                  <div
-                    key={item.title}
-                    className={`rounded-2xl border p-4 transition ${
-                      index === 0 ? "border-brand-300 bg-white" : "border-white/10 bg-white/[0.06] text-white"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span
-                          className={`text-[10px] font-black uppercase tracking-[0.14em] ${
-                            index === 0 ? "text-brand-dark" : "text-brand-300"
-                          }`}
-                        >
-                          {item.match}% skill match
-                        </span>
-                        <h3 className={`mt-1 text-sm font-black ${index === 0 ? "text-ink" : "text-white"}`}>
-                          {item.title}
-                        </h3>
-                      </div>
-                      <span className={`shrink-0 text-sm font-black ${index === 0 ? "text-ink" : "text-white"}`}>
-                        {formatPKR(item.price, true)}
-                      </span>
-                    </div>
-                    <div
-                      className={`mt-3 flex items-center gap-4 text-xs font-bold ${
-                        index === 0 ? "text-ink-400" : "text-white/45"
-                      }`}
-                    >
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> {item.place}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Gavel className="h-3 w-3" /> {item.bids} offers
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="relative mt-4 flex items-center justify-between rounded-2xl bg-brand px-4 py-3 text-white">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/15">
-                    <WandSparkles className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-xs font-black">AI ranked</p>
-                    <p className="text-[10px] text-white/70">By skills, trust & success</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4" />
+
+              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-extrabold text-ink-500">
+                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-brand-600" /> Verified talent</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-brand-600" /> Escrow-protected payments</span>
+                <span className="flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-brand-600" /> AI-powered matching</span>
               </div>
             </div>
 
-            <div className="absolute -bottom-6 -left-4 flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-3 pr-5 shadow-elevated sm:-left-10">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand">
-                <BadgeCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((index) => (
-                    <Star key={index} className="h-3 w-3 fill-sun text-sun" />
+            <div className="relative mx-auto w-full max-w-xl">
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-200 blur-3xl" />
+              <div className="relative rounded-[28px] border border-ink-100 bg-white p-5 shadow-elevated backdrop-blur sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-ink-400">Workly matching</p>
+                    <p className="mt-1 text-xl font-black text-ink">Matched for you</p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-extrabold text-white"><Zap className="h-3.5 w-3.5" /> Live</span>
+                </div>
+
+                <div className="relative mt-5 overflow-hidden rounded-2xl border border-ink-100 bg-canvas">
+                  <svg viewBox="0 0 400 200" className="h-auto w-full">
+                    <defs>
+                      <linearGradient id="hubGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#57B057" />
+                        <stop offset="100%" stopColor="#228B22" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="200" cy="100" r="46" fill="none" stroke="#228B22" strokeOpacity="0.4" className="animate-pulse-soft" />
+                    {networkEdges.map(([x1, y1, x2, y2]) => (
+                      <line key={`${x1}-${y1}-${x2}-${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#228B22" strokeOpacity="0.35" strokeWidth="1.5" />
+                    ))}
+                    {networkNodes.map((node) => (
+                      <line key={`hub-${node.x}-${node.y}`} x1="200" y1="100" x2={node.x} y2={node.y} stroke="#228B22" strokeOpacity="0.35" strokeWidth="1.5" />
+                    ))}
+                    <circle cx="200" cy="100" r="30" fill="url(#hubGradient)" />
+                    {networkNodes.map((node) => (
+                      <circle key={`node-${node.x}-${node.y}`} cx={node.x} cy={node.y} r={node.r} fill={node.pulse ? "#228B22" : "#ffffff"} stroke="#228B22" strokeWidth="2" className={node.pulse ? "animate-pulse" : ""} />
+                    ))}
+                  </svg>
+                  <div className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-2xl bg-brand shadow-forest">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {heroJobs.map((job, index) => (
+                    <div key={job.title} className={`flex items-center gap-3 rounded-2xl border p-3 ${index === 0 ? "border-brand-200 bg-white shadow-card" : "border-ink-100 bg-canvas/60"}`}>
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700"><BriefcaseBusiness className="h-4 w-4" /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-extrabold text-ink">{job.title}</p>
+                        <p className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-ink-400"><MapPin className="h-2.5 w-2.5" />{job.place} · {job.bids} offers · {job.match}% match</p>
+                      </div>
+                      <span className="shrink-0 text-xs font-black text-deep">{formatPKR(job.price, true)}</span>
+                    </div>
                   ))}
                 </div>
-                <p className="mt-1 text-xs font-black text-ink">Trust-first hiring</p>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ------------------------------------------------------------ Value props */}
-      <section className="border-y border-ink-100 bg-canvas py-8">
-        <div className="page-shell grid grid-cols-2 gap-6 sm:grid-cols-4">
-          {[
-            ["Free", "to post any task"],
-            [`${Math.round(PLATFORM_FEE * 100)}%`, "flat service fee"],
-            ["Held", "until you approve"],
-            ["Human", "reviewed verification"],
-          ].map(([value, label]) => (
-            <div key={label} className="text-center">
-              <p className="text-2xl font-black tracking-[-0.04em] text-ink sm:text-3xl">{value}</p>
-              <p className="mt-1 text-xs font-bold text-ink-400">{label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+              <div className="absolute -right-3 -top-6 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-extrabold text-white shadow-forest animate-pulse-soft">
+                <Sparkles className="h-3.5 w-3.5" /> AI matched · 96%
+              </div>
 
-      {/* ------------------------------------------------------------ Two paths */}
-      <section className="page-shell py-16 sm:py-20">
-        <div className="text-center">
-          <span className="eyebrow mx-auto">
-            <Sparkles className="h-3.5 w-3.5" /> One account, two ways
-          </span>
-          <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-black tracking-[-0.045em] text-ink sm:text-5xl">
-            Hire when you need help. Earn when you have time.
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
-            Switch between client and freelancer mode whenever you like — same account, same reputation.
-          </p>
-        </div>
+              <div className="absolute -left-3 top-24 hidden items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[11px] font-extrabold text-ink shadow-card sm:inline-flex">
+                <BadgeCheck className="h-4 w-4 text-brand-600" /> Verified talent
+              </div>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
-          {[
-            {
-              icon: BriefcaseBusiness,
-              tag: "For clients",
-              title: "Get it done properly",
-              points: [
-                "Post free and describe the outcome",
-                "Compare priced offers with real evidence",
-                "Funds held from hire until you approve",
-                "One private chat with a full record",
-              ],
-              href: user ? "/post" : "/signup",
-              cta: user ? "Post a task" : "Join as a client",
-              dark: false,
-            },
-            {
-              icon: HardHat,
-              tag: "For freelancers",
-              title: "Win work that fits",
-              points: [
-                "Browse approved, genuine tasks",
-                "See your exact take-home before bidding",
-                "Earn a human-reviewed verified badge",
-                "Get paid on approval, tracked in your balance",
-              ],
-              href: user ? "/tasks" : "/signup?role=freelancer",
-              cta: user ? "Find work" : "Join as a freelancer",
-              dark: true,
-            },
-          ].map((card) => (
-            <div
-              key={card.tag}
-              className={`overflow-hidden rounded-[32px] p-8 sm:p-10 ${
-                card.dark ? "bg-ink text-white shadow-elevated" : "border border-ink-100 bg-white shadow-card"
-              }`}
-            >
-              <span
-                className={`grid h-12 w-12 place-items-center rounded-2xl ${
-                  card.dark ? "bg-brand text-white" : "bg-brand-50 text-brand"
-                }`}
-              >
-                <card.icon className="h-5 w-5" />
-              </span>
-              <p
-                className={`mt-6 text-[11px] font-black uppercase tracking-[0.16em] ${
-                  card.dark ? "text-brand-300" : "text-brand-dark"
-                }`}
-              >
-                {card.tag}
-              </p>
-              <h3 className={`mt-2 text-3xl font-black tracking-[-0.04em] ${card.dark ? "text-white" : "text-ink"}`}>
-                {card.title}
-              </h3>
-              <ul className="mt-6 space-y-3">
-                {card.points.map((point) => (
-                  <li key={point} className="flex gap-3">
-                    <Check className={`mt-0.5 h-4 w-4 shrink-0 ${card.dark ? "text-brand-light" : "text-brand"}`} />
-                    <span className={`text-sm leading-6 ${card.dark ? "text-white/70" : "text-ink-600"}`}>{point}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href={card.href} className="mt-8 inline-block">
-                <Button
-                  className={card.dark ? "bg-white text-ink shadow-none hover:bg-brand-100" : ""}
-                  variant={card.dark ? "primary" : "primary"}
-                >
-                  {card.cta} <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------ Categories */}
-      <section className="bg-canvas py-16 sm:py-20">
-        <div className="page-shell">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <span className="eyebrow">
-                <Search className="h-3.5 w-3.5" /> Popular categories
-              </span>
-              <h2 className="mt-5 text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">
-                Whatever needs doing.
-              </h2>
-            </div>
-            <Link href="/tasks" className="flex items-center gap-1.5 text-sm font-black text-brand-dark">
-              See all work <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {CATEGORY_TILES.map((tile) => (
-              <Link
-                key={tile.name}
-                href={`/tasks?category=${encodeURIComponent(tile.name)}`}
-                className="group flex items-center gap-4 rounded-3xl border border-ink-100 bg-white p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover"
-              >
-                <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${tile.tone}`}>
-                  <tile.icon className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-black text-ink transition group-hover:text-brand-dark">{tile.name}</p>
-                  <p className="mt-0.5 truncate text-xs font-semibold text-ink-400">{tile.blurb}</p>
+              <div className="absolute -bottom-10 -left-3 w-[17rem] rounded-2xl border border-ink-100 bg-white p-4 shadow-card sm:-left-8">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-deep text-sm font-black text-white">AR</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-ink">Ayesha R.</p>
+                    <p className="truncate text-[11px] font-bold text-ink-400">Social Media Designer</p>
+                  </div>
+                  <span className="ml-auto rounded-full bg-brand-50 px-2 py-1 text-[10px] font-black text-brand-700">96%</span>
                 </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand" />
-              </Link>
-            ))}
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-extrabold text-ink-400">
+                    <BadgeCheck className="h-3 w-3 text-brand-600" /> Trust score <span className="ml-auto">94</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-ink-100"><div className="h-full w-[94%] rounded-full bg-brand" /></div>
+                  <div className="flex items-center gap-2 text-[10px] font-extrabold text-ink-400">
+                    <Award className="h-3 w-3 text-ink-500" /> Skill score <span className="ml-auto">91</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-ink-100"><div className="h-full w-[91%] rounded-full bg-deep" /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative mt-24 border-t border-ink-100 pt-10">
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl font-black tracking-[-0.02em] text-brand-700 sm:text-4xl">{stat.value}</p>
+                  <p className="mt-1.5 text-xs font-bold uppercase tracking-[0.12em] text-ink-400">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-center text-[11px] font-semibold text-ink-300">Target figures at launch — live statistics update automatically once Workly goes live.</p>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------ Live tasks */}
-      {liveTasks.length > 0 && (
-        <section className="page-shell py-16 sm:py-20">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <span className="eyebrow">
-                <Zap className="h-3.5 w-3.5" /> Live right now
-              </span>
-              <h2 className="mt-5 text-3xl font-black tracking-[-0.045em] text-ink sm:text-4xl">Open tasks today.</h2>
-            </div>
-            <Link href="/tasks" className="flex items-center gap-1.5 text-sm font-black text-brand-dark">
-              Browse everything <ArrowRight className="h-4 w-4" />
-            </Link>
+      {/* Trust / Verification bar */}
+      <section id="trust" className="border-b border-ink-100 bg-canvas py-16">
+        <div className="page-shell">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Trust &amp; safety</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Built for Trust. Designed for Talent.</h2>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {liveTasks.slice(0, 3).map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ------------------------------------------------------------ Protection */}
-      <section id="protect" className="scroll-mt-24 bg-ink py-16 text-white sm:py-24">
-        <div className="page-shell grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-brand-300">
-              <ShieldCheck className="h-3.5 w-3.5" /> Workly Protect
-            </span>
-            <h2 className="mt-6 text-3xl font-black leading-tight tracking-[-0.045em] sm:text-5xl">
-              Protection that is built in, not bolted on.
-            </h2>
-            <p className="mt-5 max-w-lg text-base leading-7 text-white/60">
-              From the moment you hire, the money, the messages and the delivery record all live in one place. If
-              something goes wrong, there is real evidence to act on.
-            </p>
-            <Link href="/how-it-works#safety" className="mt-8 inline-block">
-              <Button className="bg-white text-ink shadow-none hover:bg-brand-100">
-                See how it works <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { icon: Banknote, title: "Funds held at hire", body: "Released only when you approve the delivery." },
-              { icon: ShieldCheck, title: "Reviewed tasks", body: "Smart checks or a human moderator before anything goes live." },
-              { icon: BadgeCheck, title: "Verified talent", body: "Badges come from real evidence and a human reviewer." },
-              { icon: Gavel, title: "Neutral disputes", body: "A Workly reviewer reads the full on-platform record." },
-            ].map((item) => (
-              <div key={item.title} className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 backdrop-blur">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand">
-                  <item.icon className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
-                </span>
-                <p className="mt-4 text-sm font-black">{item.title}</p>
-                <p className="mt-1.5 text-xs leading-5 text-white/50">{item.body}</p>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {trustCards.map((card) => (
+              <div key={card.title} className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-5 w-5" /></span>
+                <h3 className="mt-4 font-black text-ink">{card.title}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-ink-500">{card.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------ CTA */}
-      <section className="page-shell py-16 sm:py-20">
-        <div className="overflow-hidden rounded-[32px] bg-brand p-8 text-white shadow-glow sm:p-14">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
-              <h2 className="text-3xl font-black leading-tight tracking-[-0.045em] sm:text-5xl">
-                Your next task starts here.
-              </h2>
-              <p className="mt-4 text-base leading-7 text-white/80">
-                Join free in under a minute. Hire, earn, or both — from the same account.
-              </p>
+      {/* Why Workly */}
+      <section id="why" className="bg-white py-24">
+        <div className="page-shell">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Workly?</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Workly is built to fix what breaks trust online — verification, discovery, and safety.</p>
+          </div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {whyCards.map((card) => (
+              <div key={card.title} className="rounded-2xl border border-ink-100 bg-canvas/60 p-7 transition hover:-translate-y-1 hover:border-brand-200 hover:bg-white hover:shadow-card">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-6 w-6" /></span>
+                <h3 className="mt-5 text-lg font-black text-ink">{card.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{card.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works — For Clients */}
+      <section id="how-it-works" className="bg-canvas py-24">
+        <div className="page-shell">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><Compass className="h-3.5 w-3.5" /> How it works</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Post a job. Get matched. Get it done.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">For clients — four simple steps, with AI doing the heavy lifting.</p>
+          </div>
+          <div className="mt-14 grid gap-6 lg:grid-cols-4">
+            {clientSteps.map((step, index) => (
+              <Fragment key={step.title}>
+                <div className="relative rounded-2xl border border-ink-100 bg-white p-7 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                  {index < clientSteps.length - 1 && (
+                    <span className="absolute -right-[14px] top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-brand text-white shadow-forest lg:grid"><ArrowRight className="h-3.5 w-3.5" /></span>
+                  )}
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">{step.step}</span>
+                  <span className="mt-5 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><step.icon className="h-6 w-6" /></span>
+                  <h3 className="mt-5 text-xl font-black text-ink">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-500">{step.body}</p>
+                </div>
+                {index < clientSteps.length - 1 && (
+                  <div className="flex justify-center lg:hidden"><ArrowDown className="my-1 h-5 w-5 text-brand-700" /></div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+          <div className="mt-12 flex flex-wrap justify-center gap-3">
+            <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Post a job <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-300 bg-white px-6 text-sm font-extrabold text-deep transition hover:bg-brand-50"><SearchCheck className="h-4 w-4" /> Find freelancers</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Freelancer Journey */}
+      <section id="journey" className="bg-white py-24">
+        <div className="page-shell">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Freelancer journey</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Turn Your Skills Into Opportunities.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Seven steps from profile to paycheck — no portfolio or experience needed to start.</p>
+          </div>
+          <div className="mt-14 rounded-[28px] border border-ink-100 bg-canvas p-8 shadow-card sm:p-12">
+            <div className="overflow-x-auto pb-2">
+              <div className="flex min-w-[940px] items-center">
+                {journey.map((step, index) => (
+                  <Fragment key={step.label}>
+                    <div className="flex w-28 shrink-0 flex-col items-center text-center">
+                      <div className="relative">
+                        <span className={`grid h-14 w-14 place-items-center rounded-full border-2 shadow-card ${index === 0 ? "border-brand bg-brand text-white" : "border-brand-200 bg-white text-deep"}`}>
+                          <step.icon className="h-6 w-6" />
+                        </span>
+                        {index === 0 && <span className="absolute -inset-1.5 -z-10 animate-pulse-soft rounded-full bg-brand-200" />}
+                      </div>
+                      <p className="mt-3 text-xs font-extrabold text-ink-600"><span className="text-brand-700">{index + 1}.</span> {step.label}</p>
+                    </div>
+                    {index < journey.length - 1 && (
+                      <div className="mx-1 h-0.5 min-w-0 flex-1 rounded-full bg-gradient-to-r from-brand to-brand-200" />
+                    )}
+                  </Fragment>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href={user ? "/dashboard" : "/signup"}>
-                <Button className="bg-white text-ink shadow-none hover:bg-brand-50">
-                  {user ? "Open your dashboard" : "Create free account"} <ArrowRight className="h-4 w-4" />
-                </Button>
+            <div className="mt-10 flex flex-col items-center gap-4 border-t border-ink-100 pt-8 sm:flex-row sm:justify-between">
+              <p className="max-w-md text-center text-sm font-medium leading-6 text-ink-500 sm:text-left">Every completed project improves your trust score, ranking, and earning power.</p>
+              <Link href="/signup" className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Section */}
+      <section id="ai" className="relative bg-white py-24 text-ink">
+        <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
+        <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+        <div className="page-shell relative">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> Workly features</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">AI That Works for You.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Workly is built into every part of Workly — from the first assessment to the final payment.</p>
+          </div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {aiCards.map((card) => (
+              <div key={card.title} className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-6 w-6" /></span>
+                <h3 className="mt-5 text-lg font-bold text-deep">{card.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{card.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every match, ranking, and review runs through Workly.</p>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section id="categories" className="bg-white py-20">
+        <div className="page-shell">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Categories for every kind of work.</h2></div>
+            <Link href="/tasks" className="inline-flex items-center gap-2 text-sm font-extrabold text-deep">Browse all jobs <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category) => (
+              <Link key={category.name} href={`/tasks?category=${encodeURIComponent(category.name)}`} className="group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><category.icon className="h-6 w-6" /></span>
+                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p></div>
+                <ArrowRight className="h-5 w-5 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-600" />
               </Link>
-              <Link href="/how-it-works">
-                <Button variant="ghost" className="border-white/30 bg-transparent text-white hover:bg-white/10">
-                  How it works
-                </Button>
-              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Top talent */}
+      <section id="talent" className="bg-canvas py-20">
+        <div className="page-shell">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div><span className="eyebrow"><Award className="h-3.5 w-3.5" /> Top talent</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Verified freelancers, ready to start.</h2></div>
+            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-extrabold text-deep">Hire talent <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {topFreelancers.map((person) => (
+              <div key={person.name} className="rounded-2xl border border-ink-100 bg-white p-6 text-center shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
+                <div className="relative mx-auto h-16 w-16">
+                  <span className="grid h-16 w-16 place-items-center rounded-2xl bg-deep text-xl font-black text-white">{person.avatar}</span>
+                  <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-brand text-[10px] font-black text-white ring-2 ring-white">{person.trust}</span>
+                </div>
+                <h3 className="mt-4 font-black text-ink">{person.name}</h3>
+                <p className="mt-1 text-xs font-bold text-ink-400">{person.title} · {person.city}</p>
+                <div className="mt-3 flex items-center justify-center gap-2 text-xs font-bold text-ink-500">
+                  <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-warning text-warning" />{person.rating}</span>
+                  <span>·</span>
+                  <span>{person.jobs} jobs done</span>
+                </div>
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-[11px] font-extrabold text-brand-700"><BadgeCheck className="h-3 w-3 text-brand-700" /> {person.tag}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-white pb-24">
+        <div className="page-shell">
+          <div className="relative overflow-hidden rounded-[28px] bg-deep p-10 text-center text-white shadow-elevated sm:p-16">
+            <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand-300/30 bg-brand/10 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em] text-deep"><Sparkles className="h-3.5 w-3.5" /> Ready when you are</span>
+              <h2 className="mx-auto mt-6 max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project is <span className="text-brand-300">AI-matched.</span></h2>
+              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-deep">Join free, verify your skills with Workly, and get matched with work you&apos;re great at — from both sides of the table.</p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Find Freelancers <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-white/20 bg-white/5 px-7 text-sm font-extrabold text-deep transition hover:bg-white/10"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
+              </div>
             </div>
           </div>
         </div>

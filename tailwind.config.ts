@@ -133,6 +133,7 @@ const config: Config = {
         "card-hover": "0 24px 55px -18px rgb(30 41 59 / 0.22)",
         elevated: "0 30px 80px -30px rgb(30 41 59 / 0.38)",
         glow: "0 16px 42px -16px rgb(34 139 34 / 0.55)",
+        forest: "0 8px 24px -4px rgb(34 139 34 / 0.35)",
       },
       borderRadius: {
         "2xl": "1rem",

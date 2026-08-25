@@ -91,6 +91,9 @@ textarea:focus-visible {
   .animate-slide-up {
     animation: slideUp 0.4s ease-out both;
   }
+  .animate-pulse-soft {
+    animation: pulseSoft 3s ease-in-out infinite;
+  }
 }
 
 @keyframes fadeUp {
@@ -110,6 +113,11 @@ textarea:focus-visible {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
