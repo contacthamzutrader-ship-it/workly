@@ -13,9 +13,11 @@ export default function BrandLogo({
 }) {
   return (
     <Link href={href} aria-label="Parwaz home" className={`inline-flex items-center ${className}`}>
-      <span className={`grid shrink-0 place-items-center overflow-hidden rounded-[15px] ${compact ? "h-10 w-10" : "h-11 w-11"} ${inverted ? "bg-white/10" : "bg-deep shadow-sm"}`}>
-        <img src="/Parwaz.jpeg" alt="Parwaz" className="h-full w-full object-cover" />
-      </span>
+      <img
+        src="/Parwaz.jpeg"
+        alt="Parwaz"
+        className={`w-auto object-contain ${compact ? "h-7 sm:h-8" : "h-9 sm:h-11"} ${inverted ? "opacity-95" : ""}`}
+      />
     </Link>
   );
 }
