@@ -109,3 +109,9 @@ test("premium brand mark replaces the old tagline", async () => {
   assert.match(brand, /src="\/workly-mark\.png"/);
   assert.doesNotMatch(`${navbar}\n${footer}`, /Kaam\. Kamal/i);
 });
+
+test("AI interview keeps exactly 10 questions per candidate", async () => {
+  const nicheTests = await read("lib/nicheTests.ts");
+  assert.match(nicheTests, /slice\(0, 10\)/);
+  assert.match(nicheTests, /aiInterviewQuestions: shuffledAI/);
+});
