@@ -1488,7 +1488,7 @@ export function getTestForCandidate(candidate: Partial<CandidateProfile>, attemp
   const nicheKey = (candidate.niche || 'frontend') as NicheCategory;
   const baseTest = NICHE_TEST_REGISTRY[nicheKey] || NICHE_TEST_REGISTRY.custom || NICHE_TEST_REGISTRY.frontend;
 
-  // 1. Randomize and rotate MCQs
+  // 1. Randomize and rotate MCQs (cap to 10 questions)
   const shuffledMCQs = shuffleArray(baseTest.mcqQuestions).map((mcq) => {
     // 2. Randomize options within each MCQ while preserving correct option identity
     const shuffledOpts = shuffleArray(mcq.options);
@@ -1498,13 +1498,13 @@ export function getTestForCandidate(candidate: Partial<CandidateProfile>, attemp
     };
   });
 
-  // 3. Randomize AI Voice Questions
-  const shuffledAI = shuffleArray(baseTest.aiInterviewQuestions);
+  // 3. Randomize AI Voice Questions and cap the interview at 10 questions
+  const shuffledAI = shuffleArray(baseTest.aiInterviewQuestions).slice(0, 10);
 
   return {
     ...baseTest,
     nicheTitle: candidate.nicheTitle || baseTest.nicheTitle,
-    mcqQuestions: shuffledMCQs,
+    mcqQuestions: shuffledMCQs.slice(0, 10),
     aiInterviewQuestions: shuffledAI,
   };
 }
