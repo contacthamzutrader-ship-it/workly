@@ -1,79 +1,84 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { authErrorMessage } from "@/lib/auth-errors";
 import Button from "@/components/ui/Button";
-import Input, { Field } from "@/components/ui/Input";
-import { Alert } from "@/components/ui/Feedback";
-import GoogleButton from "@/components/GoogleButton";
+import Input from "@/components/ui/Input";
 import BrandLogo from "@/components/BrandLogo";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function safeInternalRedirect(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
-  return value;
-}
+import { OWNER_EMAIL } from "@/lib/admin";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginForm />
-    </Suspense>
-  );
-}
-
-function LoginForm() {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirect = safeInternalRedirect(searchParams.get("redirect"));
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [attempted, setAttempted] = useState(false);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState<"email" | "google" | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [redirect, setRedirect] = useState("/dashboard");
 
-  const normalizedEmail = email.trim().toLowerCase();
-  const emailValid = EMAIL_PATTERN.test(normalizedEmail);
-  const passwordValid = password.length > 0;
-  const emailError = attempted && !emailValid ? "Enter a valid email address." : "";
-  const passwordError = attempted && !passwordValid ? "Enter your password." : "";
-  const canSubmit = emailValid && passwordValid && busy === null;
+  useEffect(() => {
+    const destination = new URLSearchParams(window.location.search).get("redirect");
+    if (destination) setRedirect(destination);
+  }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setAttempted(true);
+    setBusy(true);
     setError("");
-    if (!emailValid || !passwordValid) return;
-
-    setBusy("email");
     try {
-      const { isOwner, onboarded } = await signInWithEmail(normalizedEmail, password);
-      router.push(isOwner ? "/admin" : onboarded ? redirect : "/onboarding");
-    } catch (caught) {
-      setError(authErrorMessage(caught, "We could not sign you in."));
+      await signInWithEmail(email, password);
+
+      // Perform a direct Firestore check to see if we should redirect to onboarding
+      const currentUser = auth?.currentUser;
+      if (currentUser && db) {
+        const snap = await getDoc(doc(db, "users", currentUser.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.role === "tasker" && !d.onboardingCompleted) {
+            router.push("/onboarding");
+            return;
+          }
+        }
+      }
+
+      router.push(email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase() ? "/admin" : redirect);
+    } catch (err: any) {
+      setError(err?.message || "We could not sign you in.");
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
   const google = async () => {
+    setBusy(true);
     setError("");
-    setBusy("google");
     try {
-      const { isOwner, onboarded } = await signInWithGoogle();
-      router.push(isOwner ? "/admin" : onboarded ? redirect : "/onboarding");
-    } catch (caught) {
-      setError(authErrorMessage(caught, "Google sign-in did not complete."));
+      await signInWithGoogle();
+
+      // Perform a direct Firestore check to see if we should redirect to onboarding
+      const currentUser = auth?.currentUser;
+      if (currentUser && db) {
+        const snap = await getDoc(doc(db, "users", currentUser.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.role === "tasker" && !d.onboardingCompleted) {
+            router.push("/onboarding");
+            return;
+          }
+        }
+      }
+
+      router.push(redirect);
+    } catch (err: any) {
+      setError(err?.message || "Google sign-in failed.");
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
@@ -81,81 +86,37 @@ function LoginForm() {
     <div className="w-full max-w-md">
       <div className="mb-8">
         <BrandLogo />
-        <h1 className="mt-6 text-[32px] font-black leading-tight tracking-[-0.04em] text-ink">Welcome back.</h1>
-        <p className="mt-2 text-sm font-medium leading-6 text-ink-500">Sign in to manage your tasks, offers and account activity.</p>
+        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Welcome back.</h1>
+        <p className="mt-2 text-sm font-medium text-ink-500">Your tasks, offers and payments are waiting.</p>
       </div>
 
       <div className="surface p-6 sm:p-8">
-        <GoogleButton onClick={google} disabled={busy !== null} label={busy === "google" ? "Connecting to Google..." : "Continue with Google"} />
+        <button onClick={google} disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-ink-200 bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-ink-50 disabled:opacity-50">
+          <GoogleMark /> Continue with Google
+        </button>
+        <div className="my-6 flex items-center gap-3"><span className="h-px flex-1 bg-ink-100" /><span className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-300">or email</span><span className="h-px flex-1 bg-ink-100" /></div>
 
-        <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-ink-100" />
-          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-300">or use email</span>
-          <span className="h-px flex-1 bg-ink-100" />
-        </div>
-
-        <form onSubmit={submit} className="space-y-4" noValidate>
-          <Field label="Email address" error={emailError} required>
-            <Input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              onBlur={() => setEmail((current) => current.trim().toLowerCase())}
-              autoComplete="email"
-              inputMode="email"
-              aria-invalid={Boolean(emailError)}
-              disabled={busy !== null}
-              required
-            />
-          </Field>
-
-          <Field label="Password" error={passwordError} required>
+        <form onSubmit={submit} className="space-y-4">
+          <div><label className="mb-2 block text-sm font-extrabold text-ink">Email address</label><Input type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></div>
+          <div>
+            <div className="mb-2 flex items-center justify-between"><label className="text-sm font-extrabold text-ink">Password</label><span className="text-xs font-bold text-brand-dark">Secure sign in</span></div>
             <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                className="pr-12"
-                aria-invalid={Boolean(passwordError)}
-                disabled={busy !== null}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-50 hover:text-ink"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" className="pr-11" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-ink-400 hover:text-ink" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
             </div>
-          </Field>
-
-          <div className="flex justify-end">
-            <Link href="/forgot-password" className="text-xs font-extrabold text-brand-dark hover:text-brand">
-              Forgot your password?
-            </Link>
           </div>
-
-          {error && <Alert tone="error">{error}</Alert>}
-
-          <Button type="submit" loading={busy === "email"} disabled={!canSubmit} fullWidth size="lg">
-            {busy === "email" ? "Signing in securely" : "Sign in"} {busy !== "email" && <ArrowRight className="h-4 w-4" />}
-          </Button>
+          {error && <div role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</div>}
+          <Button type="submit" disabled={busy} className="w-full gap-2">{busy ? "Signing in..." : "Sign in"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
         </form>
 
-        <p className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-ink-400">
-          <LockKeyhole className="h-3.5 w-3.5 text-brand" /> Existing Parwaz accounts only. New members join from Create account.
-        </p>
+        <div className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-ink-400"><LockKeyhole className="h-3.5 w-3.5 text-brand" /> Protected by Firebase Authentication</div>
       </div>
 
-      <p className="mt-6 text-center text-sm font-medium text-ink-500">
-        New to Parwaz?{" "}
-        <Link href="/signup" className="font-extrabold text-brand-dark hover:text-brand">Create a free account</Link>
-      </p>
+      <p className="mt-6 text-center text-sm font-medium text-ink-500">New to Parwaz? <Link href="/signup" className="font-extrabold text-brand-dark hover:text-brand">Create a free account</Link></p>
     </div>
   );
+}
+
+function GoogleMark() {
+  return <span aria-hidden="true" className="grid h-5 w-5 place-items-center rounded-full border border-ink-200 text-xs font-black text-blue-600">G</span>;
 }

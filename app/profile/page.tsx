@@ -3,587 +3,220 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Bot,
-  Camera,
-  CheckCircle2,
-  Percent,
-  Save,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  TrendingUp,
-} from "lucide-react";
-import { updateProfile } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles, Camera } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { CATEGORIES, listReviewsForUser, type Review } from "@/lib/tasks";
-import { hasPermission, MEMBER_ROLE_LABELS } from "@/lib/roles";
-import { interviewStatusLabel, interviewStatusTone, type InterviewStatus } from "@/lib/interview";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { db, auth, storage } from "@/lib/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { listReviewsForUser, type Review } from "@/lib/tasks";
 import Button from "@/components/ui/Button";
-import Input, { Field, Select, Textarea } from "@/components/ui/Input";
-import Avatar from "@/components/ui/Avatar";
-import { Alert, PageLoader } from "@/components/ui/Feedback";
-import { Stat } from "@/components/ui/Badge";
-
-const AVAILABILITY = ["Available now", "Part-time", "Weekends only", "Booked until further notice"];
-
-function normalizeName(value: string) {
-  return value.trim().replace(/\s+/g, " ");
-}
-
-function isHttpUrl(value: string) {
-  if (!value.trim()) return true;
-  try {
-    const parsed = new URL(value.trim());
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
+import Input from "@/components/ui/Input";
 
 export default function ProfilePage() {
-  const { user, profile, role, staff, isStaff, loading } = useAuth();
+  const { user, role, loading, setAccountType } = useAuth();
   const router = useRouter();
-
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
-  const [city, setCity] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
-
-  const [professionalTitle, setProfessionalTitle] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
-  const [hourlyRate, setHourlyRate] = useState("");
-  const [experienceYears, setExperienceYears] = useState("");
-  const [languages, setLanguages] = useState("");
-  const [availability, setAvailability] = useState(AVAILABILITY[0]);
-  const [portfolioUrl, setPortfolioUrl] = useState("");
-  const [certifications, setCertifications] = useState("");
-
-  const [organization, setOrganization] = useState("");
-  const [hiringNeeds, setHiringNeeds] = useState("");
+  const [isTasker, setIsTasker] = useState(true);
   const [isPrivate, setIsPrivate] = useState(false);
-
   const [trust, setTrust] = useState<number | null>(null);
+  const [skills, setSkills] = useState("");
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [completionRate, setCompletionRate] = useState<number | null>(null);
   const [tasksDone, setTasksDone] = useState(0);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [interviewStatus, setInterviewStatus] = useState<InterviewStatus>("not_started");
-  const [interviewScore, setInterviewScore] = useState<number | null>(null);
-  const [interviewSummary, setInterviewSummary] = useState("");
-
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [city, setCity] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
+  const [languages, setLanguages] = useState("");
+  const [accountType, setProfileAccountType] = useState<"customer" | "tasker">("customer");
+  const [professionalTitle, setProfessionalTitle] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [availability, setAvailability] = useState("Available now");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [certifications, setCertifications] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [hiringNeeds, setHiringNeeds] = useState("");
+
+  const isAdmin = role === "company_admin" || role === "super_admin";
+
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/profile"); }, [loading, user, router]);
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/login?redirect=/profile");
-  }, [loading, user, router]);
-
-  useEffect(() => {
-    if (!user || !db) return;
+    if (!user) return;
     (async () => {
-      const snapshot = await getDoc(doc(db!, "users", user.uid));
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setName(data.name || "");
-        setBio(data.bio || "");
-        setCity(data.city || "");
-        setAvatarUrl(data.avatarUrl || "");
-        setProfessionalTitle(data.professionalTitle || "");
-        setSkills(Array.isArray(data.skills) ? data.skills : []);
-        setHourlyRate(data.hourlyRate ? String(data.hourlyRate) : "");
-        setExperienceYears(data.experienceYears ? String(data.experienceYears) : "");
-        setLanguages((data.languages || []).join(", "));
-        setAvailability(data.availability || AVAILABILITY[0]);
-        setPortfolioUrl(data.portfolioUrl || "");
-        setCertifications((data.certifications || []).join(", "));
-        setOrganization(data.organization || "");
-        setHiringNeeds(data.hiringNeeds || "");
-        setIsPrivate(data.isPrivate === true);
-        setTrust(typeof data.trustScore === "number" ? data.trustScore : null);
-        setInterviewStatus(data.interviewStatus || "not_started");
-        setInterviewScore(typeof data.interviewScore === "number" ? data.interviewScore : null);
-        setInterviewSummary(data.interviewSummary || "");
+      if (!db) return;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        const d = snap.data();
+        const publicRole = d.role === "tasker" ? "tasker" : "customer";
+        setName(d.name ?? ""); setBio(d.bio ?? ""); setIsTasker(publicRole === "tasker"); setProfileAccountType(publicRole); setIsPrivate(d.isPrivate ?? false);
+        setAvatarUrl(d.avatarUrl ?? ""); setCity(d.city ?? ""); setHourlyRate(d.hourlyRate ? String(d.hourlyRate) : ""); setLanguages((d.languages || []).join(", "));
+        setTrust(typeof d.trustScore === "number" ? d.trustScore : null); setSkills((d.skills || []).join(", "));
+        setProfessionalTitle(d.professionalTitle ?? ""); setExperienceYears(d.experienceYears ? String(d.experienceYears) : "");
+        setAvailability(d.availability ?? "Available now"); setPortfolioUrl(d.portfolioUrl ?? ""); setCertifications((d.certifications || []).join(", "));
+        setOrganization(d.organization ?? ""); setHiringNeeds(d.hiringNeeds ?? "");
       }
+      setReviews(await listReviewsForUser(user.uid));
 
-      setReviews(await listReviewsForUser(user.uid).catch(() => []));
-
-      try {
-        const assignedSnapshot = await getDocs(query(collection(db!, "tasks"), where("assignedTo", "==", user.uid)));
-        const assigned = assignedSnapshot.docs.map((item) => item.data());
-        if (assigned.length > 0) {
-          const completed = assigned.filter((item) => item.status === "completed");
-          setTasksDone(completed.length);
-          setCompletionRate(Math.round((completed.length / assigned.length) * 100));
-        }
-      } catch {
-        // Non-critical stats.
+      const taskSnap = await getDocs(query(collection(db, "tasks"), where("assignedTo", "==", user.uid)));
+      const assigned = taskSnap.docs.map(d => d.data());
+      const completed = assigned.filter(t => t.status === "completed" && t.paymentReleased);
+      const total = assigned.filter(t => t.status === "completed" || t.status === "cancelled" || t.status === "in_progress");
+      if (assigned.length > 0) {
+        setTasksDone(completed.length);
+        const rate = assigned.filter(t => t.status === "completed" || t.paymentReleased).length / assigned.length;
+        setCompletionRate(Math.round(rate * 100));
       }
     })();
   }, [user]);
 
-  useEffect(
-    () => () => {
-      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    },
-    [avatarPreview]
-  );
+  if (!user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
-  if (loading || !user) return <PageLoader />;
+  const avg = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : "\u2014";
 
-  const isFreelancer = role === "freelancer";
-  const averageRating = reviews.length
-    ? (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1)
-    : "—";
-
-  const pickAvatar = (file: File | null) => {
-    setAvatarFile(file);
-    setAvatarPreview((previous) => {
-      if (previous) URL.revokeObjectURL(previous);
-      return file ? URL.createObjectURL(file) : "";
-    });
-  };
-
-  const toggleSkill = (skill: string) =>
-    setSkills((current) =>
-      current.includes(skill) ? current.filter((item) => item !== skill) : current.length < 10 ? [...current, skill] : current
-    );
-
-  const save = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    setSaved(false);
-
+  const save = async (e: React.FormEvent) => { e.preventDefault(); setError(""); setSaved(false);
     try {
-      if (!db) throw new Error("Parwaz is not connected to Firebase.");
-
-      const normalizedName = normalizeName(name);
-      const normalizedCity = city.trim();
-      const normalizedBio = bio.trim();
-      const normalizedTitle = professionalTitle.trim();
-      const rate = hourlyRate.trim() ? Number(hourlyRate) : 0;
-      const years = experienceYears.trim() ? Number(experienceYears) : 0;
-
-      if (normalizedName.length < 2 || normalizedName.length > 80) {
-        throw new Error("Enter your real full name using 2 to 80 characters.");
-      }
-      if (normalizedCity.length < 2 || normalizedCity.length > 100) {
-        throw new Error("Enter a valid city or location.");
-      }
-      if (normalizedBio.length < 20 || normalizedBio.length > 600) {
-        throw new Error("Your profile introduction must be between 20 and 600 characters.");
-      }
-      if (isFreelancer && normalizedTitle.length < 3) {
-        throw new Error("Add a clear professional title before saving your freelancer profile.");
-      }
-      if (isFreelancer && skills.length === 0) {
-        throw new Error("Select at least one service category before saving your freelancer profile.");
-      }
-      if (!Number.isFinite(rate) || rate < 0 || rate > 1_000_000) {
-        throw new Error("Enter a valid hourly rate between 0 and 1,000,000 PKR.");
-      }
-      if (!Number.isFinite(years) || years < 0 || years > 80) {
-        throw new Error("Enter a valid number of years of experience.");
-      }
-      if (!isHttpUrl(portfolioUrl)) {
-        throw new Error("Enter a valid portfolio URL beginning with http:// or https://.");
-      }
-
+      if (!db) throw new Error("Firebase not configured");
       let uploadedAvatar = avatarUrl;
       if (avatarFile) {
-        if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) {
-          throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
-        }
-        if (!storage) throw new Error("Profile photo storage is not configured yet.");
+        if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
         try {
+          if (!storage) throw new Error("Storage unavailable");
           const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
           await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
           uploadedAvatar = await getDownloadURL(avatarRef);
         } catch {
-          throw new Error("We could not upload your profile photo. Please retry with a JPG, PNG or WebP image under 5 MB.");
+          uploadedAvatar = await compactProfileImage(avatarFile);
         }
       }
-
-      const data: Record<string, unknown> = {
-        name: normalizedName,
-        bio: normalizedBio,
-        city: normalizedCity,
-        avatarUrl: uploadedAvatar,
-        onboarded: true,
-        profileComplete: true,
-        profileUpdatedAt: serverTimestamp(),
+      if ((role === "customer" || role === "tasker") && role !== accountType) await setAccountType(accountType);
+      const data: any = {
+        name, bio, city, avatarUrl: uploadedAvatar,
+        profileComplete: Boolean(name.trim() && bio.trim() && city.trim() && (accountType === "customer" || skills.trim())),
+        profileUpdatedAt: new Date().toISOString(),
       };
-
-      if (isFreelancer) {
-        data.professionalTitle = normalizedTitle;
-        data.skills = skills;
-        data.hourlyRate = rate;
-        data.experienceYears = years;
-        data.languages = languages.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 10);
+      if (accountType === "tasker") {
+        data.skills = skills.split(",").map(s => s.trim()).filter(Boolean);
+        data.languages = languages.split(",").map(s => s.trim()).filter(Boolean);
+        data.hourlyRate = Math.max(0, Number(hourlyRate) || 0);
+        data.professionalTitle = professionalTitle.trim();
+        data.experienceYears = Math.max(0, Number(experienceYears) || 0);
         data.availability = availability;
         data.portfolioUrl = portfolioUrl.trim();
-        data.certifications = certifications.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 20);
+        data.certifications = certifications.split(",").map(s => s.trim()).filter(Boolean);
       } else {
-        data.organization = organization.trim().slice(0, 120);
-        data.hiringNeeds = hiringNeeds.trim().slice(0, 600);
+        data.organization = organization.trim();
+        data.hiringNeeds = hiringNeeds.trim();
       }
+      if (isAdmin) data.isPrivate = isPrivate;
+      await updateDoc(doc(db, "users", user.uid), data); setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
+    } catch (err: any) { setError(err?.message || "Could not save"); } };
 
-      if (hasPermission(staff, "manageUsers")) data.isPrivate = isPrivate;
-
-      await setDoc(doc(db, "users", user.uid), data, { merge: true });
-      if (user.displayName !== normalizedName) {
-        await updateProfile(user, { displayName: normalizedName }).catch(() => undefined);
-      }
-
-      setName(normalizedName);
-      setCity(normalizedCity);
-      setBio(normalizedBio);
-      setProfessionalTitle(normalizedTitle);
-      setAvatarUrl(uploadedAvatar);
-      setAvatarFile(null);
-      setAvatarPreview((previous) => {
-        if (previous) URL.revokeObjectURL(previous);
-        return "";
-      });
+  const changePassword = async () => {
+    if (!user?.email || !auth) return;
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      setError("");
       setSaved(true);
-      setTimeout(() => setSaved(false), 4000);
-    } catch (caught) {
-      setError((caught as Error)?.message || "We could not save your profile.");
-    } finally {
-      setBusy(false);
+      alert("Password reset link sent to your email!");
+    } catch (err: any) {
+      setError(err?.message || "Could not send reset email");
     }
   };
 
   return (
-    <div className="bg-canvas py-8 sm:py-10">
-      <div className="page-shell max-w-5xl">
-        <section className="surface overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-brand to-brand-light" />
-          <div className="px-6 pb-6 sm:px-8 sm:pb-8">
-            <div className="-mt-12 flex flex-wrap items-end gap-5">
-              <div className="relative">
-                <Avatar
-                  name={name || user.email || "You"}
-                  src={avatarPreview || avatarUrl}
-                  size="xl"
-                  className="ring-4 ring-white"
-                />
-                <label className="absolute -bottom-1 -right-1 grid h-9 w-9 cursor-pointer place-items-center rounded-xl bg-ink text-white shadow-card transition hover:bg-ink-800">
-                  <Camera className="h-4 w-4" />
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    onChange={(event) => pickAvatar(event.target.files?.[0] || null)}
-                  />
-                  <span className="sr-only">Change profile photo</span>
-                </label>
-              </div>
-
-              <div className="min-w-0 flex-1 pb-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-black tracking-[-0.035em] text-ink">{name || "Your profile"}</h1>
-                  {interviewStatus === "verified" && <BadgeCheck className="h-5 w-5 text-$success-600" />}
-                  <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-brand-dark">
-                    {MEMBER_ROLE_LABELS[role]}
-                  </span>
-                  {isStaff && (
-                    <span className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-white">
-                      Staff
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm font-medium text-ink-500">{professionalTitle || organization || user.email}</p>
-              </div>
-
-              <Link href={`/u/${user.uid}`} className="pb-1">
-                <Button variant="ghost" size="sm">
-                  View public profile <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </div>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>}
+            <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand-light" /></div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
           </div>
-        </section>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat icon={Star} label="Average rating" value={averageRating} tone="bg-$warning-50 text-$warning-600" />
-          <Stat icon={CheckCircle2} label="Tasks completed" value={tasksDone} tone="bg-$success-50 text-$success-600" />
-          <Stat
-            icon={Percent}
-            label="Completion rate"
-            value={completionRate === null ? "—" : `${completionRate}%`}
-            tone="bg-$info-50 text-$info-600"
-          />
-          <Stat icon={TrendingUp} label="Trust score" value={trust ?? "—"} tone="bg-brand-50 text-brand" />
+          <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
         </div>
-
-        {isFreelancer && (
-          <section className="mt-5 overflow-hidden rounded-3xl bg-ink p-6 text-white shadow-elevated sm:p-7">
-            <div className="flex flex-wrap items-center gap-5">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand">
-                <Bot className="h-6 w-6" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-black">Parwaz skills interview</h2>
-                  <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${interviewStatusTone(interviewStatus)}`}>
-                    {interviewStatusLabel(interviewStatus)}
-                  </span>
-                </div>
-                <p className="mt-1.5 max-w-2xl text-sm leading-6 text-white/60">
-                  {interviewStatus === "verified"
-                    ? interviewSummary || "Your answers were reviewed and your profile carries the verified badge."
-                    : interviewStatus === "awaiting_review"
-                      ? "Your evidence summary is ready. A human reviewer makes the badge decision."
-                      : interviewStatus === "in_progress"
-                        ? "Your previous answers are saved. Continue with the next question."
-                        : "Answer four role-specific questions, show real evidence, and earn a reviewed profile badge."}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                {interviewScore !== null && (
-                  <div className="hidden rounded-xl bg-white/10 px-4 py-2 text-center sm:block">
-                    <p className="text-xl font-black">{interviewScore}</p>
-                    <p className="text-[9px] font-black uppercase text-white/45">Evidence</p>
-                  </div>
-                )}
-                <Link href="/profile/interview">
-                  <Button className="bg-white text-ink shadow-none hover:bg-brand-100">
-                    {interviewStatus === "not_started" || interviewStatus === "needs_improvement"
-                      ? "Start interview"
-                      : interviewStatus === "in_progress"
-                        ? "Continue"
-                        : "View result"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <form onSubmit={save} className="mt-5 space-y-6">
-          <section className="surface p-6 sm:p-8">
-            <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div>
-                <h2 className="font-black text-ink">Basic details</h2>
-                <p className="text-xs font-medium text-ink-400">Required before marketplace actions are unlocked</p>
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <Field label="Full name" hint="2–80 characters" required>
-                <Input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} autoComplete="name" required />
-              </Field>
-              <Field label="City or location" required>
-                <Input value={city} onChange={(event) => setCity(event.target.value)} maxLength={100} placeholder="e.g. Lahore" required />
-              </Field>
-              <Field label="About you" hint={`${bio.length}/600 · minimum 20 characters`} required>
-                <Textarea
-                  rows={4}
-                  minLength={20}
-                  maxLength={600}
-                  value={bio}
-                  onChange={(event) => setBio(event.target.value)}
-                  placeholder={
-                    isFreelancer
-                      ? "What you do, the results you deliver, and how you work reliably."
-                      : "What your business or household needs, and how you like to work with freelancers."
-                  }
-                  required
-                />
-              </Field>
-            </div>
-          </section>
-
-          {isFreelancer ? (
-            <section className="surface p-6 sm:p-8">
-              <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-$info-50 text-$info-600">
-                  <BadgeCheck className="h-4 w-4" />
-                </span>
-                <div>
-                  <h2 className="font-black text-ink">Freelancer details</h2>
-                  <p className="text-xs font-medium text-ink-400">Required before you can send offers</p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <Field label="Professional title" hint="At least 3 characters" required>
-                  <Input
-                    value={professionalTitle}
-                    onChange={(event) => setProfessionalTitle(event.target.value)}
-                    placeholder="e.g. Full-stack developer"
-                    maxLength={100}
-                    required
-                  />
-                </Field>
-
-                <Field label="Service categories" hint={`${skills.length}/10 selected · choose at least one`} required>
-                  <div className="flex flex-wrap gap-2">
-                    {CATEGORIES.map((item) => {
-                      const selected = skills.includes(item);
-                      return (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => toggleSkill(item)}
-                          className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
-                            selected
-                              ? "border-brand bg-brand text-white"
-                              : "border-ink-200 text-ink-500 hover:border-brand-200 hover:text-brand-dark"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </Field>
-
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Hourly rate (PKR)" hint="Optional">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={1000000}
-                      step={100}
-                      value={hourlyRate}
-                      onChange={(event) => setHourlyRate(event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Years of experience" hint="Optional">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={80}
-                      value={experienceYears}
-                      onChange={(event) => setExperienceYears(event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Languages" hint="Comma separated">
-                    <Input value={languages} onChange={(event) => setLanguages(event.target.value)} placeholder="Urdu, English" />
-                  </Field>
-                  <Field label="Availability">
-                    <Select value={availability} onChange={(event) => setAvailability(event.target.value)}>
-                      {AVAILABILITY.map((item) => <option key={item}>{item}</option>)}
-                    </Select>
-                  </Field>
-                </div>
-
-                <Field label="Portfolio URL" hint="Optional · http:// or https://">
-                  <Input
-                    type="url"
-                    value={portfolioUrl}
-                    onChange={(event) => setPortfolioUrl(event.target.value)}
-                    placeholder="https://yourportfolio.com"
-                  />
-                </Field>
-                <Field label="Certifications" hint="Comma separated">
-                  <Input
-                    value={certifications}
-                    onChange={(event) => setCertifications(event.target.value)}
-                    placeholder="Google UX, AWS, TEVTA"
-                  />
-                </Field>
-              </div>
-            </section>
-          ) : (
-            <section className="surface p-6 sm:p-8">
-              <div className="mb-6 flex items-center gap-3 border-b border-ink-100 pb-5">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-$warning-50 text-$warning-700">
-                  <ShieldCheck className="h-4 w-4" />
-                </span>
-                <div>
-                  <h2 className="font-black text-ink">Client details</h2>
-                  <p className="text-xs font-medium text-ink-400">Useful context for freelancers considering your tasks</p>
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                <Field label="Company or organisation" hint="Optional">
-                  <Input
-                    value={organization}
-                    onChange={(event) => setOrganization(event.target.value)}
-                    maxLength={120}
-                    placeholder="Your business or team"
-                  />
-                </Field>
-                <Field label="What do you usually hire for?" hint={`${hiringNeeds.length}/600 · optional`}>
-                  <Textarea
-                    rows={4}
-                    maxLength={600}
-                    value={hiringNeeds}
-                    onChange={(event) => setHiringNeeds(event.target.value)}
-                    placeholder="Tell freelancers what kind of help you regularly need."
-                  />
-                </Field>
-              </div>
-            </section>
-          )}
-
-          {hasPermission(staff, "manageUsers") && (
-            <label className="flex cursor-pointer items-start gap-3 rounded-3xl bg-ink p-6 text-sm text-white">
-              <input
-                type="checkbox"
-                checked={isPrivate}
-                onChange={(event) => setIsPrivate(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand"
-              />
-              <span>
-                <span className="block font-black">Internal private provider (manageUsers)</span>
-                <span className="mt-1 block text-xs leading-5 text-white/55">
-                  Hidden from public discovery and available for managed private assignments only. Requires private-provider permission.
-                </span>
-              </span>
-            </label>
-          )}
-
-          {error && <Alert tone="error">{error}</Alert>}
-          {saved && <Alert tone="success">Your profile has been saved and account readiness has been recalculated.</Alert>}
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" loading={busy} disabled={busy}>
-              <Save className="h-4 w-4" /> Save profile
-            </Button>
-            <Link href="/settings" className="text-sm font-bold text-ink-500 hover:text-ink">
-              Account settings & security →
-            </Link>
-          </div>
-        </form>
-
-        {reviews.length > 0 && (
-          <section className="surface mt-6 p-6">
-            <h2 className="text-lg font-black text-ink">Reviews about you</h2>
-            <ul className="mt-4 space-y-3">
-              {reviews.slice(0, 8).map((review) => (
-                <li key={review.id} className="rounded-2xl border border-ink-100 p-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: review.rating }).map((_, index) => (
-                        <Star key={index} className="h-3.5 w-3.5 fill-sun text-sun" />
-                      ))}
-                    </div>
-                    <span className="text-sm font-black text-ink">{review.fromName}</span>
-                  </div>
-                  {review.comment && <p className="mt-2 text-sm leading-6 text-ink-500">{review.comment}</p>}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-50 text-yellow-500"><Star className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{avg}</p><p className="text-xs text-ink-500">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p></div></div>
+        </div>
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Shield className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "-"}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
+        </div>
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-green-50 text-green-600"><Percent className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "-"}</p><p className="text-xs text-ink-500">Completion Rate</p></div></div>
+        </div>
+        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+          <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><CheckCircle2 className="h-5 w-5" /></div>
+            <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-xs text-ink-500">Tasks Done</p></div></div>
+        </div>
+      </div>
+
+      <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
+        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
+        {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink-200 p-4 text-sm font-semibold text-ink-500 hover:border-brand"><Camera className="h-5 w-5 text-brand" /><span>{avatarFile ? avatarFile.name : "Upload JPG, PNG or WebP (max 5 MB)"}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} /></label></div>
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">City</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" /></div>
+        {accountType === "tasker" ? <><div><label className="mb-1.5 block text-sm font-medium text-ink">Professional title</label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} placeholder="e.g. Full-stack developer" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Shopify, Graphic Design" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Experience (years)</label><Input type="number" min="0" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} /></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Availability</label><select value={availability} onChange={(e) => setAvailability(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink"><option>Available now</option><option>Part-time</option><option>Weekends</option><option>Not available</option></select></div></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label><Input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://yourportfolio.com" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Certifications (comma separated)</label><Input value={certifications} onChange={(e) => setCertifications(e.target.value)} placeholder="Google UX, AWS, TEVTA" /></div></> : <><div><label className="mb-1.5 block text-sm font-medium text-ink">Company / organization (optional)</label><Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Your company or team" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">What do you usually hire for?</label><textarea value={hiringNeeds} onChange={(e) => setHiringNeeds(e.target.value)} rows={3} placeholder="Tell freelancers what kind of help you need..." className="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm text-ink" /></div></>}
+        {isAdmin && <label className="flex items-start gap-3 rounded-2xl bg-[#00501F] p-4 text-sm text-white"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand" /><span><span className="block font-extrabold">Internal private provider</span><span className="mt-1 block text-xs leading-5 text-white/50">Hidden from public discovery and available for managed private assignments.</span></span></label>}
+        {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+        {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}
+        <Button type="submit" className="flex items-center gap-2 rounded-xl"><Save className="h-4 w-4" /> Save profile</Button>
+
+        <div className="border-t border-ink-100 pt-5">
+          <p className="text-sm font-medium text-ink mb-2">Change Password</p>
+          <p className="text-xs text-ink-500 mb-3">A reset link will be sent to {user.email}</p>
+          <button type="button" onClick={changePassword} className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink-50">
+            <Key className="h-4 w-4" /> Send reset link
+          </button>
+        </div>
+      </form>
+
+      {reviews.length > 0 && (
+        <div className="mt-6 rounded-3xl border border-ink-100 bg-white p-6 shadow-card">
+          <h2 className="text-lg font-bold text-ink">Reviews</h2>
+          <div className="mt-4 space-y-3">{reviews.map(r => (
+            <div key={r.id} className="rounded-xl border border-ink-100 p-4">
+              <div className="flex items-center gap-2"><div className="flex gap-0.5">{Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}</div><span className="text-sm font-semibold text-ink">{r.fromName}</span></div>
+              {r.comment && <p className="mt-2 text-sm text-ink-500">{r.comment}</p>}
+            </div>
+          ))}</div>
+        </div>
+      )}
     </div>
   );
+}
+
+async function compactProfileImage(file: File): Promise<string> {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const value = new Image();
+      value.onload = () => resolve(value);
+      value.onerror = () => reject(new Error("The selected image could not be read."));
+      value.src = objectUrl;
+    });
+    const maxSide = 512;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image processing is not supported in this browser.");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const encoded = canvas.toDataURL("image/jpeg", 0.76);
+    if (encoded.length > 700_000) throw new Error("Please choose a simpler or smaller profile image.");
+    return encoded;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
