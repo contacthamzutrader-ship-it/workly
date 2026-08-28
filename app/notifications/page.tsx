@@ -1,183 +1,58 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  Banknote,
-  Bell,
-  CheckCircle2,
-  Gavel,
-  MessageSquare,
-  ShieldAlert,
-  ShieldCheck,
-  Star,
-  XCircle,
-} from "lucide-react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Bell, ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { subscribeNotifications, type AppNotification } from "@/lib/notifications";
-import { timeAgo } from "@/lib/format";
-import Button from "@/components/ui/Button";
-import { EmptyState, PageLoader, Skeleton } from "@/components/ui/Feedback";
-
-const ICONS: Record<string, { icon: typeof Bell; tone: string }> = {
-  bid: { icon: Gavel, tone: "bg-brand-50 text-brand" },
-  bid_rejected: { icon: XCircle, tone: "bg-ink-50 text-ink-500" },
-  selected: { icon: CheckCircle2, tone: "bg-$success-50 text-$success-600" },
-  task_approved: { icon: ShieldCheck, tone: "bg-brand-50 text-brand" },
-  task_rejected: { icon: XCircle, tone: "bg-$danger-50 text-$danger-600" },
-  work_started: { icon: CheckCircle2, tone: "bg-$info-50 text-$info-600" },
-  work_submitted: { icon: CheckCircle2, tone: "bg-$deep-50 text-$deep-600" },
-  changes_requested: { icon: ShieldAlert, tone: "bg-$warning-50 text-$warning-700" },
-  payment_released: { icon: Banknote, tone: "bg-$success-50 text-$success-600" },
-  payment_request: { icon: Banknote, tone: "bg-$info-50 text-$info-600" },
-  private_assignment: { icon: ShieldCheck, tone: "bg-ink text-white" },
-  message: { icon: MessageSquare, tone: "bg-$info-50 text-$info-600" },
-  security: { icon: ShieldAlert, tone: "bg-$danger-50 text-$danger-600" },
-  cancelled: { icon: XCircle, tone: "bg-ink-50 text-ink-500" },
-  dispute: { icon: ShieldAlert, tone: "bg-$danger-50 text-$danger-600" },
-  review: { icon: Star, tone: "bg-$warning-50 text-$warning-600" },
-};
 
 export default function NotificationsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-
   const [items, setItems] = useState<AppNotification[]>([]);
   const [busy, setBusy] = useState(true);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  useEffect(() => {
-    if (!loading && !user) router.replace("/login?redirect=/notifications");
-  }, [loading, user, router]);
+  useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/notifications"); }, [loading, user, router]);
 
   useEffect(() => {
     if (!user) return;
-    try {
-      return subscribeNotifications(user.uid, (data) => {
-        setItems(data);
-        setBusy(false);
-      });
-    } catch {
-      setBusy(false);
-    }
+    try { return subscribeNotifications(user.uid, (next) => { setItems(next); setBusy(false); }); }
+    catch { setBusy(false); }
   }, [user]);
 
-  const unread = useMemo(() => items.filter((item) => !item.read), [items]);
-  const shown = filter === "unread" ? unread : items;
-
-  const markAllRead = async () => {
-    if (!db) return;
-    await Promise.all(
-      unread.map((item) => updateDoc(doc(db!, "notifications", item.id!), { read: true }).catch(() => undefined))
-    );
-  };
-
-  const markRead = async (item: AppNotification) => {
-    if (!db || item.read || !item.id) return;
-    await updateDoc(doc(db, "notifications", item.id), { read: true }).catch(() => undefined);
-  };
-
-  if (loading || !user) return <PageLoader />;
+  if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   return (
     <div className="bg-canvas py-8 sm:py-10">
-      <div className="page-shell max-w-3xl">
-        <section className="overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-elevated sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand">
-                <Bell className="h-7 w-7" />
-                {unread.length > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-6 min-w-6 place-items-center rounded-full bg-$danger-500 px-1 text-[11px] font-black">
-                    {unread.length > 9 ? "9+" : unread.length}
-                  </span>
-                )}
-              </span>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Activity centre</p>
-                <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Notifications</h1>
-                <p className="mt-1 text-sm text-white/55">
-                  {unread.length > 0 ? `${unread.length} unread` : "You are all caught up"}
-                </p>
-              </div>
-            </div>
-            {unread.length > 0 && (
-              <Button className="bg-white text-ink shadow-none hover:bg-brand-100" size="sm" onClick={markAllRead}>
-                Mark all read
-              </Button>
-            )}
+      <div className="page-shell max-w-5xl">
+      <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Bell className="h-7 w-7" /></span>
+            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Activity centre</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Notifications</h1><p className="mt-1 text-sm text-white/55">Approvals, offers, assignments and payment updates in one place.</p></div>
           </div>
-        </section>
+          <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-white/65"><ShieldCheck className="h-4 w-4 text-brand-300" /> {items.length} total updates</div>
+        </div>
+      </div>
 
-        {items.length > 0 && (
-          <div className="mt-5 inline-flex gap-1 rounded-xl bg-white p-1 shadow-card">
-            {(
-              [
-                ["all", `All (${items.length})`],
-                ["unread", `Unread (${unread.length})`],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                onClick={() => setFilter(value)}
-                className={`rounded-lg px-4 py-2 text-xs font-black transition ${
-                  filter === value ? "bg-ink text-white" : "text-ink-400 hover:text-ink"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {busy ? (
-          <div className="mt-5 space-y-3">
-            {[1, 2, 3].map((index) => (
-              <Skeleton key={index} className="h-20" />
-            ))}
-          </div>
-        ) : shown.length === 0 ? (
-          <div className="surface mt-5">
-            <EmptyState
-              icon={CheckCircle2}
-              title={filter === "unread" ? "Nothing unread" : "All clear"}
-              description="Task approvals, offers, deliveries and payment updates all land here."
-            />
+      {busy ? <div className="flex min-h-[30vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div> :
+        items.length === 0 ? (
+          <div className="surface mt-6 py-16 text-center">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-brand" /><p className="mt-4 text-lg font-semibold text-ink">All clear</p><p className="mt-1 text-sm text-ink-500">You&apos;ll see task, offer and payment updates here.</p>
           </div>
         ) : (
-          <ul className="mt-5 space-y-3">
-            {shown.map((item) => {
-              const style = ICONS[item.type] || { icon: Bell, tone: "bg-brand-50 text-brand" };
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={item.link || "#"}
-                    onClick={() => markRead(item)}
-                    className={`group flex items-center gap-4 rounded-2xl border p-5 shadow-card transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover ${
-                      item.read ? "border-ink-100 bg-white" : "border-brand-200 bg-brand-50/40"
-                    }`}
-                  >
-                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${style.tone}`}>
-                      <style.icon className="h-5 w-5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <p className="truncate font-black text-ink">{item.title}</p>
-                        <span className="shrink-0 text-[11px] font-bold text-ink-400">{timeAgo(item.createdAt)}</span>
-                      </div>
-                      <p className="mt-0.5 line-clamp-2 text-sm leading-6 text-ink-500">{item.body}</p>
-                    </div>
-                    {!item.read && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />}
-                    <ArrowRight className="hidden h-4 w-4 shrink-0 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand sm:block" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-6 space-y-3">
+            {items.map(n => (
+              <Link key={n.id} href={n.link || "#"} className="group flex items-center justify-between rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-card-hover">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Bell className="h-5 w-5" /></div>
+                  <div><p className="font-semibold text-ink">{n.title}</p><p className="mt-0.5 text-sm text-ink-500">{n.body}</p></div>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-brand" />
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -34,37 +34,11 @@ service cloud.firestore {
     function publicRole(role) {
       return role in ['customer', 'tasker'];
     }
-    function signupsAllowed() {
-      return !exists(/databases/$(database)/documents/settings/platform)
-        || get(/databases/$(database)/documents/settings/platform).data.get('allowNewSignups', true) == true;
-    }
-    function memberReadyForMarketplace() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && userDoc().get('onboarded', false) == true
-        && userDoc().get('name', '').size() >= 2
-        && userDoc().get('city', '').size() >= 2
-        && userDoc().get('bio', '').size() >= 20
-        && (userDoc().role != 'tasker'
-          || (userDoc().get('professionalTitle', '').size() >= 3
-            && userDoc().get('skills', []).size() > 0));
-    }
     function sameProtectedUserFields() {
       return request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
         && request.resource.data.get('isPrivate', false) == resource.data.get('isPrivate', false)
-        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0)
-        // A member can never mark themselves verified or lift their own suspension.
-        && request.resource.data.get('verified', false) == resource.data.get('verified', false)
-        && request.resource.data.get('suspended', false) == resource.data.get('suspended', false)
-        && request.resource.data.get('trustScore', -1) == resource.data.get('trustScore', -1)
-        && request.resource.data.get('interviewStatus', 'not_started') == resource.data.get('interviewStatus', 'not_started')
-        && request.resource.data.get('interviewScore', -1) == resource.data.get('interviewScore', -1)
-        && request.resource.data.get('interviewSummary', '') == resource.data.get('interviewSummary', '')
-        && request.resource.data.get('interviewTopSkills', []) == resource.data.get('interviewTopSkills', [])
-        && request.resource.data.get('interviewAttemptNumber', 0) == resource.data.get('interviewAttemptNumber', 0)
-        && request.resource.data.get('interviewVerifiedAt', '') == resource.data.get('interviewVerifiedAt', '')
-        && request.resource.data.get('interviewUpdatedAt', '') == resource.data.get('interviewUpdatedAt', '');
+        && request.resource.data.get('wallet', 0) == resource.data.get('wallet', 0);
     }
     function task(taskId) {
       return get(/databases/$(database)/documents/tasks/$(taskId)).data;
@@ -80,26 +54,9 @@ service cloud.firestore {
       allow create: if (ownerAccount() && request.auth.uid == uid
           && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
         || (signedIn() && request.auth.uid == uid
-          && signupsAllowed()
-          && request.auth.token.email != null
           && request.resource.data.uid == uid
-          && request.resource.data.email == request.auth.token.email
           && publicRole(request.resource.data.role)
-          && request.resource.data.isPrivate == false
-          && request.resource.data.get('isTasker', false) == (request.resource.data.role == 'tasker')
-          && request.resource.data.get('wallet', 0) == 0
-          && request.resource.data.get('verified', false) == false
-          && request.resource.data.get('suspended', false) == false
-          && request.resource.data.get('trustScore', -1) == -1
-          && request.resource.data.get('onboarded', false) == false
-          && request.resource.data.get('profileComplete', false) == false
-          && request.resource.data.get('interviewStatus', 'not_started') == 'not_started'
-          && request.resource.data.get('interviewScore', -1) == -1
-          && request.resource.data.get('interviewSummary', '') == ''
-          && request.resource.data.get('interviewTopSkills', []).size() == 0
-          && request.resource.data.get('interviewAttemptNumber', 0) == 0
-          && request.resource.data.get('interviewVerifiedAt', '') == ''
-          && request.resource.data.get('interviewUpdatedAt', '') == '');
+          && request.resource.data.isPrivate == false);
       allow update: if isAdmin()
         || (signedIn() && request.auth.uid == uid
           && sameProtectedUserFields()
@@ -109,26 +66,17 @@ service cloud.firestore {
     }
 
     match /tasks/{taskId} {
-      // Only tasks that actually reached the marketplace are publicly readable.
-      // Drafts, review-queue items and rejected tasks stay with their owner.
-      allow read: if (resource.data.visibility == 'public'
-          && !(resource.data.status in ['draft', 'pending', 'rejected']))
+      allow read: if (resource.data.visibility == 'public' && resource.data.status != 'pending')
         || (signedIn() && (resource.data.posterId == request.auth.uid
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
-      allow create: if (hasRole(['customer'])
-          && memberReadyForMarketplace()
-          && request.resource.data.posterId == request.auth.uid)
+      allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
         || (signedIn() && resource.data.posterId == request.auth.uid)
-        // The hired freelancer may only advance the delivery fields of their
-        // own contract: start work, submit a delivery, and request payment.
         || (signedIn() && resource.data.assignedTo == request.auth.uid
-          && request.resource.data.status in ['in_progress', 'submitted']
           && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission',
-                      'startedAt', 'updatedAt']))
+            .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']))
         || (hasRole(['tasker']) && resource.data.status == 'open'
           && (resource.data.visibility == 'public' || hasPrivateInvite(taskId))
           && request.resource.data.bidsCount == resource.data.bidsCount + 1
@@ -139,9 +87,7 @@ service cloud.firestore {
     match /bids/{bidId} {
       allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
         || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
-      allow create: if (hasRole(['tasker'])
-          && memberReadyForMarketplace()
-          && request.resource.data.bidderId == request.auth.uid
+      allow create: if (hasRole(['tasker']) && request.resource.data.bidderId == request.auth.uid
           && task(request.resource.data.taskId).status == 'open'
           && (task(request.resource.data.taskId).visibility == 'public'
             || hasPrivateInvite(request.resource.data.taskId))
@@ -172,8 +118,7 @@ service cloud.firestore {
       }
       allow read: if participant(resource.data);
       allow create: if participant(request.resource.data)
-        && task(request.resource.data.taskId).status in
-          ['assigned', 'in_progress', 'submitted', 'changes_requested', 'completed', 'disputed'];
+        && task(request.resource.data.taskId).status in ['assigned', 'in_progress', 'completed'];
       allow update: if participant(resource.data);
       allow delete: if isAdmin();
 
@@ -200,7 +145,7 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
       allow create: if isAdmin()
         || (signedIn() && request.resource.data.userId == request.auth.uid
-          && request.resource.data.type in ['hold', 'payment', 'refund'])
+          && request.resource.data.type in ['hold', 'payment'])
         || (signedIn() && request.resource.data.type == 'release'
           && task(request.resource.data.taskId).posterId == request.auth.uid
           && task(request.resource.data.taskId).assignedTo == request.resource.data.userId);
@@ -233,38 +178,9 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Interview transcripts are private and server-authored. The API verifies a
-    // Firebase ID token, writes with the Admin SDK, and exposes only a reviewed
-    // badge summary on the public user profile.
-    match /interviews/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow create, update, delete: if isAdmin();
-
-      match /history/{attemptId} {
-        allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-        allow write: if isAdmin();
-      }
-    }
-
     match /settings/{documentId} {
-      // Platform settings drive public behaviour (auto-approval, signup gate),
-      // so they are readable by anyone but writable only by content staff.
-      allow read: if true;
-      allow write: if hasPermission('manageContent');
-    }
-
-    // Append-only accountability trail for privileged actions. Staff can read
-    // and append; nobody can edit or erase history from the client.
-    match /audit_logs/{entryId} {
-      allow read: if isAdmin();
-      allow create: if isAdmin()
-        && request.resource.data.actorId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // A freelancer's private shortlist of tasks. Owner-only, never public.
-    match /users/{uid}/saved_tasks/{taskId} {
-      allow read, write: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
   }
 }
