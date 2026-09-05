@@ -144,8 +144,8 @@ export default function FreelancerHeader({
   const activeActive = filters.availableOnly || filters.noOffersOnly;
 
   return (
-    <header className="rounded-2xl border border-ink-100 bg-white px-4 py-3 shadow-card sm:px-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <header className="border-b border-ink-100 bg-white shadow-soft">
+      <div className="page-shell flex flex-wrap items-center gap-2 py-3">
         <BrandLogo compact />
 <div className="flex flex-1 flex-wrap items-center gap-2">
 
@@ -251,7 +251,7 @@ export default function FreelancerHeader({
         </div>
 
         {/* Profile dropdown */}
-        <div className="relative">
+        <div className="relative ml-auto">
           <button
             onClick={() => toggle("profile")}
             className={`flex h-11 items-center gap-2 rounded-xl border ${open === "profile" ? "border-brand-200 bg-brand-50" : "border-ink-100"} bg-white px-2 pr-3 text-left transition hover:bg-brand-50`}

@@ -172,7 +172,7 @@ export default function FreelancerDashboard() {
   const heading = VIEW_TITLES[view];
 
   return (
-    <div className="page-shell space-y-5 py-6 sm:py-8">
+    <div>
       <FreelancerHeader
         view={view}
         onViewChange={setView}
@@ -182,8 +182,9 @@ export default function FreelancerDashboard() {
         onSortChange={setSort}
       />
 
-      <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
-        <FreelancerDashboardSidebar view={view} onViewChange={setView} />
+      <div className="page-shell space-y-5 py-6 sm:py-8">
+        <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
+          <FreelancerDashboardSidebar view={view} onViewChange={setView} />
 
         <div className="min-w-0 space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -239,6 +240,7 @@ export default function FreelancerDashboard() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
