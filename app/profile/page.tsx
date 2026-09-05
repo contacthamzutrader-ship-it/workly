@@ -6,10 +6,10 @@ import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, Star, Shield, Save, Key, CheckCircle2, Percent, Sparkles, Camera } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { db, auth, storage } from "@/lib/firebase";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { db, auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
+import { uploadProfileImage } from "@/lib/profile-image";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 
@@ -83,15 +83,7 @@ export default function ProfilePage() {
       if (!db) throw new Error("Firebase not configured");
       let uploadedAvatar = avatarUrl;
       if (avatarFile) {
-        if (!avatarFile.type.startsWith("image/") || avatarFile.size > 5 * 1024 * 1024) throw new Error("Choose a JPG, PNG or WebP image under 5 MB.");
-        try {
-          if (!storage) throw new Error("Storage unavailable");
-          const avatarRef = ref(storage, `profile-images/${user.uid}/avatar`);
-          await uploadBytes(avatarRef, avatarFile, { contentType: avatarFile.type });
-          uploadedAvatar = await getDownloadURL(avatarRef);
-        } catch {
-          uploadedAvatar = await compactProfileImage(avatarFile);
-        }
+        uploadedAvatar = await uploadProfileImage(user.uid, avatarFile);
       }
       if ((role === "customer" || role === "tasker") && role !== accountType) await setAccountType(accountType);
       const data: any = {
@@ -194,29 +186,4 @@ export default function ProfilePage() {
       )}
     </div>
   );
-}
-
-async function compactProfileImage(file: File): Promise<string> {
-  const objectUrl = URL.createObjectURL(file);
-  try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const value = new Image();
-      value.onload = () => resolve(value);
-      value.onerror = () => reject(new Error("The selected image could not be read."));
-      value.src = objectUrl;
-    });
-    const maxSide = 512;
-    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(image.width * scale));
-    canvas.height = Math.max(1, Math.round(image.height * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Image processing is not supported in this browser.");
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const encoded = canvas.toDataURL("image/jpeg", 0.76);
-    if (encoded.length > 700_000) throw new Error("Please choose a simpler or smaller profile image.");
-    return encoded;
-  } finally {
-    URL.revokeObjectURL(objectUrl);
-  }
 }

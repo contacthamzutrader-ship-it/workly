@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Bell, BriefcaseBusiness, CheckCircle2, Clock3, Home, LayoutDashboard, MessageSquare, Search, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bell, BriefcaseBusiness, CheckCircle2, Clock3, Coins, Home, Layers, LayoutDashboard, MessageSquare, Search, Send, ShieldCheck, XCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { formatPKR } from "@/lib/format";
 import {
   listPublicTasks,
   listTasksAssignedTo,
@@ -104,6 +105,8 @@ export default function FreelancerDashboard() {
   const [sort, setSort] = useState<SortOption>("recommended");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [busy, setBusy] = useState(true);
+  const [stats, setStats] = useState<{ total: number; active: number; pending: number; completed: number; cancelled: number; offers: number } | null>(null);
+  const [overview, setOverview] = useState<Task[]>([]);
   const profileRef = useRef<{ trust: number; success: number; skills: string[] }>({ trust: 70, success: 80, skills: [] });
 
   useEffect(() => {
@@ -163,6 +166,30 @@ export default function FreelancerDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, view, filters, sort]);
 
+  useEffect(() => {
+    if (!user || !db) return;
+    (async () => {
+      try {
+        const [assigned, bids] = await Promise.all([listTasksAssignedTo(user.uid), listBidsByUser(user.uid)]);
+        const active = assigned.filter((t) => t.status === "assigned" || t.status === "in_progress");
+        const completed = assigned.filter((t) => t.status === "completed").length;
+        const cancelled = assigned.filter((t) => t.status === "cancelled").length;
+        const pendingOffers = bids.filter((b) => b.status === "pending").length;
+        setOverview(active);
+        setStats({
+          total: active.length + pendingOffers + completed + cancelled,
+          active: active.length,
+          pending: pendingOffers,
+          completed,
+          cancelled,
+          offers: bids.length,
+        });
+      } catch {
+        // Stats are secondary to the task feed; skip silently.
+      }
+    })();
+  }, [user]);
+
   const ai = useMemo(() => {
     const stored = getAiResult();
     if (stored) return stored;
@@ -187,6 +214,62 @@ export default function FreelancerDashboard() {
           <FreelancerDashboardSidebar view={view} onViewChange={setView} />
 
         <div className="min-w-0 space-y-5">
+          {stats && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+                {[
+                  { label: "Total Tasks", value: stats.total, icon: Layers, tone: "bg-brand-50 text-brand" },
+                  { label: "Active Projects", value: stats.active, icon: BriefcaseBusiness, tone: "bg-blue-50 text-blue-600" },
+                  { label: "Pending Projects", value: stats.pending, icon: Clock3, tone: "bg-amber-50 text-amber-600" },
+                  { label: "Completed", value: stats.completed, icon: CheckCircle2, tone: "bg-green-50 text-green-600" },
+                  { label: "Cancelled", value: stats.cancelled, icon: XCircle, tone: "bg-red-50 text-red-600" },
+                  { label: "Offers Submitted", value: stats.offers, icon: Send, tone: "bg-purple-50 text-purple-600" },
+                ].map((card) => (
+                  <div key={card.label} className="surface p-4">
+                    <span className={`inline-grid h-9 w-9 place-items-center rounded-xl ${card.tone}`}><card.icon className="h-4 w-4" /></span>
+                    <p className="mt-3 text-2xl font-black tracking-[-0.03em] text-ink">{card.value}</p>
+                    <p className="text-xs font-semibold text-ink-400">{card.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Current overview</p>
+                    <h3 className="mt-1 text-lg font-black text-ink">Active projects</h3>
+                  </div>
+                  <button onClick={() => setView("task_assign")} className="inline-flex items-center gap-1.5 rounded-xl border border-ink-100 bg-white px-3.5 py-2 text-xs font-extrabold text-brand transition hover:bg-brand-50">All projects <ArrowUpRight className="h-3.5 w-3.5" /></button>
+                </div>
+                {overview.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-dashed border-ink-200 bg-ink-50/50 px-5 py-8 text-center">
+                    <BriefcaseBusiness className="mx-auto h-6 w-6 text-ink-300" />
+                    <p className="mt-3 text-sm font-bold text-ink">No active project right now</p>
+                    <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-ink-400">Browse tasks above and send an offer to start your next project. Money for assigned work is held securely until completion.</p>
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-2">
+                    {overview.map((t) => (
+                      <Link key={t.id} href={`/tasks/${t.id}`} className="group flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-100 p-3 transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-card">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand"><Coins className="h-4 w-4" /></span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-ink">{t.title}</p>
+                            <p className="truncate text-xs font-medium text-ink-400">{t.posterName} &middot; {t.category}</p>
+                          </div>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-sm font-black text-ink">{formatPKR(t.heldAmount ?? t.budget)}</p>
+                          <p className="text-xs font-bold text-brand">{t.status === "in_progress" ? "In progress" : "Assigned"}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-400">{heading.overline}</p>
