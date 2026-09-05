@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Bell, BriefcaseBusiness, HelpCircle, LayoutDashboard, MessageSquare, Search, ShieldCheck, Sparkles, User, Wallet } from "lucide-react";
+import { ArrowRight, Bell, BriefcaseBusiness, CheckCircle2, Clock3, Home, LayoutDashboard, MessageSquare, Search, ShieldCheck, XCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import {
   listPublicTasks,
@@ -38,34 +38,60 @@ function byNewest(a: Task, b: Task) {
   return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0);
 }
 
-const sidebarLinks = [
-  { label: "Task Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
-  { label: "Find Work", href: "/tasks", icon: Search },
-  { label: "Messages", href: "/messages", icon: MessageSquare },
-  { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Wallet & Payments", href: "/wallet", icon: Wallet },
-  { label: "AI Skill Score", href: "/interview", icon: Sparkles },
-  { label: "My Profile", href: "/profile", icon: User },
+type SidebarItem =
+  | { kind: "view"; label: string; viewKey: TaskerView; icon: any }
+  | { kind: "link"; label: string; href: string; icon: any };
+
+const dashboardSidebarSections: { label: string; items: SidebarItem[] }[] = [
+  {
+    label: "Home",
+    items: [{ kind: "link", label: "Home", href: "/", icon: Home }],
+  },
+  {
+    label: "Workspace",
+    items: [
+      { kind: "view", label: "Dashboard", viewKey: "all", icon: LayoutDashboard },
+      { kind: "view", label: "Projects", viewKey: "task_assign", icon: BriefcaseBusiness },
+      { kind: "view", label: "Complete Project", viewKey: "task_completed", icon: CheckCircle2 },
+      { kind: "view", label: "Pending Project", viewKey: "offers_pending", icon: Clock3 },
+      { kind: "view", label: "Cancel Project", viewKey: "tasks_cancelled", icon: XCircle },
+      { kind: "link", label: "Notifications", href: "/notifications", icon: Bell },
+      { kind: "link", label: "Messages", href: "/messages", icon: MessageSquare },
+    ],
+  },
 ];
 
-function FreelancerSidebar() {
+function FreelancerDashboardSidebar({ view, onViewChange }: { view: TaskerView; onViewChange: (v: TaskerView) => void }) {
+  const allItems = dashboardSidebarSections.flatMap((s) => s.items);
+
+  const itemClasses = (item: SidebarItem) => {
+    const active = item.kind === "view" && item.viewKey === view;
+    const base = "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-bold transition lg:flex";
+    if (active) return `${base} bg-brand text-white shadow-forest lg:bg-mint`;
+    return `${base} text-ink-600 hover:bg-brand-50 lg:text-white/80 lg:hover:bg-white/10 lg:hover:text-white`;
+  };
+
+  const renderItem = (item: SidebarItem) =>
+    item.kind === "link" ? (
+      <Link key={item.label} href={item.href} className={itemClasses(item)}>
+        <item.icon className="h-4 w-4" /> {item.label}
+      </Link>
+    ) : (
+      <button key={item.label} onClick={() => onViewChange(item.viewKey)} className={itemClasses(item)}>
+        <item.icon className="h-4 w-4" /> {item.label}
+      </button>
+    );
+
   return (
-    <aside className="flex gap-1.5 overflow-x-auto pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible lg:self-start lg:rounded-2xl lg:border lg:border-ink-100 lg:bg-white lg:p-2 lg:pb-3 lg:shadow-card">
-      {sidebarLinks.map((link) => (
-        <Link
-          key={link.label}
-          href={link.href}
-          className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${
-            link.active ? "bg-brand text-white shadow-forest" : "text-ink-600 hover:bg-brand-50"
-          }`}
-        >
-          <link.icon className="h-4 w-4" /> {link.label}
-        </Link>
-      ))}
-      <div className="hidden lg:mt-3 lg:block border-t border-ink-100 pt-3">
-        <Link href="/messages" className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-ink-500 transition hover:bg-brand-50">
-          <HelpCircle className="h-4 w-4 text-brand" /> Help & Contact
-        </Link>
+    <aside className="lg:sticky lg:top-6 lg:self-start lg:rounded-2xl lg:bg-deep lg:p-3 lg:shadow-card">
+      <div className="flex gap-1.5 overflow-x-auto lg:hidden">{allItems.map(renderItem)}</div>
+      <div className="hidden lg:block">
+        {dashboardSidebarSections.map((section) => (
+          <div key={section.label}>
+            <p className="px-3 pb-1.5 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{section.label}</p>
+            <div className="space-y-0.5">{section.items.map(renderItem)}</div>
+          </div>
+        ))}
       </div>
     </aside>
   );
@@ -157,7 +183,7 @@ export default function FreelancerDashboard() {
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
-        <FreelancerSidebar />
+        <FreelancerDashboardSidebar view={view} onViewChange={setView} />
 
         <div className="min-w-0 space-y-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
