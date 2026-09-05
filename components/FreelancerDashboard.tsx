@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, Bell, BriefcaseBusiness, HelpCircle, LayoutDashboard, MessageSquare, Search, ShieldCheck, Sparkles, User, Wallet } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import {
   listPublicTasks,
@@ -36,6 +36,39 @@ const SORT_LABEL: Record<SortOption, string> = {
 
 function byNewest(a: Task, b: Task) {
   return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0);
+}
+
+const sidebarLinks = [
+  { label: "Task Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
+  { label: "Find Work", href: "/tasks", icon: Search },
+  { label: "Messages", href: "/messages", icon: MessageSquare },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Wallet & Payments", href: "/wallet", icon: Wallet },
+  { label: "AI Skill Score", href: "/interview", icon: Sparkles },
+  { label: "My Profile", href: "/profile", icon: User },
+];
+
+function FreelancerSidebar() {
+  return (
+    <aside className="flex gap-1.5 overflow-x-auto pb-1 lg:sticky lg:top-6 lg:flex-col lg:overflow-visible lg:self-start lg:rounded-2xl lg:border lg:border-ink-100 lg:bg-white lg:p-2 lg:pb-3 lg:shadow-card">
+      {sidebarLinks.map((link) => (
+        <Link
+          key={link.label}
+          href={link.href}
+          className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-bold transition ${
+            link.active ? "bg-brand text-white shadow-forest" : "text-ink-600 hover:bg-brand-50"
+          }`}
+        >
+          <link.icon className="h-4 w-4" /> {link.label}
+        </Link>
+      ))}
+      <div className="hidden lg:mt-3 lg:block border-t border-ink-100 pt-3">
+        <Link href="/messages" className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-ink-500 transition hover:bg-brand-50">
+          <HelpCircle className="h-4 w-4 text-brand" /> Help & Contact
+        </Link>
+      </div>
+    </aside>
+  );
 }
 
 export default function FreelancerDashboard() {
@@ -113,7 +146,7 @@ export default function FreelancerDashboard() {
   const heading = VIEW_TITLES[view];
 
   return (
-    <div className="space-y-5">
+    <div className="page-shell space-y-5 py-6 sm:py-8">
       <FreelancerHeader
         view={view}
         onViewChange={setView}
@@ -123,56 +156,62 @@ export default function FreelancerDashboard() {
         onSortChange={setSort}
       />
 
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-400">{heading.overline}</p>
-          <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] text-ink">{heading.title}</h2>
-          <p className="mt-1 text-sm font-medium text-ink-500">{heading.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {(filters.availableOnly || filters.noOffersOnly) && (
-            <button
-              onClick={() => setFilters({ availableOnly: false, noOffersOnly: false })}
-              className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-xs font-bold text-ink-500 transition hover:bg-ink-50"
-            >
-              Clear filters
-            </button>
-          )}
-          <span className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-xs font-bold text-ink-500">
-            Sorted: {SORT_LABEL[sort]}
-          </span>
-        </div>
-      </div>
+      <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
+        <FreelancerSidebar />
 
-      {busy ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 animate-pulse rounded-3xl border border-ink-100 bg-white" />)}
-        </div>
-      ) : tasks.length === 0 ? (
-        <div className="surface py-20 text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-ink-50 text-ink-300"><Search className="h-6 w-6" /></span>
-          <h3 className="mt-5 text-xl font-black text-ink">No tasks here right now</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-ink-500">Try another Browse Task view, adjust your filters, or check back soon for new offers.</p>
-          <button onClick={() => { setView("all"); setFilters({ availableOnly: false, noOffersOnly: false }); }} className="mt-5 inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-dark">Show available tasks <ArrowRight className="h-4 w-4" /></button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {tasks.map((t) => <TaskCard key={t.id} task={t} />)}
-        </div>
-      )}
-
-      <div className="rounded-2xl bg-deep p-5 text-white shadow-card sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-mint"><ShieldCheck className="h-5 w-5" /></span>
+        <div className="min-w-0 space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="font-black">Your AI skill score: {Math.max(0, Math.min(99, ai.skillScore))}</p>
-              <p className="mt-1 text-sm text-white/55">A stronger score improves how often your offers are recommended first.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-400">{heading.overline}</p>
+              <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] text-ink">{heading.title}</h2>
+              <p className="mt-1 text-sm font-medium text-ink-500">{heading.subtitle}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {(filters.availableOnly || filters.noOffersOnly) && (
+                <button
+                  onClick={() => setFilters({ availableOnly: false, noOffersOnly: false })}
+                  className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-xs font-bold text-ink-500 transition hover:bg-ink-50"
+                >
+                  Clear filters
+                </button>
+              )}
+              <span className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-xs font-bold text-ink-500">
+                Sorted: {SORT_LABEL[sort]}
+              </span>
             </div>
           </div>
-          <Link href="/interview" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-mint px-5 text-sm font-extrabold text-white transition hover:bg-mint-dark">
-            <BriefcaseBusiness className="h-4 w-4" /> Improve skill check
-          </Link>
+
+          {busy ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 animate-pulse rounded-3xl border border-ink-100 bg-white" />)}
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="surface py-20 text-center">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-ink-50 text-ink-300"><Search className="h-6 w-6" /></span>
+              <h3 className="mt-5 text-xl font-black text-ink">No tasks here right now</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-ink-500">Try another Browse Task view, adjust your filters, or check back soon for new offers.</p>
+              <button onClick={() => { setView("all"); setFilters({ availableOnly: false, noOffersOnly: false }); }} className="mt-5 inline-flex items-center gap-1.5 text-sm font-extrabold text-brand-dark">Show available tasks <ArrowRight className="h-4 w-4" /></button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {tasks.map((t) => <TaskCard key={t.id} task={t} />)}
+            </div>
+          )}
+
+          <div className="rounded-2xl bg-deep p-5 text-white shadow-card sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-mint"><ShieldCheck className="h-5 w-5" /></span>
+                <div>
+                  <p className="font-black">Your AI skill score: {Math.max(0, Math.min(99, ai.skillScore))}</p>
+                  <p className="mt-1 text-sm text-white/55">A stronger score improves how often your offers are recommended first.</p>
+                </div>
+              </div>
+              <Link href="/interview" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-mint px-5 text-sm font-extrabold text-white transition hover:bg-mint-dark">
+                <BriefcaseBusiness className="h-4 w-4" /> Improve skill check
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
