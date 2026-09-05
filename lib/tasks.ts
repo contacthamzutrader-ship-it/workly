@@ -20,6 +20,7 @@ import { recalcTrust } from "./trust";
 import { notify } from "./notifications";
 
 export const PLATFORM_FEE = 0.15; // 15% commission like Airtasker
+export const MIN_BID = 1000; // minimum proposal amount (PKR)
 
 export const CATEGORIES = [
   "Cleaning",
@@ -175,6 +176,120 @@ export async function listTasksByPoster(posterId: string): Promise<Task[]> {
     .sort(byNewest);
 }
 
+export async function listTasksAssignedTo(taskerId: string): Promise<Task[]> {
+  const database = needDb();
+  const snap = await getDocs(query(collection(database, "tasks"), where("assignedTo", "==", taskerId), limit(200)));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Task)
+    .filter((t) => t.assignedTo === taskerId)
+    .sort(byNewest);
+}
+
+export async function listTasksWithUserBids(bidderId: string): Promise<Task[]> {
+  const database = needDb();
+  const bids = await listBidsByUser(bidderId);
+  const seen = new Set<string>();
+  const result: Task[] = [];
+  for (const bid of bids) {
+    if (seen.has(bid.taskId)) continue;
+    seen.add(bid.taskId);
+    try {
+      const task = await getTask(bid.taskId);
+      if (task) result.push(task);
+    } catch {
+      // Task may not be readable to the tasker (respect existing access rules).
+    }
+  }
+  return result.sort(byNewest);
+}
+
+export interface RehireCandidate {
+  taskerId: string;
+  taskerName: string;
+  lastTaskId: string;
+  lastTaskTitle: string;
+  completedAt: any;
+}
+
+export async function listRehireCandidates(posterId: string): Promise<RehireCandidate[]> {
+  const database = needDb();
+  const snap = await getDocs(query(collection(database, "tasks"), where("posterId", "==", posterId), limit(300)));
+  const latest = new Map<string, RehireCandidate>();
+  snap.docs.forEach((d) => {
+    const task = d.data() as Task;
+    if (task.assignedTo && task.assignedName && task.status === "completed" && task.paymentReleased) {
+      const completedAt = task.paidAt ?? task.approvedAt ?? task.heldAt;
+      const existing = latest.get(task.assignedTo);
+      if (!existing || (completedAt?.seconds ?? 0) > (existing.completedAt?.seconds ?? 0)) {
+        latest.set(task.assignedTo, {
+          taskerId: task.assignedTo,
+          taskerName: task.assignedName,
+          lastTaskId: d.id,
+          lastTaskTitle: task.title,
+          completedAt,
+        });
+      }
+    }
+  });
+  return Array.from(latest.values()).sort(
+    (a, b) => (b.completedAt?.seconds ?? 0) - (a.completedAt?.seconds ?? 0)
+  );
+}
+
+export async function rehireFreelancer(
+  taskId: string,
+  taskerId: string,
+  taskerName: string,
+  amount: number
+): Promise<void> {
+  const database = needDb();
+  if (!Number.isFinite(amount) || amount < MIN_BID) {
+    throw new Error(`Your offer must be at least ${MIN_BID.toLocaleString("en-PK")}.`);
+  }
+  await runTransaction(database, async (transaction) => {
+    const taskRef = doc(database, "tasks", taskId);
+    const taskSnap = await transaction.get(taskRef);
+    if (!taskSnap.exists()) throw new Error("Task not found.");
+    const task = taskSnap.data() as Task;
+    if (task.status !== "open") throw new Error("This task is no longer accepting offers.");
+    if (task.assignedTo) throw new Error("This task is already assigned.");
+
+    const posterRef = doc(database, "users", task.posterId);
+    const posterSnap = await transaction.get(posterRef);
+    const posterWallet = posterSnap.data()?.wallet ?? 0;
+    if (posterWallet < amount) {
+      throw new Error(`Add ${formatCurrency(amount - posterWallet)} to your wallet before assigning this offer.`);
+    }
+
+    transaction.update(posterRef, { wallet: posterWallet - amount });
+    transaction.update(taskRef, {
+      status: "assigned",
+      assignedTo: taskerId,
+      assignedName: taskerName,
+      heldAmount: amount,
+      heldAt: serverTimestamp(),
+      paymentRequested: false,
+      paymentReleased: false,
+    });
+    transaction.set(doc(collection(database, "wallet_txs")), {
+      userId: task.posterId,
+      amount,
+      type: "hold",
+      note: `Funds held for ${task.title} (rehired offer)`,
+      createdAt: new Date().toISOString(),
+      taskId,
+    });
+  });
+
+  await notify({
+    userId: taskerId,
+    type: "selected",
+    title: "A previous client made you a new offer",
+    body: `You have been offered a new task. It is separate from your previous completed work.`,
+    link: `/tasks/${taskId}`,
+  });
+}
+
 export async function listPendingTasks(): Promise<Task[]> {
   const database = needDb();
   const snap = await getDocs(query(collection(database, "tasks"), where("status", "==", "pending"), limit(200)));
@@ -201,6 +316,9 @@ export async function placeBid(input: {
   message: string;
 }): Promise<void> {
   const database = needDb();
+  if (!Number.isFinite(input.amount) || input.amount < MIN_BID) {
+    throw new Error(`Your offer must be at least ${MIN_BID.toLocaleString("en-PK")}.`);
+  }
   const taskSnap = await getDoc(doc(database, "tasks", input.taskId));
   if (!taskSnap.exists()) throw new Error("This task is no longer available.");
   const task = taskSnap.data() as Task;
@@ -256,7 +374,7 @@ export function subscribeBidsForTask(taskId: string, callback: (bids: Bid[]) => 
 
 export async function updateBid(bidId: string, amount: number, message: string): Promise<void> {
   const database = needDb();
-  if (!Number.isFinite(amount) || amount < 500) throw new Error("Offer must be at least PKR 500.");
+  if (!Number.isFinite(amount) || amount < MIN_BID) throw new Error(`Offer must be at least PKR ${MIN_BID.toLocaleString("en-PK")}.`);
   await updateDoc(doc(database, "bids", bidId), { amount, message: message.trim(), updatedAt: serverTimestamp() });
 }
 

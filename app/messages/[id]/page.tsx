@@ -37,7 +37,14 @@ export default function ConversationPage() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-  if (allowed === false) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500">Access denied. <Link href="/messages" className="font-semibold text-brand">Back</Link></div>;
+  if (allowed === false) return (
+    <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-red-50 text-red-500"><ShieldCheck className="h-6 w-6" /></div>
+      <p className="mt-5 text-lg font-black text-ink">Messaging not available</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-500">This conversation is private to the client and the freelancer assigned to the task. You can only message the client once you are assigned this task.</p>
+      <Link href="/messages" className="mt-5 inline-block font-semibold text-brand hover:underline">Back to messages</Link>
+    </div>
+  );
 
   const send = async (e: React.FormEvent) => { e.preventDefault(); if (!text.trim() || !user || !id) return; setError("");
     try { await sendMessage(id, user.uid, user.displayName || user.email || "User", text.trim()); setText(""); } catch (err: any) { setError(err?.message || "Could not send"); } };

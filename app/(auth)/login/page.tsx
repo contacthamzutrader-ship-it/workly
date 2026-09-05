@@ -47,7 +47,7 @@ export default function LoginPage() {
         }
       }
 
-      router.push(email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase() ? "/admin" : redirect);
+      router.push(redirect);
     } catch (err: any) {
       setError(err?.message || "We could not sign you in.");
     } finally {

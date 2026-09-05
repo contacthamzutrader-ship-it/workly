@@ -16,13 +16,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    if (ownerMode) {
-      if (pathname !== "/admin") {
-        router.replace("/admin");
-      }
-      return;
-    }
-
     if (user && role === "tasker") {
       if (!onboardingCompleted) {
         const publicRoutes = ["/login", "/signup", "/"];
@@ -62,10 +55,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const isInterviewRoute = pathname === "/interview" || pathname === "/ai-interview";
-
-  if (ownerMode && pathname !== "/admin") {
-    return <div className="grid min-h-screen place-items-center bg-canvas"><div className="h-9 w-9 animate-spin rounded-full border-[3px] border-brand border-t-transparent" /></div>;
-  }
 
   if (ownerMode || isInterviewRoute) return <main className="min-h-screen">{children}</main>;
 
