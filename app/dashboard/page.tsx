@@ -141,7 +141,7 @@ export default function DashboardPage() {
   const rows = view === "client" ? posted : opportunities;
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell space-y-6 py-6 sm:py-8">
       <section className="relative overflow-hidden rounded-2xl bg-deep p-6 text-white shadow-card sm:p-8">
         <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-mint/15 blur-3xl" />
