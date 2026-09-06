@@ -68,12 +68,12 @@ const discoverItems = [
 ];
 
 const helpTopicItems = [
-  { label: "Help", href: "/#learn", icon: HelpCircle },
-  { label: "Community Guidelines", href: "/#trust", icon: ShieldCheck },
-  { label: "Cancellation Policy", href: "/#trust", icon: FileText },
-  { label: "Terms and Conditions", href: "/#trust", icon: FileText },
-  { label: "Blog", href: "/", icon: Newspaper },
-  { label: "About Us", href: "/#why", icon: Building2 },
+  { label: "Help", href: "/help", icon: HelpCircle },
+  { label: "Community Guidelines", href: "/community-guidelines", icon: ShieldCheck },
+  { label: "Cancellation Policy", href: "/cancellation-policy", icon: FileText },
+  { label: "Terms and Conditions", href: "/terms", icon: FileText },
+  { label: "Blog", href: "/blog", icon: Newspaper },
+  { label: "About Us", href: "/about", icon: Building2 },
 ];
 
 const menuButtonClass =
@@ -111,6 +111,7 @@ export default function FreelancerHeader({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const photoFileRef = useRef<HTMLInputElement>(null);
   const pendingPhoto = useRef<File | null>(null);
 
@@ -175,6 +176,7 @@ export default function FreelancerHeader({
   const close = () => {
     setOpen(null);
     resetPhoto();
+    setConfirmLogout(false);
   };
 
   const applyFilters = () => {
@@ -422,13 +424,40 @@ export default function FreelancerHeader({
                   </div>
 
                   <div className="mt-2 space-y-0.5 border-t border-ink-100 pt-2">
-                    <Link href="/messages" onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50"><Mail className="h-4 w-4 text-ink-400" /> Contact Us</Link>
-                    <button
-                      onClick={async () => { close(); await signOut(); router.push("/"); }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
-                    >
-                      <LogOut className="h-4 w-4" /> Log Out
-                    </button>
+                    {confirmLogout ? (
+                      <div className="mt-1 rounded-xl bg-red-50 p-3">
+                        <p className="text-sm font-black text-ink">Log out of Parwaz?</p>
+                        <p className="mt-0.5 text-xs font-medium leading-5 text-ink-500">Your session will be ended securely and you will be sent to the login page.</p>
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={() => setConfirmLogout(false)}
+                            className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2.5 text-sm font-bold text-ink-600 transition hover:bg-ink-50 active:scale-[0.98]"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={async () => {
+                              close();
+                              await signOut();
+                              router.replace("/login");
+                            }}
+                            className="flex-1 rounded-xl bg-red-600 px-3 py-2.5 text-sm font-bold text-white shadow-forest transition hover:bg-red-700 active:scale-[0.98]"
+                          >
+                            Log out
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Link href="/contact" onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50"><Mail className="h-4 w-4 text-ink-400" /> Contact Us</Link>
+                        <button
+                          onClick={() => setConfirmLogout(true)}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
+                        >
+                          <LogOut className="h-4 w-4" /> Log Out
+                        </button>
+                      </>
+                    )}
                   </div>
                 </>
               )}
