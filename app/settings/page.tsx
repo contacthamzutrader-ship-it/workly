@@ -28,10 +28,8 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { sendPasswordResetEmail, updateEmail, sendEmailVerification } from "firebase/auth";
-import { subscribeNotifications, type AppNotification } from "@/lib/notifications";
+import { updateEmail, sendEmailVerification } from "firebase/auth";
 import { listTasksAssignedTo } from "@/lib/tasks";
-import { formatDate } from "@/lib/format";
 
 type SettingKey =
   | "mobile"
@@ -58,11 +56,12 @@ const SECTIONS: { key: SettingKey; label: string; icon: any }[] = [
   { key: "portfolio", label: "Portfolio", icon: Images },
 ];
 
-const TASKER_ALERT_TYPES = ["selected", "private_assignment", "payment_released"];
-
-function isTaskerAlert(n: AppNotification) {
-  return TASKER_ALERT_TYPES.includes(n.type) || /(offer|assigned|payment)/i.test(n.title || "");
-}
+const DEDICATED: Partial<Record<SettingKey, string>> = {
+  password: "/change-password",
+  notifications: "/notification-settings",
+  "tasker-alert": "/tasker-alert",
+  skills: "/skills",
+};
 
 export default function SettingsPage() {
   const { user, role, loading } = useAuth();
@@ -71,7 +70,6 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<any>({});
   const [assignedCount, setAssignedCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
-  const [items, setItems] = useState<AppNotification[]>([]);
 
   const [phoneDraft, setPhoneDraft] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -80,12 +78,6 @@ export default function SettingsPage() {
   const [emailDraft, setEmailDraft] = useState("");
   const [emailError, setEmailError] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
-
-  const [passwordSent, setPasswordSent] = useState(false);
-
-  const [skillsDraft, setSkillsDraft] = useState("");
-  const [skillsError, setSkillsError] = useState("");
-  const [skillsSaved, setSkillsSaved] = useState(false);
 
   const [portfolioDraft, setPortfolioDraft] = useState("");
   const [portfolioError, setPortfolioError] = useState("");
@@ -105,7 +97,6 @@ export default function SettingsPage() {
           setProfile(d);
           setPhoneDraft(d.phone ?? "");
           setEmailDraft(d.email ?? user.email ?? "");
-          setSkillsDraft((d.skills || []).join(", "));
           setPortfolioDraft(d.portfolioUrl ?? "");
         }
       } catch { /* Profile is optional for settings. */ }
@@ -115,13 +106,6 @@ export default function SettingsPage() {
         setCompletedCount(assigned.filter((t) => t.status === "completed").length);
       } catch { /* Stats are secondary. */ }
     })();
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    try {
-      return subscribeNotifications(user.uid, (next) => setItems(next));
-    } catch { /* Notifications are optional. */ }
   }, [user]);
 
   const saveMobile = async () => {
@@ -175,35 +159,6 @@ export default function SettingsPage() {
     }
   };
 
-  const sendPasswordLink = async () => {
-    if (!user?.email || !auth) return;
-    try {
-      await sendPasswordResetEmail(auth, user.email);
-      setPasswordSent(true);
-    } catch (err: any) {
-      setPasswordSent(false);
-      setEmailError(err?.message || "Could not send the reset link.");
-    }
-  };
-
-  const saveSkills = async () => {
-    if (!user || !db) return;
-    const skills = skillsDraft.split(",").map((s) => s.trim()).filter(Boolean);
-    if (skills.length > 30) {
-      setSkillsError("Keep it focused - a maximum of 30 skills.");
-      setSkillsSaved(false);
-      return;
-    }
-    setSkillsError("");
-    try {
-      await updateDoc(doc(db, "users", user.uid), { skills });
-      setProfile((p: any) => ({ ...p, skills }));
-      setSkillsSaved(true);
-    } catch (err: any) {
-      setSkillsError(err?.message || "Could not save your skills.");
-    }
-  };
-
   const savePortfolio = async () => {
     if (!user || !db) return;
     const url = portfolioDraft.trim();
@@ -237,7 +192,6 @@ export default function SettingsPage() {
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   const emailVerified = user.emailVerified;
-  const skillsList = Array.isArray(profile.skills) ? profile.skills : [];
   const trustScore = typeof profile.trustScore === "number" ? profile.trustScore : null;
   const interviewPassed = Boolean(profile.interviewPassed);
   const profileComplete = Boolean(profile.profileComplete);
@@ -251,8 +205,6 @@ export default function SettingsPage() {
     { key: "verified", label: "Verified talent", desc: "Pass the skill check and complete work.", earned: interviewPassed && completedCount > 0, icon: BadgeCheck },
   ];
   const earnedBadges = badges.filter((b) => b.earned).length;
-
-  const alerts = items.filter(isTaskerAlert);
 
   const panelHeader = (icon: any, title: string, sub: string) => (
     <div className="flex items-center gap-3">
@@ -278,19 +230,20 @@ export default function SettingsPage() {
           <nav className="rounded-3xl border border-ink-100 bg-white p-3 shadow-card lg:sticky lg:top-6">
             <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {SECTIONS.map((section) => {
+                const target = DEDICATED[section.key];
                 const isActive = section.key === active;
-                return (
-                  <button
-                    key={section.key}
-                    onClick={() => setActive(section.key)}
-                    className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-bold transition lg:w-full ${
-                      isActive ? "bg-brand-50 text-brand-dark" : "text-ink-600 hover:bg-ink-50"
-                    }`}
-                  >
-                    <section.icon className={`h-4 w-4 ${isActive ? "text-brand" : "text-ink-400"}`} />
-                    <span className="hidden sm:inline">{section.label}</span>
-                    <ChevronRight className={`ml-auto h-3.5 w-3.5 lg:block ${isActive ? "text-brand" : "text-ink-300"} hidden`} />
-                  </button>
+                const outer = `flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-bold transition lg:w-full ${
+                  isActive ? "bg-brand-50 text-brand-dark" : "text-ink-600 hover:bg-ink-50"
+                }`;
+                const inner = (<>
+                  <section.icon className={`h-4 w-4 ${isActive ? "text-brand" : "text-ink-400"}`} />
+                  <span className="hidden sm:inline">{section.label}</span>
+                  <ChevronRight className={`ml-auto h-3.5 w-3.5 lg:block ${isActive ? "text-brand" : "text-ink-300"} hidden`} />
+                </>);
+                return target ? (
+                  <Link key={section.key} href={target} className={outer}>{inner}</Link>
+                ) : (
+                  <button key={section.key} onClick={() => setActive(section.key)} className={outer}>{inner}</button>
                 );
               })}
             </div>
@@ -381,75 +334,21 @@ export default function SettingsPage() {
               </section>
             )}
 
-            {active === "password" && (
+            {(active === "password" || active === "notifications" || active === "tasker-alert" || active === "skills") && (
               <section className="surface p-6 sm:p-7">
-                {panelHeader(<KeyRound className="h-5 w-5" />, "Change Password", "Reset your sign-in password securely.")}
-                <p className="mt-4 text-sm leading-6 text-ink-500">A reset link is emailed to <span className="font-bold text-ink">{user.email}</span>. Click it to choose a new password. The old password stops working immediately.</p>
-                <div className="mt-5 flex items-center gap-2">
-                  <button onClick={sendPasswordLink} disabled={passwordSent} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98] disabled:opacity-60"><Mail className="h-4 w-4" /> {passwordSent ? "Reset link sent" : "Send reset link"}</button>
-                </div>
-                {emailError && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{emailError}</div>}
-              </section>
-            )}
-
-            {active === "notifications" && (
-              <section className="surface p-6 sm:p-7">
-                {panelHeader(<Bell className="h-5 w-5" />, "Notification Settings", "Recent activity across the platform.")}
-                <p className="mt-4 text-sm leading-6 text-ink-500">Offers, assignments and payment updates appear in your notification centre the moment they happen.</p>
-                <div className="mt-4 space-y-2">
-                  {items.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-ink-200 bg-ink-50/50 py-8 text-center"><Bell className="mx-auto h-6 w-6 text-ink-300" /><p className="mt-2 text-sm font-bold text-ink">No notifications yet</p><p className="mt-1 text-xs text-ink-400">Your latest activity will show up here.</p></div>
-                  ) : (
-                    items.slice(0, 4).map((n) => (
-                      <Link key={n.id} href={n.link || "/notifications"} className="flex items-center justify-between gap-3 rounded-xl border border-ink-100 p-3.5 transition hover:border-brand/30">
-                        <div className="flex min-w-0 items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand"><Bell className="h-4 w-4" /></span><div className="min-w-0"><p className="truncate text-sm font-bold text-ink">{n.title}</p><p className="truncate text-xs text-ink-400">{n.body} &middot; {formatDate(n.createdAt)}</p></div></div>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-ink-300" />
-                      </Link>
-                    ))
-                  )}
-                </div>
-                <Link href="/notifications" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-brand">Open notification centre <ArrowUpRight className="h-4 w-4" /></Link>
-              </section>
-            )}
-
-            {active === "tasker-alert" && (
-              <section className="surface p-6 sm:p-7">
-                {panelHeader(<BellRing className="h-5 w-5" />, "Tasker Alert", "Important alerts about your offers and payouts.")}
-                <p className="mt-4 text-sm leading-6 text-ink-500">Bid acceptances, new private assignments and released payments are shown here first.</p>
-                <div className="mt-4 space-y-2">
-                  {alerts.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-ink-200 bg-ink-50/50 py-8 text-center"><BellRing className="mx-auto h-6 w-6 text-ink-300" /><p className="mt-2 text-sm font-bold text-ink">No tasker alerts yet</p><p className="mt-1 text-xs text-ink-400">Watch your inbox - alerts appear the moment a client reacts to your offer.</p></div>
-                  ) : (
-                    alerts.slice(0, 6).map((n) => (
-                      <Link key={n.id} href={n.link || "/notifications"} className="flex items-center justify-between gap-3 rounded-xl border border-ink-100 p-3.5 transition hover:border-brand/30">
-                        <div className="flex min-w-0 items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-600"><BellRing className="h-4 w-4" /></span><div className="min-w-0"><p className="truncate text-sm font-bold text-ink">{n.title}</p><p className="truncate text-xs text-ink-400">{n.body} &middot; {formatDate(n.createdAt)}</p></div></div>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-ink-300" />
-                      </Link>
-                    ))
-                  )}
-                </div>
-                <Link href="/notifications" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-brand">Manage all alerts <ArrowUpRight className="h-4 w-4" /></Link>
-              </section>
-            )}
-
-            {active === "skills" && (
-              <section className="surface p-6 sm:p-7">
-                {panelHeader(<Award className="h-5 w-5" />, "Skills", "The services and tools you offer.")}
+                {(() => {
+                  const meta = SECTIONS.find((s) => s.key === active)!;
+                  return panelHeader(<meta.icon className="h-5 w-5" />, meta.label, "Managed on a dedicated page");
+                })()}
+                <p className="mt-4 text-sm leading-6 text-ink-500">
+                  {active === "password" && "Set a new password by confirming your current one. Includes visibility toggles, validation and minimum requirements."}
+                  {active === "notifications" && "Toggle new task, offer, project, payment, message and system notifications. Preferences are saved to your account."}
+                  {active === "tasker-alert" && "Enable or pause task alerts, choose your preferred categories from the live task catalogue and control offer, assignment and payout alerts."}
+                  {active === "skills" && "Add, edit or remove the skills you offer and view your existing AI skill assessment."}
+                </p>
                 <div className="mt-5">
-                  <label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label>
-                  <textarea value={skillsDraft} onChange={(e) => setSkillsDraft(e.target.value)} rows={3} placeholder="e.g. Web Development, React, WordPress, Graphic Design" className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/20" />
+                  <Link href={DEDICATED[active]!} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]">Open {SECTIONS.find((s) => s.key === active)!.label} page <ArrowUpRight className="h-4 w-4" /></Link>
                 </div>
-                {skillsList.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {skillsList.map((skill: string) => <span key={skill} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-extrabold text-brand-dark">{skill}</span>)}
-                  </div>
-                )}
-                <p className="mt-2 text-xs leading-5 text-ink-400">Skills power your AI match score and help clients find you faster. Maximum 30.</p>
-                <div className="mt-4 flex items-center gap-2">
-                  <button onClick={saveSkills} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"><Save className="h-4 w-4" /> Save skills</button>
-                  {skillsSaved && <span className="text-sm font-bold text-green-600">Skills saved.</span>}
-                </div>
-                {skillsError && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{skillsError}</div>}
               </section>
             )}
 
