@@ -19,9 +19,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
       icons: {
-        icon: "/img/Parwaz.jpeg",
-        shortcut: "/img/Parwaz.jpeg",
-        apple: "/img/Parwaz.jpeg",
+        icon: "/img/Parwaz.png",
+        shortcut: "/img/Parwaz.png",
+        apple: "/img/Parwaz.png",
       },
     openGraph: {
       type: "website",
