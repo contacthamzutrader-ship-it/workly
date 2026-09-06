@@ -5,9 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Award,
-  Bell,
-  BellRing,
   BriefcaseBusiness,
   Building2,
   Camera,
@@ -20,20 +17,16 @@ import {
   Gift,
   GraduationCap,
   HelpCircle,
-  Image as ImageIcon,
   ImagePlus,
   Images,
-  KeyRound,
   LayoutDashboard,
   LogOut,
   Mail,
   Newspaper,
   Settings,
   ShieldCheck,
-  Smartphone,
   Sparkles,
   Umbrella,
-  User,
   Wallet,
   XCircle,
 } from "lucide-react";
@@ -64,19 +57,6 @@ const sortItems: { key: SortOption; label: string }[] = [
   { key: "due_soon", label: "Due Soon" },
   { key: "lowest_price", label: "Lowest Price" },
   { key: "highest_price", label: "Highest Price" },
-];
-
-const settingsItems = [
-  { label: "Mobile", href: "/profile", icon: Smartphone },
-  { label: "Email", href: "/profile", icon: Mail },
-  { label: "Profile", href: "/profile", icon: User },
-  { label: "Verify Account", href: "/profile", icon: ShieldCheck },
-  { label: "Change Password", href: "/profile", icon: KeyRound },
-  { label: "Notification Settings", href: "/notifications", icon: Bell },
-  { label: "Tasker Alert", href: "/notifications", icon: BellRing },
-  { label: "Skills", href: "/profile", icon: Award },
-  { label: "Badges", href: "/profile", icon: Sparkles },
-  { label: "Portfolio", href: "/profile", icon: ImageIcon },
 ];
 
 const discoverItems = [
@@ -125,7 +105,6 @@ export default function FreelancerHeader({
   const { user, role, signOut } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState<"browse" | "filters" | "sort" | "profile" | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<FilterState>(filters);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [photoStage, setPhotoStage] = useState<"idle" | "actions" | "source" | "preview">("idle");
@@ -190,13 +169,11 @@ export default function FreelancerHeader({
 
   const toggle = (key: "browse" | "filters" | "sort" | "profile") => {
     setOpen((prev) => (prev === key ? null : key));
-    setSettingsOpen(false);
     if (key !== "profile") resetPhoto();
   };
 
   const close = () => {
     setOpen(null);
-    setSettingsOpen(false);
     resetPhoto();
   };
 
@@ -334,21 +311,7 @@ export default function FreelancerHeader({
           {open === "profile" && (
             <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-2xl border border-ink-100 bg-white p-3 shadow-elevated">
               <input ref={photoFileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={pickPhoto} />
-              {settingsOpen ? (
-                <>
-                  <div className="flex items-center justify-between px-2 pb-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Settings</p>
-                    <button onClick={() => setSettingsOpen(false)} className="rounded-lg px-2 py-1 text-xs font-bold text-ink-500 hover:bg-ink-50">&#8592; Back</button>
-                  </div>
-                  <div className="grid max-h-[46vh] grid-cols-1 gap-0.5 overflow-y-auto">
-                    {settingsItems.map((item) => (
-                      <Link key={item.label} href={item.href} onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50 hover:text-ink">
-                        <item.icon className="h-4 w-4 text-brand" /> {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              ) : photoStage !== "idle" ? (
+              {photoStage !== "idle" ? (
                 <div className="max-h-[70vh] overflow-y-auto">
                   {photoStage === "actions" && (
                     <div className="text-center">
@@ -439,9 +402,9 @@ export default function FreelancerHeader({
                   <div className="space-y-0.5">
                     <Link href="/dashboard" onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50"><LayoutDashboard className="h-4 w-4 text-brand" /> My Tasker Dashboard</Link>
                     <Link href="/payment-history" onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50"><Wallet className="h-4 w-4 text-brand" /> Payment History</Link>
-                    <button onClick={() => setSettingsOpen(true)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-bold text-ink-600 transition hover:bg-brand-50">
-                      <Settings className="h-4 w-4 text-brand" /> Settings <span className="ml-auto text-ink-300">&#8250;</span>
-                    </button>
+                    <Link href="/settings" onClick={close} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-brand-50">
+                      <Settings className="h-4 w-4 text-brand" /> Settings
+                    </Link>
                   </div>
 
                   <p className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Discover</p>
