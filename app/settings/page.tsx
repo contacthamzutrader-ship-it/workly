@@ -9,7 +9,6 @@ import {
   BadgeCheck,
   Bell,
   BellRing,
-  BriefcaseBusiness,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -23,13 +22,11 @@ import {
   Smartphone,
   Sparkles,
   User,
-  XCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { updateEmail, sendEmailVerification } from "firebase/auth";
-import { listTasksAssignedTo } from "@/lib/tasks";
 
 type SettingKey =
   | "mobile"
@@ -61,15 +58,15 @@ const DEDICATED: Partial<Record<SettingKey, string>> = {
   notifications: "/notification-settings",
   "tasker-alert": "/tasker-alert",
   skills: "/skills",
+  badges: "/badges",
+  portfolio: "/portfolio",
 };
 
 export default function SettingsPage() {
-  const { user, role, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [active, setActive] = useState<SettingKey>("mobile");
   const [profile, setProfile] = useState<any>({});
-  const [assignedCount, setAssignedCount] = useState(0);
-  const [completedCount, setCompletedCount] = useState(0);
 
   const [phoneDraft, setPhoneDraft] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -78,10 +75,6 @@ export default function SettingsPage() {
   const [emailDraft, setEmailDraft] = useState("");
   const [emailError, setEmailError] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
-
-  const [portfolioDraft, setPortfolioDraft] = useState("");
-  const [portfolioError, setPortfolioError] = useState("");
-  const [portfolioSaved, setPortfolioSaved] = useState(false);
 
   const [verifySent, setVerifySent] = useState(false);
 
@@ -97,14 +90,8 @@ export default function SettingsPage() {
           setProfile(d);
           setPhoneDraft(d.phone ?? "");
           setEmailDraft(d.email ?? user.email ?? "");
-          setPortfolioDraft(d.portfolioUrl ?? "");
         }
       } catch { /* Profile is optional for settings. */ }
-      try {
-        const assigned = await listTasksAssignedTo(user.uid);
-        setAssignedCount(assigned.length);
-        setCompletedCount(assigned.filter((t) => t.status === "completed").length);
-      } catch { /* Stats are secondary. */ }
     })();
   }, [user]);
 
@@ -159,24 +146,6 @@ export default function SettingsPage() {
     }
   };
 
-  const savePortfolio = async () => {
-    if (!user || !db) return;
-    const url = portfolioDraft.trim();
-    if (url && (url.length > 300 || !/^https?:\/\//i.test(url))) {
-      setPortfolioError("Enter a valid link that starts with http:// or https://");
-      setPortfolioSaved(false);
-      return;
-    }
-    setPortfolioError("");
-    try {
-      await updateDoc(doc(db, "users", user.uid), { portfolioUrl: url });
-      setProfile((p: any) => ({ ...p, portfolioUrl: url }));
-      setPortfolioSaved(true);
-    } catch (err: any) {
-      setPortfolioError(err?.message || "Could not save your portfolio link.");
-    }
-  };
-
   const sendVerifyEmail = async () => {
     const current = auth?.currentUser;
     if (!current) return;
@@ -192,19 +161,8 @@ export default function SettingsPage() {
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   const emailVerified = user.emailVerified;
-  const trustScore = typeof profile.trustScore === "number" ? profile.trustScore : null;
   const interviewPassed = Boolean(profile.interviewPassed);
   const profileComplete = Boolean(profile.profileComplete);
-
-  const badges = [
-    { key: "email", label: "Email verified", desc: "Your email address is confirmed.", earned: emailVerified, icon: Mail },
-    { key: "complete", label: "Profile complete", desc: "Name, bio and city are filled in.", earned: profileComplete, icon: User },
-    { key: "first", label: "First assignment", desc: "A client assigned you a task.", earned: assignedCount > 0, icon: BriefcaseBusiness },
-    { key: "pro", label: "Task Pro", desc: "You completed a task end to end.", earned: completedCount > 0, icon: CheckCircle2 },
-    { key: "trusted", label: "Trusted talent", desc: "Reach a trust score of 80+.", earned: (trustScore ?? 0) >= 80, icon: ShieldCheck },
-    { key: "verified", label: "Verified talent", desc: "Pass the skill check and complete work.", earned: interviewPassed && completedCount > 0, icon: BadgeCheck },
-  ];
-  const earnedBadges = badges.filter((b) => b.earned).length;
 
   const panelHeader = (icon: any, title: string, sub: string) => (
     <div className="flex items-center gap-3">
@@ -334,7 +292,7 @@ export default function SettingsPage() {
               </section>
             )}
 
-            {(active === "password" || active === "notifications" || active === "tasker-alert" || active === "skills") && (
+            {(active === "password" || active === "notifications" || active === "tasker-alert" || active === "skills" || active === "badges" || active === "portfolio") && (
               <section className="surface p-6 sm:p-7">
                 {(() => {
                   const meta = SECTIONS.find((s) => s.key === active)!;
@@ -345,46 +303,12 @@ export default function SettingsPage() {
                   {active === "notifications" && "Toggle new task, offer, project, payment, message and system notifications. Preferences are saved to your account."}
                   {active === "tasker-alert" && "Enable or pause task alerts, choose your preferred categories from the live task catalogue and control offer, assignment and payout alerts."}
                   {active === "skills" && "Add, edit or remove the skills you offer and view your existing AI skill assessment."}
+                  {active === "badges" && "Review the badges you have earned from real activity, with descriptions and where available the date they were awarded."}
+                  {active === "portfolio" && "Showcase your projects with titles, descriptions, skills, images and links. Add, edit or delete each project."}
                 </p>
                 <div className="mt-5">
                   <Link href={DEDICATED[active]!} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]">Open {SECTIONS.find((s) => s.key === active)!.label} page <ArrowUpRight className="h-4 w-4" /></Link>
                 </div>
-              </section>
-            )}
-
-            {active === "badges" && (
-              <section className="surface p-6 sm:p-7">
-                {panelHeader(<Sparkles className="h-5 w-5" />, "Badges", "Milestones that build client trust.")}
-                <p className="mt-4 text-sm leading-6 text-ink-500">You have earned <span className="font-black text-ink">{earnedBadges}</span> of {badges.length} badges. Badges update automatically as you use the platform.</p>
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {badges.map((b) => (
-                    <div key={b.key} className={`rounded-2xl border p-4 ${b.earned ? "border-green-200 bg-green-50/60" : "border-ink-100 bg-ink-50/40"}`}>
-                      <div className="flex items-center gap-3">
-                        <span className={`grid h-10 w-10 place-items-center rounded-xl ${b.earned ? "bg-green-600 text-white" : "bg-ink-100 text-ink-300"}`}>{b.earned ? <b.icon className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}</span>
-                        <div><p className="text-sm font-black text-ink">{b.label}</p><p className="mt-0.5 text-xs leading-5 text-ink-400">{b.desc}</p></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {active === "portfolio" && (
-              <section className="surface p-6 sm:p-7">
-                {panelHeader(<Images className="h-5 w-5" />, "Portfolio", "A link to your best work.")}
-                <div className="mt-5">
-                  <label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label>
-                  <input value={portfolioDraft} onChange={(e) => setPortfolioDraft(e.target.value)} type="url" placeholder="https://yourportfolio.com" className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/20" />
-                  <p className="mt-2 text-xs leading-5 text-ink-400">Clients can open your work samples from your public profile.</p>
-                </div>
-                {profile.portfolioUrl && (
-                  <a href={profile.portfolioUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-extrabold text-brand transition hover:bg-brand-50">Open current portfolio <ArrowUpRight className="h-4 w-4" /></a>
-                )}
-                <div className="mt-4 flex items-center gap-2">
-                  <button onClick={savePortfolio} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"><Save className="h-4 w-4" /> Save portfolio</button>
-                  {portfolioSaved && <span className="text-sm font-bold text-green-600">Portfolio saved.</span>}
-                </div>
-                {portfolioError && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{portfolioError}</div>}
               </section>
             )}
           </div>

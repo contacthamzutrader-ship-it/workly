@@ -60,11 +60,11 @@ const sortItems: { key: SortOption; label: string }[] = [
 ];
 
 const discoverItems = [
-  { label: "Insurance", href: "/#trust", icon: Umbrella },
-  { label: "How It Works", href: "/#how-it-works", icon: GraduationCap },
-  { label: "Gift Cards", href: "/", icon: Gift },
-  { label: "Earn Money", href: "/tasks", icon: Coins },
-  { label: "Help", href: "/#learn", icon: HelpCircle },
+  { label: "Insurance", href: "/insurance", icon: Umbrella },
+  { label: "How It Works", href: "/how-it-works", icon: GraduationCap },
+  { label: "Gift Cards", href: "/gift-cards", icon: Gift },
+  { label: "Earn Money", href: "/earn-money", icon: Coins },
+  { label: "Help", href: "/help", icon: HelpCircle },
 ];
 
 const helpTopicItems = [
