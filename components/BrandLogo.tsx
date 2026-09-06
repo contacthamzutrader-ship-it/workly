@@ -16,7 +16,7 @@ export default function BrandLogo({
       <img
         src="/img/Parwaz.png"
         alt="Parwaz"
-        className={`w-auto object-contain ${compact ? "h-7 sm:h-8" : "h-9 sm:h-11"} ${inverted ? "opacity-95" : ""}`}
+        className={`w-auto object-contain ${compact ? "h-10 sm:h-12" : "h-12 sm:h-16"} ${inverted ? "opacity-95" : ""}`}
       />
     </Link>
   );
