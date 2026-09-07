@@ -64,11 +64,32 @@ textarea:focus-visible {
   .text-balance {
     text-wrap: balance;
   }
+  .font-ui h1,
+  .font-ui h2,
+  .font-ui h3,
+  .font-ui h4 {
+    font-family: "Open Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
   .page-shell {
     @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8;
   }
   .surface {
     @apply rounded-2xl border border-ink-100 bg-white shadow-card;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-100 bg-white shadow-card;
+  }
+  .card-hover {
+    @apply transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover;
+  }
+  .page-eyebrow {
+    @apply text-[11px] font-black uppercase tracking-[0.14em] text-ink-400;
+  }
+  .page-title {
+    @apply mt-1.5 text-2xl font-extrabold leading-tight tracking-[-0.025em] text-ink sm:text-3xl;
+  }
+  .page-sub {
+    @apply mt-1.5 max-w-2xl text-sm font-normal leading-6 text-ink-500;
   }
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em] text-brand-700;
