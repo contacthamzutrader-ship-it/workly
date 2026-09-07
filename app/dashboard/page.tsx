@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listTasksByPoster, listBidsByUser, listPublicTasks, getTask, type Task, type Bid } from "@/lib/tasks";
-import FreelancerDashboard from "@/components/FreelancerDashboard";
+import DashboardShell from "@/components/DashboardShell";
+import TaskerDashboard from "@/components/TaskerDashboard";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
@@ -109,7 +110,13 @@ export default function DashboardPage() {
   }
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-mint border-t-transparent" /></div>;
 
-  if (role === "tasker") return <FreelancerDashboard />;
+  if (role === "tasker") {
+    return (
+      <DashboardShell>
+        <TaskerDashboard />
+      </DashboardShell>
+    );
+  }
 
   const isAdmin = role === "moderator" || role === "company_admin" || role === "super_admin";
   const canPost = role === "customer" || role === "company_admin" || role === "super_admin";

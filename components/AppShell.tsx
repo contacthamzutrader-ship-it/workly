@@ -56,8 +56,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const isInterviewRoute = pathname === "/interview" || pathname === "/ai-interview";
   const isTaskerDashboard = !!user && role === "tasker" && pathname === "/dashboard";
+  const isTaskerArea =
+    !!user &&
+    role === "tasker" &&
+    (pathname.startsWith("/browse") ||
+      pathname.startsWith("/projects") ||
+      pathname.startsWith("/notifications") ||
+      pathname.startsWith("/messages"));
 
   if (ownerMode || isInterviewRoute || isTaskerDashboard) return <main className="min-h-screen">{children}</main>;
+
+  if (isTaskerArea) return <main className="min-h-screen">{children}</main>;
 
   return (
     <div className="flex min-h-screen flex-col">

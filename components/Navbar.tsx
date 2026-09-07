@@ -12,11 +12,13 @@ import {
   Plus,
   ShieldCheck,
   User,
-  Wallet,
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
+import { useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -34,6 +36,19 @@ export default function Navbar() {
   const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("");
+
+  useEffect(() => {
+    if (!user || !db) return;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) setAvatarUrl(snap.data().avatarUrl || "");
+      } catch {
+        // fallback to initials badge
+      }
+    })();
+  }, [user]);
 
   const close = () => {
     setMobileOpen(false);
@@ -67,16 +82,15 @@ export default function Navbar() {
               </Link>
               <div className="relative">
                 <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-11 items-center gap-2 rounded-xl border border-ink-200 bg-white px-2 pr-3 text-left transition hover:bg-ink-50">
-                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-xs font-black text-white">
-                    {(user.displayName || user.email || "U")[0].toUpperCase()}
+                  <span className={avatarUrl ? "h-8 w-8 overflow-hidden rounded-lg" : "grid h-8 w-8 place-items-center rounded-lg bg-brand text-xs font-black text-white"}>
+                    {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : (user.displayName || user.email || "U")[0].toUpperCase()}
                   </span>
-                  <span className="max-w-[100px] truncate text-xs font-extrabold text-ink">{user.displayName || "Account"}</span>
                   <ChevronDown className="h-3.5 w-3.5 text-ink-300" />
                 </button>
                 {accountOpen && (
                   <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-ink-100 bg-white p-2 shadow-elevated">
                     {isAdmin && <Link href="/admin" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-brand-50"><ShieldCheck className="h-4 w-4 text-brand" /> Admin control</Link>}
-                    <Link href="/wallet" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-brand-50"><Wallet className="h-4 w-4 text-brand" /> Wallet</Link>
+                    <Link href="/dashboard" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-brand-50"><LayoutDashboard className="h-4 w-4 text-brand" /> Dashboard</Link>
                     {role === "tasker" && !interviewPassed ? (
                       <button
                         onClick={() => {
@@ -129,7 +143,6 @@ export default function Navbar() {
             {user ? (
               <>
                 {canPost && <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest"><Plus className="h-4 w-4" /> Post a Job</Link>}
-                <Link href="/wallet" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-ink-200 px-5 text-sm font-bold text-ink-600">Wallet</Link>
                 {role === "tasker" && !interviewPassed ? (
                   <button
                     onClick={() => {
