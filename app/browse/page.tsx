@@ -21,7 +21,7 @@ export default function BrowsePage() {
     (async () => {
       try {
         const list = await listPublicTasks();
-        if (!cancelled) setTasks(list);
+        if (!cancelled) setTasks(list.filter((t) => t.status === "open"));
       } catch {
         if (!cancelled) setTasks([]);
       }

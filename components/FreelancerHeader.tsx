@@ -9,17 +9,14 @@ import {
   Camera,
   CheckCircle2,
   ChevronDown,
-  Clock3,
   ImagePlus,
   Images,
   LayoutDashboard,
   List,
   LogOut,
   Mail,
-  Search,
   Settings,
   UserRound,
-  XCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
@@ -29,13 +26,6 @@ import { uploadProfileImage } from "@/lib/profile-image";
 import { useDashboardPrefs } from "@/components/DashboardPrefs";
 
 export type SortOption = "recommended" | "recent" | "due_soon" | "lowest_price" | "highest_price";
-
-const browseItems: { key: string; label: string; href: string; icon: any }[] = [
-  { key: "assigned", label: "Task Assign", href: "/projects/assigned", icon: BriefcaseBusiness },
-  { key: "pending", label: "Offers Pending", href: "/projects/offers", icon: Clock3 },
-  { key: "completed", label: "Task Completed", href: "/projects/completed", icon: CheckCircle2 },
-  { key: "cancelled", label: "Tasks Cancelled", href: "/projects/cancelled", icon: XCircle },
-];
 
 const sortOptions: { key: SortOption; label: string }[] = [
   { key: "recommended", label: "Recommended" },
@@ -60,7 +50,7 @@ export default function FreelancerHeader() {
   const { user, role, signOut } = useAuth();
   const router = useRouter();
   const { filters, sort, setFilters, setSort } = useDashboardPrefs();
-  const [open, setOpen] = useState<"browse" | "filters" | "sort" | "profile" | null>(null);
+  const [open, setOpen] = useState<"filters" | "sort" | "profile" | null>(null);
   const [draftFilters, setDraftFilters] = useState<{ availableOnly: boolean; noOffersOnly: boolean }>(filters);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [photoStage, setPhotoStage] = useState<"idle" | "actions" | "source" | "preview" | "success">("idle");
@@ -134,7 +124,7 @@ export default function FreelancerHeader() {
     }
   };
 
-  const toggle = (key: "browse" | "filters" | "sort" | "profile") => {
+  const toggle = (key: "filters" | "sort" | "profile") => {
     setOpen((prev) => (prev === key ? null : key));
   };
 
@@ -161,37 +151,13 @@ export default function FreelancerHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink-100 bg-white shadow-soft">
       <div className="page-shell flex items-center gap-3 py-2.5 sm:py-3">
-        <BrandLogo compact />
+        <BrandLogo size="lg" />
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {/* Browse Task */}
-          <div className="relative">
-            <button onClick={() => toggle("browse")} className={`${menuButtonClass} ${open === "browse" ? "border-brand-200 bg-brand-50" : ""}`}>
-              <BriefcaseBusiness className="h-4 w-4 text-brand" /> Browse Task <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-            {open === "browse" && (
-              <DropdownShell>
-                <p className="px-3 pb-1 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Browse Task</p>
-                <div className="space-y-0.5">
-                  <button
-                    onClick={() => navigateAndClose("/browse")}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-brand transition hover:bg-brand-50"
-                  >
-                    <Search className="h-4 w-4" /> All Available Tasks
-                  </button>
-                  {browseItems.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => navigateAndClose(item.href)}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-ink-600 transition hover:bg-brand-50"
-                    >
-                      <item.icon className="h-4 w-4 text-brand" /> {item.label}
-                    </button>
-                  ))}
-                </div>
-              </DropdownShell>
-            )}
-          </div>
+          <button onClick={() => navigateAndClose("/browse")} className={menuButtonClass}>
+            <BriefcaseBusiness className="h-4 w-4 text-brand" /> Browse Task
+          </button>
 
           {/* Other Filters */}
           <div className="relative">

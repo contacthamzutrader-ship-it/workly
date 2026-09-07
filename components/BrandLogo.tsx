@@ -1,14 +1,22 @@
 import Link from "next/link";
 
+const sizeClasses: Record<string, string> = {
+  sm: "h-9 sm:h-10",
+  md: "h-10 sm:h-12",
+  lg: "h-12 sm:h-14",
+};
+
 export default function BrandLogo({
   href = "/",
   inverted = false,
   compact = false,
+  size = "sm",
   className = "",
 }: {
   href?: string;
   inverted?: boolean;
   compact?: boolean;
+  size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   return (
@@ -16,7 +24,7 @@ export default function BrandLogo({
       <img
         src="/img/Parwaz.png"
         alt="Parwaz"
-        className={`w-auto object-contain ${compact ? "h-9" : "h-9 sm:h-10"} ${inverted ? "opacity-95" : ""}`}
+        className={`h-auto max-h-full w-auto object-contain ${sizeClasses[size]} ${inverted ? "opacity-95" : ""}`}
       />
     </Link>
   );
