@@ -145,41 +145,39 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black">{(name || user.email || "U")[0].toUpperCase()}</span>}
-            <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand-light" /></div><p className="mt-1 text-sm font-medium text-white/50">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100"><Pencil className="h-4 w-4" /> Edit Profile</button>
-            <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-extrabold text-white transition hover:bg-white/20">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
-          </div>
+      <div className="flex flex-col gap-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <div className="flex items-center gap-4">
+          {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>}
+          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</button>
+          <Link href={`/u/${user.uid}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-ink-100 bg-white px-4 text-sm font-semibold text-ink-600 transition hover:border-brand-200 hover:bg-brand-50">View public profile <ArrowUpRight className="h-4 w-4" /></Link>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="card p-5">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-50 text-yellow-500"><Star className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{avg}</p><p className="text-xs text-ink-500">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{avg}</p><p className="text-sm text-ink-500">{reviews.length} review{reviews.length !== 1 ? "s" : ""}</p></div></div>
         </div>
-        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="card p-5">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Shield className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "-"}</p><p className="text-xs text-ink-500">Trust Score</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{trust !== null ? trust : "-"}</p><p className="text-sm text-ink-500">Trust Score</p></div></div>
         </div>
-        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="card p-5">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-green-50 text-green-600"><Percent className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "-"}</p><p className="text-xs text-ink-500">Completion Rate</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{completionRate !== null ? `${completionRate}%` : "-"}</p><p className="text-sm text-ink-500">Completion Rate</p></div></div>
         </div>
-        <div className="rounded-3xl border border-ink-100 bg-white p-5 shadow-card">
+        <div className="card p-5">
           <div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><CheckCircle2 className="h-5 w-5" /></div>
-            <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-xs text-ink-500">Tasks Done</p></div></div>
+            <div><p className="text-2xl font-extrabold text-ink">{tasksDone}</p><p className="text-sm text-ink-500">Tasks Done</p></div></div>
         </div>
       </div>
 
       {editing ? (
-      <form onSubmit={save} className="mt-6 space-y-5 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
-        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-black text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
+      <form onSubmit={save} className="card mt-6 space-y-5 p-6 sm:p-8">
+        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-bold text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink-200 p-4 text-sm font-semibold text-ink-500 hover:border-brand"><Camera className="h-5 w-5 text-brand" /><span>{avatarFile ? avatarFile.name : "Upload JPG, PNG or WebP (max 5 MB)"}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} /></label></div>
@@ -200,7 +198,7 @@ export default function ProfilePage() {
         </div>
       </form>
       ) : (
-        <div className="mt-6 rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
+        <div className="card mt-6 p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-5">
             <div className="flex items-center gap-4">
               {avatarUrl ? (
@@ -209,12 +207,12 @@ export default function ProfilePage() {
                 <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
               )}
               <div>
-                <h2 className="text-xl font-black tracking-[-0.03em] text-ink">{name || "Your Parwaz profile"}</h2>
+                <h2 className="text-xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your Parwaz profile"}</h2>
                 <p className="mt-0.5 text-sm font-semibold text-ink-500">{professionalTitle || (isTasker ? "Freelancer" : "Member")}{city ? ` \u00b7 ${city}` : ""}</p>
                 <p className="mt-0.5 text-xs font-medium text-ink-400">{isTasker ? (availability || "Available now") : "Look what our clients need"}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</button>
+            <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</button>
           </div>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -253,18 +251,18 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="h-fit rounded-3xl bg-[#00501F] p-5 text-white shadow-card">
-              <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand-light" /><p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">AI skill score</p></div>
-              <p className="mt-2 text-4xl font-black tracking-[-0.04em]">{ai.skillScore}</p>
-              <p className="mt-2 text-xs leading-5 text-white/55">Computed from your skills, bio and trust score. Improves how often your offers are recommended first.</p>
-              <Link href="/interview" className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-extrabold text-white transition hover:bg-brand-700">Improve skill check <ArrowUpRight className="h-3.5 w-3.5" /></Link>
+            <div className="h-fit rounded-2xl border border-brand-100 bg-brand-50 p-5">
+              <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand" /><p className="page-eyebrow">AI skill score</p></div>
+              <p className="mt-2 text-4xl font-extrabold tracking-[-0.03em] text-ink">{ai.skillScore}</p>
+              <p className="mt-2 text-xs leading-5 text-ink-500">Computed from your skills, bio and trust score. Improves how often your offers are recommended first.</p>
+              <Link href="/interview" className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-white transition hover:bg-brand-700">Improve skill check <ArrowUpRight className="h-3.5 w-3.5" /></Link>
             </div>
           </div>
         </div>
       )}
 
       {reviews.length > 0 && (
-        <div className="mt-6 rounded-3xl border border-ink-100 bg-white p-6 shadow-card">
+        <div className="card mt-6 p-6">
           <h2 className="text-lg font-bold text-ink">Reviews</h2>
           <div className="mt-4 space-y-3">{reviews.map(r => (
             <div key={r.id} className="rounded-xl border border-ink-100 p-4">

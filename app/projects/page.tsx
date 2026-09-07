@@ -1,28 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, BriefcaseBusiness } from "lucide-react";
 import TaskerPage from "@/components/TaskerPage";
 import ProjectList from "@/components/ProjectList";
 import { useAuth } from "@/lib/auth-context";
-import { listTasksAssignedTo, listBidsByUser, type Task } from "@/lib/tasks";
+import { listTasksAssignedTo, listBidsByUser, listTasksWithUserBids, type Task } from "@/lib/tasks";
+
+type Tab = "all" | "active" | "pending" | "completed" | "cancelled";
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "active", label: "Active" },
+  { key: "pending", label: "Pending offers" },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled" },
+];
 
 export default function ProjectsListPage() {
   const { user } = useAuth();
-  const [counts, setCounts] = useState<{ active: number; pending: number; completed: number; cancelled: number; assigned: number } | null>(null);
+  const [tab, setTab] = useState<Tab>("all");
+  const [counts, setCounts] = useState<Record<Tab, number> | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       try {
-        const [assigned, bids] = await Promise.all([listTasksAssignedTo(user.uid), listBidsByUser(user.uid)]);
+        const [assigned, bids, bidTasks] = await Promise.all([listTasksAssignedTo(user.uid), listBidsByUser(user.uid), listTasksWithUserBids(user.uid)]);
+        const pendingIds = new Set(bids.filter((b) => b.status === "pending").map((b) => b.taskId));
+        const pending = bidTasks.filter((t) => t.id && pendingIds.has(t.id));
         setCounts({
+          all: assigned.length + pending.length,
           active: assigned.filter((t) => t.status === "assigned" || t.status === "in_progress").length,
-          pending: bids.filter((b) => b.status === "pending").length,
+          pending: pending.length,
           completed: assigned.filter((t) => t.status === "completed").length,
           cancelled: assigned.filter((t) => t.status === "cancelled").length,
-          assigned: assigned.length,
         });
       } catch {
         setCounts(null);
@@ -30,54 +41,57 @@ export default function ProjectsListPage() {
     })();
   }, [user]);
 
-  const loadAll = async () => {
+  const load = async (): Promise<Task[]> => {
     if (!user) return [];
-    const [assigned, bids] = await Promise.all([listTasksAssignedTo(user.uid), listBidsByUser(user.uid)]);
-    const { listTasksWithUserBids } = await import("@/lib/tasks");
-    const pendingTaskIds = new Set(bids.filter((b) => b.status === "pending").map((b) => b.taskId));
-    const pendingTasks = (await listTasksWithUserBids(user.uid)).filter((t) => t.id && pendingTaskIds.has(t.id));
-    const merged = new Map<string, Task>();
-    [...assigned, ...pendingTasks].forEach((t) => { if (t.id) merged.set(t.id, t); });
-    return Array.from(merged.values());
+    const [assigned, bids, bidTasks] = await Promise.all([listTasksAssignedTo(user.uid), listBidsByUser(user.uid), listTasksWithUserBids(user.uid)]);
+    const pendingIds = new Set(bids.filter((b) => b.status === "pending").map((b) => b.taskId));
+    const pending = bidTasks.filter((t) => t.id && pendingIds.has(t.id));
+    if (tab === "all") {
+      const merged = new Map<string, Task>();
+      [...assigned, ...pending].forEach((t) => { if (t.id) merged.set(t.id, t); });
+      return Array.from(merged.values());
+    }
+    if (tab === "active") return assigned.filter((t) => t.status === "assigned" || t.status === "in_progress");
+    if (tab === "pending") return pending;
+    if (tab === "completed") return assigned.filter((t) => t.status === "completed");
+    return [...assigned, ...bidTasks].filter((t) => (t.id && t.status === "cancelled"));
   };
 
-  const cards = counts
-    ? [
-        { label: "Assigned Projects", value: counts.assigned, href: "/projects/assigned", tone: "bg-blue-50 text-blue-600" },
-        { label: "Pending Projects", value: counts.pending, href: "/projects/pending", tone: "bg-amber-50 text-amber-600" },
-        { label: "Completed Projects", value: counts.completed, href: "/projects/completed", tone: "bg-green-50 text-green-600" },
-        { label: "Cancelled Projects", value: counts.cancelled, href: "/projects/cancelled", tone: "bg-red-50 text-red-600" },
-      ]
-    : [];
+  const emptyHints: Record<Tab, string> = {
+    all: "You have no assigned projects or pending offers yet. Browse available tasks and send an offer to get started.",
+    active: "No active tasks right now. When a client selects your offer, active work appears here.",
+    pending: "You have no pending offers right now. Send an offer on an available task to see it here.",
+    completed: "You have not completed any projects yet. Assigned tasks show up here once completed.",
+    cancelled: "No cancelled projects. Cancelled tasks involving your offers or assignments appear here.",
+  };
 
   return (
     <TaskerPage>
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-ink-400">Workspace</p>
-            <h1 className="mt-1 text-2xl font-black tracking-[-0.03em] text-ink">All your projects</h1>
-            <p className="mt-1 text-sm font-medium text-ink-500">Tasks assigned to you and offers you have submitted.</p>
-          </div>
+      <div className="font-ui space-y-6">
+        <div>
+          <p className="page-eyebrow">Workspace</p>
+          <h1 className="page-title">Projects</h1>
+          <p className="page-sub">Tasks assigned to you and offers you have submitted - all in one place.</p>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {cards.map((card) => (
-            <Link key={card.href} href={card.href} className="surface p-4 transition hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-card">
-              <span className={`inline-grid h-9 w-9 place-items-center rounded-xl ${card.tone}`}><BriefcaseBusiness className="h-4 w-4" /></span>
-              <p className="mt-3 text-2xl font-black tracking-[-0.03em] text-ink">{card.value}</p>
-              <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-ink-400"><ArrowUpRight className="h-3 w-3" /> {card.label}</p>
-            </Link>
-          ))}
-          {cards.length === 0 && <p className="text-sm text-ink-400">Loading project counts...</p>}
+        {/* Tabs */}
+        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-ink-100 bg-white p-1.5">
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${active ? "bg-brand-50 text-brand-dark" : "text-ink-500 hover:bg-ink-50 hover:text-ink"}`}
+              >
+                {t.label}
+                {counts && <span className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold ${active ? "bg-brand text-white" : "bg-ink-50 text-ink-400"}`}>{counts[t.key]}</span>}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="mt-6">
-          <ProjectList
-            load={loadAll}
-            emptyHint="You have no assigned projects or pending offers yet. Browse available tasks and send an offer to get started."
-          />
-        </div>
+        <ProjectList key={tab} load={load} emptyHint={emptyHints[tab]} />
       </div>
     </TaskerPage>
   );
