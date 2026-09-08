@@ -5,13 +5,14 @@ import { createContext, useContext, useEffect, useState } from "react";
 export interface DashboardFilters {
   availableOnly: boolean;
   noOffersOnly: boolean;
+  remoteOnly: boolean;
 }
 
 export type DashboardSort = "recommended" | "recent" | "due_soon" | "lowest_price" | "highest_price";
 
 const STORAGE_KEY = "parwaz.dashboard.prefs.v1";
 
-const DEFAULT_FILTERS: DashboardFilters = { availableOnly: false, noOffersOnly: false };
+const DEFAULT_FILTERS: DashboardFilters = { availableOnly: false, noOffersOnly: false, remoteOnly: false };
 
 interface DashboardPrefsValue {
   filters: DashboardFilters;

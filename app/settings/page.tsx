@@ -23,6 +23,7 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
+import DashboardShell from "@/components/DashboardShell";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -63,7 +64,7 @@ const DEDICATED: Partial<Record<SettingKey, string>> = {
 };
 
 export default function SettingsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   const router = useRouter();
   const [active, setActive] = useState<SettingKey>("mobile");
   const [profile, setProfile] = useState<any>({});
@@ -171,7 +172,7 @@ export default function SettingsPage() {
     </div>
   );
 
-  return (
+  const renderSettings = (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-6xl">
         <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
@@ -316,4 +317,11 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+
+  if (loading) {
+    return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
+  }
+  const inChrome = user && role === "tasker";
+  if (!inChrome) return renderSettings;
+  return <DashboardShell>{renderSettings}</DashboardShell>;
 }

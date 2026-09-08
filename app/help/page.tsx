@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight, FileText, HelpCircle, Mail, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import DashboardShell from "@/components/DashboardShell";
 
 const FAQS: { q: string; a: string; href?: string; cta?: string }[] = [
   {
@@ -43,7 +45,9 @@ const FAQS: { q: string; a: string; href?: string; cta?: string }[] = [
 ];
 
 export default function HelpPage() {
-  return (
+  const { user, loading, role } = useAuth();
+
+  const renderHelp = (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-4xl">
         <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
@@ -131,4 +135,11 @@ export default function HelpPage() {
       </div>
     </div>
   );
+
+  if (loading) {
+    return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
+  }
+  const inChrome = user && role === "tasker";
+  if (!inChrome) return renderHelp;
+  return <DashboardShell>{renderHelp}</DashboardShell>;
 }

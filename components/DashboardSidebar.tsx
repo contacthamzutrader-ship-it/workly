@@ -8,10 +8,12 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   Clock3,
+  HelpCircle,
   Home,
   LayoutDashboard,
   Menu,
   MessageSquare,
+  Settings,
   X,
   XCircle,
 } from "lucide-react";
@@ -40,6 +42,13 @@ const SECTIONS: { label: string; items: SidebarItem[] }[] = [
     items: [
       { label: "Messages", href: "/messages", icon: MessageSquare },
       { label: "Notifications", href: "/notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "Support",
+    items: [
+      { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Help", href: "/help", icon: HelpCircle },
     ],
   },
 ];
