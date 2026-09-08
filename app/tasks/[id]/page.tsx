@@ -178,6 +178,8 @@ export default function TaskDetailPage() {
   const offerPrice = Number(amount) || 0;
   const offerFee = Math.round(offerPrice * PLATFORM_FEE);
   const youReceive = offerPrice - offerFee;
+  const offerTooLow = offerPrice > 0 && offerPrice < MIN_BID;
+  const offerAboveBudget = offerPrice > 0 && offerPrice > task.budget;
   const isLockedFromMessaging = !isPoster && !isAssigned;
 
   const submitBid = async (e: React.FormEvent) => {
@@ -185,7 +187,7 @@ export default function TaskDetailPage() {
     setError("");
     setWarning(false);
     if (!Number.isFinite(offerPrice) || offerPrice < MIN_BID) {
-      setError(`Your offer must be at least ${MIN_BID.toLocaleString("en-PK")}.`);
+      setError(`Your offer must be at least ${formatPKR(MIN_BID)}.`);
       return;
     }
     if (offerPrice > task.budget) {
@@ -528,9 +530,19 @@ export default function TaskDetailPage() {
                     value={amount}
                     onChange={(e) => { setAmount(e.target.value); setWarning(false); }}
                     required
-                    className="pl-14"
+                    className={`pl-14 ${offerTooLow ? "border-red-300 focus:border-red-400 focus:ring-red-400/15" : ""}`}
                   />
                 </div>
+                {offerTooLow && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Your offer must be at least {formatPKR(MIN_BID)}.
+                  </p>
+                )}
+                {!offerTooLow && offerAboveBudget && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Your offer is higher than the client&apos;s listed budget.
+                  </p>
+                )}
               </div>
               <div className="mt-3">
                 <label htmlFor="offer-proposal" className="mb-1.5 block text-sm font-semibold text-ink">Proposal</label>
@@ -538,10 +550,10 @@ export default function TaskDetailPage() {
               </div>
 
               {offerPrice > 0 && (
-                <div className="mt-4 space-y-2 rounded-2xl bg-canvas p-4 text-sm">
-                  <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Total Price</span><span className="font-black text-ink">{formatPKR(offerPrice)}</span></div>
+                <div className="mt-4 space-y-2 rounded-2xl border border-brand-100 bg-brand-50/40 p-4 text-sm">
+                  <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Your Offer</span><span className="font-black text-ink">{formatPKR(offerPrice)}</span></div>
                   <div className="flex items-center justify-between"><span className="flex items-center gap-1 font-semibold text-ink-500"><Wallet className="h-3.5 w-3.5" /> Platform Deduction</span><span className="font-black text-ink">{formatPKR(offerFee)} ({PLATFORM_FEE * 100}%)</span></div>
-                  <div className="flex items-center justify-between border-t border-ink-100 pt-2"><span className="font-bold text-brand-dark">You Will Receive</span><span className="font-black text-brand-dark">{formatPKR(youReceive)}</span></div>
+                  <div className="flex items-center justify-between border-t border-brand-100 pt-2"><span className="font-bold text-brand-dark">You Will Receive</span><span className="font-black text-brand-dark">{formatPKR(youReceive)}</span></div>
                 </div>
               )}
 
