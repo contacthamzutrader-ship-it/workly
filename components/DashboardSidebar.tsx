@@ -16,13 +16,13 @@ import {
   XCircle,
 } from "lucide-react";
 
-type SidebarItem = { label: string; href: string; icon: any; exact?: boolean };
+type SidebarItem = { label: string; href: string; icon: any; exact?: boolean; noActive?: boolean };
 
 const SECTIONS: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Home",
     items: [
-      { label: "Home", href: "/", icon: Home, exact: true },
+      { label: "Home", href: "/dashboard", icon: Home, noActive: true },
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     ],
   },
@@ -48,7 +48,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   const isActive = (item: SidebarItem) => {
-    if (item.href === "/") return pathname === "/";
+    if (item.noActive) return false;
     if (item.exact) return pathname === item.href;
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Globe, List, Map as MapIcon, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Globe, List, Map as MapIcon, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
 import TaskerPage from "@/components/TaskerPage";
 import TaskCard from "@/components/TaskCard";
 import { useAuth } from "@/lib/auth-context";
@@ -31,9 +31,11 @@ export default function BrowsePage() {
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<ViewMode>("list");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [catPanelOpen, setCatPanelOpen] = useState(false);
   const [mapLocation, setMapLocation] = useState<string | null>(null);
   const [draftFilters, setDraftFilters] = useState<{ availableOnly: boolean; noOffersOnly: boolean }>(filters);
   const panelRef = useRef<HTMLDivElement>(null);
+  const catPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -64,13 +66,14 @@ export default function BrowsePage() {
   }, [user]);
 
   useEffect(() => {
-    if (!filterPanelOpen) return;
+    if (!filterPanelOpen && !catPanelOpen) return;
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) setFilterPanelOpen(false);
+      if (catPanelRef.current && !catPanelRef.current.contains(e.target as Node)) setCatPanelOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [filterPanelOpen]);
+  }, [filterPanelOpen, catPanelOpen]);
 
   const sorted = useMemo(() => {
     if (!tasks) return [];
@@ -188,18 +191,43 @@ export default function BrowsePage() {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="min-h-10 rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
-            >
-              <option value="all">All categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={catPanelRef}>
+              <button
+                onClick={() => setCatPanelOpen(!catPanelOpen)}
+                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
+                  catPanelOpen
+                    ? "border-brand-300 bg-brand-50 text-brand"
+                    : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
+                }`}
+              >
+                {category === "all" ? "All categories" : category}
+                <ChevronDown className={`h-4 w-4 transition-transform ${catPanelOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {catPanelOpen && (
+                <div className="absolute left-0 top-full z-50 mt-2 max-h-80 w-64 overflow-y-auto rounded-2xl border border-ink-100 bg-white p-1.5 shadow-elevated">
+                  <button
+                    onClick={() => { setCategory("all"); setCatPanelOpen(false); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                      category === "all" ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
+                    }`}
+                  >
+                    All categories
+                  </button>
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => { setCategory(c); setCatPanelOpen(false); }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                        category === c ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="relative" ref={panelRef}>
               <button
