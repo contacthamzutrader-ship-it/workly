@@ -2,55 +2,28 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Globe, List, Map as MapIcon, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Globe, List, Map as MapIcon, MapPin, Search, X } from "lucide-react";
 import TaskerPage from "@/components/TaskerPage";
 import TaskCard from "@/components/TaskCard";
 import { useAuth } from "@/lib/auth-context";
-import { useDashboardPrefs, type DashboardFilters } from "@/components/DashboardPrefs";
+import { useDashboardPrefs } from "@/components/DashboardPrefs";
 import { listPublicTasks, CATEGORIES, type Task } from "@/lib/tasks";
 import { computeBidMatch } from "@/lib/matching";
 import { formatDate, formatPKR } from "@/lib/format";
 
-const sortOptions = [
-  { key: "recommended", label: "Recommended" },
-  { key: "recent", label: "Most Recent Posted" },
-  { key: "due_soon", label: "Due Soon" },
-  { key: "lowest_price", label: "Lowest Price" },
-  { key: "highest_price", label: "Highest Price" },
-] as const;
-
-const priceOptions: { key: string; label: string; min?: number; max?: number }[] = [
-  { key: "any", label: "Any Price" },
-  { key: "u1000", label: "Up to 1,000", max: 1000 },
-  { key: "1k_5k", label: "1,000 – 5,000", min: 1000, max: 5000 },
-  { key: "5k_10k", label: "5,000 – 10,000", min: 5000, max: 10000 },
-  { key: "10k_25k", label: "10,000 – 25,000", min: 10000, max: 25000 },
-  { key: "25k_50k", label: "25,000 – 50,000", min: 25000, max: 50000 },
-  { key: "50k_plus", label: "50,000 +", min: 50000 },
-];
-
 type ViewMode = "list" | "map";
-
 export default function BrowsePage() {
   const { user } = useAuth();
-  const { filters, sort, setFilters, setSort } = useDashboardPrefs();
+  const { filters, sort, setFilters, priceRange, remoteMode, setPriceRange, setRemoteMode } = useDashboardPrefs();
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [profile, setProfile] = useState({ trust: 70, success: 80, skills: [] as string[] });
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<ViewMode>("list");
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [catPanelOpen, setCatPanelOpen] = useState(false);
   const [mapLocation, setMapLocation] = useState<string | null>(null);
-  const [draftFilters, setDraftFilters] = useState<DashboardFilters>(filters);
-  const panelRef = useRef<HTMLDivElement>(null);
   const catPanelRef = useRef<HTMLDivElement>(null);
-  const sortPanelRef = useRef<HTMLDivElement>(null);
-  const pricePanelRef = useRef<HTMLDivElement>(null);
-  const [sortPanelOpen, setSortPanelOpen] = useState(false);
-  const [pricePanelOpen, setPricePanelOpen] = useState(false);
-  const [price, setPrice] = useState("any");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -81,16 +54,13 @@ export default function BrowsePage() {
   }, [user]);
 
   useEffect(() => {
-    if (!filterPanelOpen && !catPanelOpen && !sortPanelOpen && !pricePanelOpen) return;
+    if (!catPanelOpen) return;
     const handler = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setFilterPanelOpen(false);
       if (catPanelRef.current && !catPanelRef.current.contains(e.target as Node)) setCatPanelOpen(false);
-      if (sortPanelRef.current && !sortPanelRef.current.contains(e.target as Node)) setSortPanelOpen(false);
-      if (pricePanelRef.current && !pricePanelRef.current.contains(e.target as Node)) setPricePanelOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [filterPanelOpen, catPanelOpen, sortPanelOpen, pricePanelOpen]);
+  }, [catPanelOpen]);
 
   const REMOTE_KEY = "__remote__";
 
@@ -104,12 +74,14 @@ export default function BrowsePage() {
     if (!tasks) return [];
     let list = [...tasks];
     if (filters.availableOnly) list = list.filter((t) => t.status === "open");
+    if (filters.hideAssigned) list = list.filter((t) => t.status !== "assigned");
     if (filters.noOffersOnly) list = list.filter((t) => t.bidsCount === 0);
-    if (filters.remoteOnly) list = list.filter((t) => isRemoteLocation(t.location));
+    if (filters.hideHasOffers) list = list.filter((t) => t.bidsCount === 0);
+    if (remoteMode === "remote") list = list.filter((t) => isRemoteLocation(t.location));
+    if (remoteMode === "in_person") list = list.filter((t) => !isRemoteLocation(t.location));
     if (category !== "all") list = list.filter((t) => t.category === category);
-    if (price !== "any") {
-      const opt = priceOptions.find((o) => o.key === price);
-      if (opt) list = list.filter((t) => t.budget >= (opt.min ?? 0) && t.budget <= (opt.max ?? Infinity));
+    if (priceRange) {
+      list = list.filter((t) => t.budget >= priceRange.min && t.budget <= priceRange.max);
     }
     const q = search.trim().toLowerCase();
     if (q) {
@@ -124,7 +96,7 @@ export default function BrowsePage() {
     else list.sort((a, b) => computeBidMatch(b, profile).percent - computeBidMatch(a, profile).percent || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, filters, sort, search, category, price]);
+  }, [tasks, filters, sort, search, category, priceRange, remoteMode]);
 
   const locationGroups = useMemo(() => {
     const physical = new Map<string, Task[]>();
@@ -155,24 +127,15 @@ export default function BrowsePage() {
     return `/tasks/${t.id}${qs ? `?${qs}` : ""}`;
   };
 
-  const openFilterPanel = () => {
-    setDraftFilters({ ...filters });
-    setFilterPanelOpen(true);
-  };
-
-  const applyFilters = () => {
-    setFilters({ ...draftFilters });
-    setFilterPanelOpen(false);
-  };
-
-  const hasActiveFilters = filters.availableOnly || filters.noOffersOnly || filters.remoteOnly || search.trim() !== "" || category !== "all" || price !== "any";
+  const hasActiveFilters = filters.availableOnly || filters.hideAssigned || filters.noOffersOnly || filters.hideHasOffers || remoteMode !== "all" || priceRange !== null || search.trim() !== "" || category !== "all";
 
   const clearAll = () => {
-    setFilters({ availableOnly: false, noOffersOnly: false, remoteOnly: false });
+    setFilters({ availableOnly: false, noOffersOnly: false, hideAssigned: false, hideHasOffers: false });
+    setPriceRange(null);
+    setRemoteMode("all");
     setSearch("");
     setSearchInput("");
     setCategory("all");
-    setPrice("any");
   };
 
   const commitSearch = () => setSearch(searchInput.trim());
@@ -246,129 +209,6 @@ export default function BrowsePage() {
                       }`}
                     >
                       {c}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative" ref={pricePanelRef}>
-              <button
-                onClick={() => setPricePanelOpen(!pricePanelOpen)}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
-                  pricePanelOpen
-                    ? "border-brand-300 bg-brand-50 text-brand"
-                    : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
-                }`}
-              >
-                {priceOptions.find((o) => o.key === price)?.label || "Any Price"}
-                <ChevronDown className={`h-4 w-4 transition-transform ${pricePanelOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              {pricePanelOpen && (
-                <div className="absolute left-0 top-full z-50 mt-2 max-h-80 w-56 overflow-y-auto rounded-2xl border border-ink-100 bg-white p-1.5 shadow-elevated">
-                  {priceOptions.map((o) => (
-                    <button
-                      key={o.key}
-                      onClick={() => { setPrice(o.key); setPricePanelOpen(false); }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                        price === o.key ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative" ref={panelRef}>
-              <button
-                onClick={() => (filterPanelOpen ? setFilterPanelOpen(false) : openFilterPanel())}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
-                  filterPanelOpen
-                    ? "border-brand-300 bg-brand-50 text-brand"
-                    : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
-                }`}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Other Filters
-              </button>
-
-              {filterPanelOpen && (
-                <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-ink-100 bg-white p-4 shadow-elevated">
-                  <div className="space-y-3">
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={draftFilters.availableOnly}
-                        onChange={(e) => setDraftFilters({ ...draftFilters, availableOnly: e.target.checked })}
-                        className="h-4 w-4 rounded border-ink-200 accent-[#228B22]"
-                      />
-                      <span className="text-sm font-medium text-ink-700">Available Tasks Only</span>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={draftFilters.noOffersOnly}
-                        onChange={(e) => setDraftFilters({ ...draftFilters, noOffersOnly: e.target.checked })}
-                        className="h-4 w-4 rounded border-ink-200 accent-[#228B22]"
-                      />
-                      <span className="text-sm font-medium text-ink-700">Tasks With No Offers Only</span>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={draftFilters.remoteOnly}
-                        onChange={(e) => setDraftFilters({ ...draftFilters, remoteOnly: e.target.checked })}
-                        className="h-4 w-4 rounded border-ink-200 accent-[#228B22]"
-                      />
-                      <span className="text-sm font-medium text-ink-700">Remote Tasks Only</span>
-                    </label>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={applyFilters}
-                      className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
-                    >
-                      Apply
-                    </button>
-                    <button
-                      onClick={() => setFilterPanelOpen(false)}
-                      className="flex-1 rounded-xl border border-ink-100 bg-white px-4 py-2.5 text-sm font-semibold text-ink-600 transition hover:bg-ink-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative" ref={sortPanelRef}>
-              <button
-                onClick={() => setSortPanelOpen(!sortPanelOpen)}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
-                  sortPanelOpen
-                    ? "border-brand-300 bg-brand-50 text-brand"
-                    : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
-                }`}
-              >
-                Sort
-                <ChevronDown className={`h-4 w-4 transition-transform ${sortPanelOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              {sortPanelOpen && (
-                <div className="absolute left-0 top-full z-50 mt-2 max-h-80 w-56 overflow-y-auto rounded-2xl border border-ink-100 bg-white p-1.5 shadow-elevated">
-                  <p className="px-3 pb-1 pt-2 text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Sort tasks</p>
-                  {sortOptions.map((opt) => (
-                    <button
-                      key={opt.key}
-                      onClick={() => { setSort(opt.key as typeof sort); setSortPanelOpen(false); }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
-                        sort === opt.key ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
-                      }`}
-                    >
-                      {opt.label}
                     </button>
                   ))}
                 </div>
