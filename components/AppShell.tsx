@@ -62,7 +62,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     (pathname.startsWith("/browse") ||
       pathname.startsWith("/projects") ||
       pathname.startsWith("/notifications") ||
-      pathname.startsWith("/messages"));
+      pathname.startsWith("/messages") ||
+      pathname.startsWith("/tasks/"));
 
   if (ownerMode || isInterviewRoute || isTaskerDashboard) return <main className="min-h-screen">{children}</main>;
 

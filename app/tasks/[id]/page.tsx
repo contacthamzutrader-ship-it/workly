@@ -31,6 +31,7 @@ import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import DashboardShell from "@/components/DashboardShell";
 import { MapPin, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Tag, Wallet, AlertTriangle, BriefcaseBusiness, XCircle, Globe } from "lucide-react";
 import { formatDate, formatPKR } from "@/lib/format";
 
@@ -253,7 +254,7 @@ export default function TaskDetailPage() {
     router.push(`/messages/${task.id}`);
   };
 
-  return (
+  const page = (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <Link href={backToList()} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 transition hover:text-ink"><ArrowLeft className="h-4 w-4" /> Back to Tasks</Link>
 
@@ -610,4 +611,6 @@ export default function TaskDetailPage() {
       </div>
     </div>
   );
+
+  return role === "tasker" ? <DashboardShell>{page}</DashboardShell> : page;
 }

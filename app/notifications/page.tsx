@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { subscribeNotifications, type AppNotification } from "@/lib/notifications";
+import DashboardShell from "@/components/DashboardShell";
 
 export default function NotificationsPage() {
   const { user, loading } = useAuth();
@@ -24,7 +25,8 @@ export default function NotificationsPage() {
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+    <DashboardShell>
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div>
         <p className="page-eyebrow">Notifications</p>
         <h1 className="mt-1.5 text-2xl font-extrabold tracking-[-0.025em] text-ink sm:text-3xl">Updates</h1>
@@ -51,6 +53,7 @@ export default function NotificationsPage() {
             ))}
           </div>
         )}
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

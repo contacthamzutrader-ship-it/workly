@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { subscribeConversations, type Conversation } from "@/lib/chat";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import DashboardShell from "@/components/DashboardShell";
 
 export default function MessagesPage() {
   const { user, loading } = useAuth();
@@ -43,7 +44,8 @@ export default function MessagesPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+    <DashboardShell>
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <div>
         <p className="page-eyebrow">Messages</p>
         <h1 className="mt-1.5 text-2xl font-extrabold tracking-[-0.025em] text-ink sm:text-3xl">Conversations</h1>
@@ -80,6 +82,7 @@ export default function MessagesPage() {
             })}
           </div>
         )}
-    </div>
+      </div>
+    </DashboardShell>
   );
 }
