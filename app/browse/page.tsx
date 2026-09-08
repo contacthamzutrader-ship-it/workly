@@ -27,6 +27,7 @@ export default function BrowsePage() {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [profile, setProfile] = useState({ trust: 70, success: 80, skills: [] as string[] });
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<ViewMode>("list");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
@@ -39,7 +40,10 @@ export default function BrowsePage() {
     const paramCategory = params.get("category") || "";
     if (CATEGORIES.includes(paramCategory)) setCategory(paramCategory);
     const q = params.get("q");
-    if (q) setSearch(q);
+    if (q) {
+      setSearch(q);
+      setSearchInput(q);
+    }
     if (params.get("view") === "map") setView("map");
   }, []);
 
@@ -141,8 +145,11 @@ export default function BrowsePage() {
   const clearAll = () => {
     setFilters({ availableOnly: false, noOffersOnly: false });
     setSearch("");
+    setSearchInput("");
     setCategory("all");
   };
+
+  const commitSearch = () => setSearch(searchInput.trim());
 
   const toggleClass = (active: boolean) =>
     `inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition ${
@@ -156,25 +163,35 @@ export default function BrowsePage() {
         <div>
           <p className="page-eyebrow">Browse Tasks</p>
           <h1 className="page-title">Find work worth doing.</h1>
-          <p className="page-sub">Explore available tasks that match your skills and availability.</p>
+          <p className="page-sub">Explore approved tasks, find suitable opportunities, and build your freelance reputation.</p>
         </div>
 
         {/* Search + controls */}
         <div className="card p-3 sm:p-4">
-          <div className="flex flex-col gap-3 lg:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
               <input
                 placeholder="Search by skill, task or location..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") commitSearch(); }}
                 className="min-h-12 w-full rounded-xl border border-ink-100 bg-white py-3 pl-11 pr-4 text-sm font-medium text-ink placeholder:text-ink-400 focus:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand/10"
               />
             </div>
+            <button
+              onClick={commitSearch}
+              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white transition hover:bg-brand-700"
+            >
+              <Search className="h-4 w-4" /> Search
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="min-h-12 rounded-xl border border-ink-100 bg-white px-4 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
+              className="min-h-10 rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
             >
               <option value="all">All categories</option>
               {CATEGORIES.map((c) => (
@@ -183,10 +200,11 @@ export default function BrowsePage() {
                 </option>
               ))}
             </select>
+
             <div className="relative" ref={panelRef}>
               <button
                 onClick={() => (filterPanelOpen ? setFilterPanelOpen(false) : openFilterPanel())}
-                className={`inline-flex min-h-12 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition ${
+                className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
                   filterPanelOpen
                     ? "border-brand-300 bg-brand-50 text-brand"
                     : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
@@ -235,15 +253,13 @@ export default function BrowsePage() {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-ink-400">Sort</span>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
-                className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
+                className="min-h-10 rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.key} value={opt.key}>

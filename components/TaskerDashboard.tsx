@@ -53,8 +53,8 @@ export default function TaskerDashboard() {
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-4 border-b border-ink-100 px-5 py-4 sm:px-6">
           <div>
-            <p className="page-eyebrow">For you</p>
-            <h2 className="mt-1 text-xl font-bold text-ink">Available tasks</h2>
+            <p className="page-eyebrow">Recommended</p>
+            <h2 className="mt-1 text-xl font-bold text-ink">Recommended Tasks</h2>
           </div>
           <Link href="/browse" className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand transition hover:text-brand-700">
             View all tasks <ArrowRight className="h-4 w-4" />
