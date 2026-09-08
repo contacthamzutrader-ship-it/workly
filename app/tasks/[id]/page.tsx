@@ -384,9 +384,9 @@ export default function TaskDetailPage() {
               {bids.length === 0 ? <p className="mt-2 text-sm text-ink-500">No offers yet. Waiting for freelancers.</p> :
                 <div className="mt-4 space-y-3">
                   {bids.map(b => (
-                    <div key={b.id} className="flex items-center justify-between rounded-xl border border-ink-100 p-4 transition hover:border-brand/30">
-                      <div>
-                        <div className="flex items-center gap-2"><p className="font-bold text-ink">{b.bidderName}</p><span className="text-lg font-extrabold text-brand">{formatPKR(b.amount)}</span></div>
+                    <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-100 p-4 transition hover:border-brand/30">
+                    <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2"><p className="font-bold text-ink">{b.bidderName}</p><span className="text-lg font-extrabold text-brand">{formatPKR(b.amount)}</span></div>
                         <p className="mt-0.5 text-sm text-ink-500">{b.message}</p>
                         <div className="mt-1.5 flex gap-2 flex-wrap">
                           {b.match && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-dark">Match {b.match.percent}%</span>}
@@ -403,7 +403,7 @@ export default function TaskDetailPage() {
           {/* Rehire a previous freelancer - Poster */}
           {isPoster && task.status === "open" && rehireCandidates.length > 0 && (
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><BriefcaseBusiness className="h-5 w-5" /></span>
                 <div><h2 className="text-lg font-bold text-ink">Rehire a previous freelancer</h2><p className="text-xs text-ink-500">Make them a direct offer on this new task.</p></div>
               </div>
@@ -436,7 +436,7 @@ export default function TaskDetailPage() {
           {/* Request Payment - Tasker */}
           {canRequestPayment && (
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 shadow-card">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-blue-600"><Send className="h-5 w-5" /></div>
                 <div className="flex-1">
                   <h2 className="text-lg font-bold text-ink">Request Payment</h2>
@@ -451,7 +451,7 @@ export default function TaskDetailPage() {
           {/* Release Payment - Poster */}
           {canReleasePayment && (
             <div className="rounded-2xl border border-brand-100 bg-brand-50 p-6 shadow-card">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand"><Banknote className="h-5 w-5" /></div>
                 <div className="flex-1">
                   <h2 className="text-lg font-bold text-ink">Release Payment</h2>
@@ -466,7 +466,7 @@ export default function TaskDetailPage() {
           {/* Payment Complete */}
           {paymentDone && (
             <div className="rounded-2xl border border-green-100 bg-green-50 p-6 shadow-card">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-green-100 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
                 <div>
                   <h2 className="text-lg font-bold text-green-700">Payment Released</h2>
