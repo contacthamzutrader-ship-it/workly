@@ -247,10 +247,10 @@ export default function ProfilePage() {
                     <img src={photoPreview} alt="Preview" className="h-16 w-16 rounded-xl object-cover" />
                     <p className="mt-2 text-xs font-semibold text-ink">Preview your new photo</p>
                     <div className="mt-3 flex gap-2">
-                      <button type="button" onClick={savePhoto} disabled={photoUpdating} className="flex-1 rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white transition hover:bg-brand-700 disabled:opacity-60">
+                      <button type="button" onClick={savePhoto} disabled={photoUpdating} className="flex-1 min-h-10 rounded-xl bg-brand px-4 text-sm font-bold text-white transition hover:bg-brand-700 disabled:opacity-60">
                         {photoUpdating ? "Saving..." : "Save Photo"}
                       </button>
-                      <button type="button" onClick={cancelPhoto} className="rounded-xl border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 transition hover:bg-ink-50">
+                      <button type="button" onClick={cancelPhoto} className="min-h-10 rounded-xl border border-ink-200 px-4 text-sm font-semibold text-ink-600 transition hover:bg-ink-50">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
@@ -291,7 +291,7 @@ export default function ProfilePage() {
               onChange={(e) => pickPhoto(e.target.files?.[0])}
             />
           </div>
-          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
+          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-[28px] font-extrabold tracking-[-0.025em] text-ink sm:text-[32px]">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</button>
@@ -361,12 +361,12 @@ export default function ProfilePage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
             <div className="min-w-0 space-y-6">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">About</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-ink-400">About</p>
                 <p className="mt-2 text-sm leading-6 text-ink-600">{bio || "No bio yet - tell clients what you can help with."}</p>
               </div>
 
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Details</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-ink-400">Details</p>
                 <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><BriefcaseBusiness className="h-3.5 w-3.5" /> Experience</dt><dd className="mt-1 text-sm font-bold text-ink">{experienceYears ? `${experienceYears} year${experienceYears !== "1" ? "s" : ""}` : "Not set"}</dd></div>
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><Languages className="h-3.5 w-3.5" /> Languages</dt><dd className="mt-1 text-sm font-bold text-ink">{languages || "Not set"}</dd></div>
@@ -379,13 +379,13 @@ export default function ProfilePage() {
 
               {skillsArr.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Skills</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-ink-400">Skills</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">{skillsArr.map((skill) => <span key={skill} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-extrabold text-brand-dark">{skill}</span>)}</div>
                 </div>
               )}
 
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Badges ({earnedCount}/{badges.length})</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-ink-400">Badges ({earnedCount}/{badges.length})</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {badges.map((b) => (
                     <span key={b.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ${b.earned ? "bg-green-50 text-green-700" : "bg-ink-50 text-ink-300"}`}><b.icon className="h-3.5 w-3.5" /> {b.label}</span>

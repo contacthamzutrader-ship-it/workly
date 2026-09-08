@@ -76,7 +76,7 @@ export default function ProjectList({ load, emptyHint }: { load: () => Promise<T
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>{status.label}</span>
             </div>
 
-            <h3 className="mt-3 text-base font-bold leading-snug text-ink">{t.title}</h3>
+            <h3 className="mt-3 text-[17px] font-bold leading-snug text-ink">{t.title}</h3>
 
             <div className="mt-3 space-y-1.5 text-[13px] font-medium text-ink-500">
               <p className="flex items-center gap-2">

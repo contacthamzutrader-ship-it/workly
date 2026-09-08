@@ -280,42 +280,42 @@ export default function TaskDetailPage() {
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><User className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Client</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Client</dt>
                   <dd className="truncate text-sm font-bold text-ink">{task.posterName}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><MapPin className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Location</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Location</dt>
                   <dd className="truncate text-sm font-bold text-ink">{task.location || "Remote"}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Globe className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Work Mode</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Work Mode</dt>
                   <dd className="text-sm font-bold text-ink">{isRemoteTask(task.location) ? "Remote" : "Onsite"}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Clock className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Deadline / To be done on</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Deadline / To be done on</dt>
                   <dd className="text-sm font-bold text-ink">{task.deadline ? formatDate(task.deadline) : "Flexible (Anytime)"}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Banknote className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Budget</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Budget</dt>
                   <dd className="text-sm font-bold text-ink">{formatPKR(task.budget)}</dd>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Gavel className="h-4 w-4" /></span>
                 <div className="min-w-0">
-                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Offers</dt>
+                  <dt className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">Offers</dt>
                   <dd className="text-sm font-bold text-ink">{task.bidsCount} {task.bidsCount === 1 ? "offer" : "offers"}</dd>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function TaskDetailPage() {
                       <div className={`mx-auto grid h-7 w-7 place-items-center rounded-full text-xs font-bold ${isActive ? "bg-brand text-white" : "bg-ink-100 text-ink-400"}`}>
                         {isActive && !isCurrent ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
                       </div>
-                      <p className={`mt-1 text-[10px] font-semibold ${isActive ? "text-brand" : "text-ink-400"}`}>{labels[i]}</p>
+                      <p className={`mt-1 text-[11px] font-semibold ${isActive ? "text-brand" : "text-ink-400"}`}>{labels[i]}</p>
                     </div>
                     {i < 3 && <div className={`h-0.5 flex-1 ${isActive && stageIdx > i ? "bg-brand" : "bg-ink-100"}`} />}
                   </div>
@@ -355,7 +355,7 @@ export default function TaskDetailPage() {
               <div className="mt-5 flex items-center gap-2 rounded-xl bg-blue-50 p-3 text-sm text-blue-700">
                 <ShieldCheck className="h-4 w-4 shrink-0" />
                 <span>Assigned freelancer: <Link href={`/u/${task.assignedTo}`} className="font-extrabold text-ink hover:text-brand">{task.assignedName}</Link></span>
-                {task.visibility === "private" && <span className="ml-auto rounded-full bg-[#00501F] px-2.5 py-1 text-[10px] font-black uppercase text-white">Managed private</span>}
+                {task.visibility === "private" && <span className="ml-auto rounded-full bg-[#00501F] px-2.5 py-1 text-[11px] font-black uppercase text-white">Managed private</span>}
               </div>
             )}
 
@@ -417,7 +417,7 @@ export default function TaskDetailPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Input type="number" min={MIN_BID} placeholder="Your offer (PKR)" value={rehireAmounts[candidate.taskerId] || ""} onChange={(e) => setRehireAmounts(prev => ({ ...prev, [candidate.taskerId]: e.target.value }))} className="min-h-10 w-36 text-sm" />
-                      <Button onClick={() => rehire(candidate)} disabled={rehireBusy === candidate.taskerId} className="min-h-10 px-4 py-2 text-xs">{rehireBusy === candidate.taskerId ? "Sending..." : "Make an Offer"}</Button>
+                      <Button onClick={() => rehire(candidate)} disabled={rehireBusy === candidate.taskerId} className="min-h-10 px-4 text-sm">{rehireBusy === candidate.taskerId ? "Sending..." : "Make an Offer"}</Button>
                     </div>
                   </div>
                 ))}
@@ -590,7 +590,7 @@ export default function TaskDetailPage() {
           )}
 
           <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">About this task</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400">About this task</p>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Status</span><span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${statusInfo.color}`}>{statusInfo.label}</span></div>
               <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Offers received</span><span className="font-black text-ink">{task.bidsCount} {task.bidsCount === 1 ? "offer" : "offers"}</span></div>

@@ -349,7 +349,7 @@ export default function BrowsePage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="min-w-0 font-bold text-ink transition group-hover:text-brand-dark">{t.title}</h3>
+                          <h3 className="min-w-0 text-[17px] font-bold text-ink transition group-hover:text-brand-dark">{t.title}</h3>
                           <p className="shrink-0 text-sm font-extrabold text-ink">{formatPKR(t.budget)}</p>
                         </div>
                         <p className="mt-1 line-clamp-1 text-sm text-ink-500">{t.category} · {t.description}</p>

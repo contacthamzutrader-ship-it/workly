@@ -45,7 +45,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
 
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-100 pt-4">
         <p className="text-xl font-extrabold tracking-[-0.02em] text-ink">{formatPKR(task.budget)}</p>
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-2 text-xs font-bold text-brand transition group-hover:bg-brand group-hover:text-white">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 min-h-10 text-[13px] font-bold text-brand transition group-hover:bg-brand group-hover:text-white">
           View Task <ArrowRight className="h-3.5 w-3.5" />
         </span>
       </div>

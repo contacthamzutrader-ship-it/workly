@@ -169,14 +169,14 @@ export default function FreelancerHeader() {
                       <p className="text-sm font-bold text-ink">Log out of Parwaz?</p>
                       <p className="mt-0.5 text-[12px] font-medium leading-5 text-ink-500">Your session will be ended securely.</p>
                       <div className="mt-3 flex gap-2">
-                        <button onClick={() => setConfirmLogout(false)} className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>
+                        <button onClick={() => setConfirmLogout(false)} className="flex-1 min-h-10 rounded-xl border border-ink-200 bg-white px-3 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>
                         <button
                           onClick={async () => {
                             closeMenus();
                             await signOut();
                             router.replace("/login");
                           }}
-                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 py-2 text-[14px] font-bold text-white transition hover:bg-red-700"
+                          className="flex flex-1 min-h-10 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 text-[14px] font-bold text-white transition hover:bg-red-700"
                         >
                           <LogOut className="h-4 w-4" /> Log out
                         </button>
@@ -235,14 +235,14 @@ export default function FreelancerHeader() {
                   <p className="text-sm font-bold text-ink">Log out of Parwaz?</p>
                   <p className="mt-0.5 text-[12px] font-medium leading-5 text-ink-500">Your session will be ended securely.</p>
                   <div className="mt-3 flex gap-2">
-                    <button onClick={() => setConfirmLogout(false)} className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>
+                    <button onClick={() => setConfirmLogout(false)} className="flex-1 min-h-10 rounded-xl border border-ink-200 bg-white px-3 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>
                     <button
                       onClick={async () => {
                         closeMenus();
                         await signOut();
                         router.replace("/login");
                       }}
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 py-2 text-[14px] font-bold text-white transition hover:bg-red-700"
+                      className="flex flex-1 min-h-10 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 text-[14px] font-bold text-white transition hover:bg-red-700"
                     >
                       <LogOut className="h-4 w-4" /> Log out
                     </button>

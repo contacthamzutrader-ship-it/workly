@@ -86,7 +86,7 @@ textarea:focus-visible {
     @apply text-[11px] font-black uppercase tracking-[0.14em] text-ink-400;
   }
   .page-title {
-    @apply mt-1.5 text-2xl font-extrabold leading-tight tracking-[-0.025em] text-ink sm:text-3xl;
+    @apply mt-1.5 text-[28px] font-extrabold leading-tight tracking-[-0.025em] text-ink sm:text-[32px];
   }
   .page-sub {
     @apply mt-1.5 max-w-2xl text-sm font-normal leading-6 text-ink-500;
