@@ -161,9 +161,6 @@ export default function FreelancerHeader() {
                   <button onClick={() => navigate("/profile")} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
                     <UserRound className="h-4 w-4 text-ink-400" /> Profile
                   </button>
-                  <button onClick={() => navigate("/settings")} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
-                    <Settings className="h-4 w-4 text-ink-400" /> Settings
-                  </button>
                 </div>
 
                 <div className="mt-1.5 space-y-0.5 border-t border-ink-100 pt-1.5">
@@ -187,11 +184,8 @@ export default function FreelancerHeader() {
                     </div>
                   ) : (
                     <>
-                      <Link href="/contact" onClick={closeMenus} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
-                        <Mail className="h-4 w-4 text-ink-400" /> Contact Us
-                      </Link>
                       <button onClick={() => setConfirmLogout(true)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-red-600 transition hover:bg-red-50">
-                        <LogOut className="h-4 w-4" /> Log Out
+                        <LogOut className="h-4 w-4" /> Sign Out
                       </button>
                     </>
                   )}

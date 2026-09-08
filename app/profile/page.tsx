@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, Award, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, GraduationCap, Key, Languages, Link2, MapPin, Pencil, Percent, Save, Shield, Sparkles, Star } from "lucide-react";
+import { ArrowUpRight, Award, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, GraduationCap, Key, Languages, Link2, MapPin, Pencil, Percent, Save, Shield, Sparkles, Star, Trash2, Upload, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
@@ -44,6 +44,11 @@ export default function ProfilePage() {
   const [hiringNeeds, setHiringNeeds] = useState("");
   const [education, setEducation] = useState("");
   const [editing, setEditing] = useState(false);
+  const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [photoUpdating, setPhotoUpdating] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const photoMenuRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -143,11 +148,149 @@ export default function ProfilePage() {
     }
   };
 
+  const pickPhoto = (file?: File | null) => {
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setPhotoPreview(preview);
+    setAvatarFile(file);
+    setError("");
+  };
+
+  const savePhoto = async () => {
+    if (!avatarFile || !user || !db) return;
+    setPhotoUpdating(true);
+    setError("");
+    try {
+      const url = await uploadProfileImage(user.uid, avatarFile);
+      await updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() });
+      setAvatarUrl(url);
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+      setPhotoPreview("");
+      setAvatarFile(null);
+      setPhotoMenuOpen(false);
+      setSaved(true);
+    } catch (err: any) {
+      setError(err?.message || "Could not save your photo. Try a JPG, PNG or WebP under 5 MB.");
+    } finally {
+      setPhotoUpdating(false);
+    }
+  };
+
+  const removePhoto = async () => {
+    if (!user || !db) return;
+    setPhotoUpdating(true);
+    setError("");
+    try {
+      await updateDoc(doc(db, "users", user.uid), { avatarUrl: "", profileUpdatedAt: new Date().toISOString() });
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+      setAvatarUrl("");
+      setAvatarFile(null);
+      setPhotoPreview("");
+      setPhotoMenuOpen(false);
+      setSaved(true);
+    } catch (err: any) {
+      setError(err?.message || "Could not remove your photo.");
+    } finally {
+      setPhotoUpdating(false);
+    }
+  };
+
+  const cancelPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview("");
+    setAvatarFile(null);
+    setPhotoMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!photoMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (photoMenuRef.current && !photoMenuRef.current.contains(e.target as Node)) {
+        if (photoPreview) URL.revokeObjectURL(photoPreview);
+        setPhotoPreview("");
+        setAvatarFile(null);
+        setPhotoMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoMenuOpen]);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div className="flex items-center gap-4">
-          {avatarUrl ? <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>}
+          <div className="relative shrink-0" ref={photoMenuRef}>
+            <button
+              type="button"
+              onClick={() => setPhotoMenuOpen((o) => !o)}
+              className="group relative block overflow-hidden rounded-2xl transition hover:opacity-95"
+              aria-label="Manage profile photo"
+            >
+              {photoPreview ? (
+                <img src={photoPreview} alt="New profile photo preview" className="h-16 w-16 object-cover" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-16 w-16 object-cover" />
+              ) : (
+                <span className="grid h-16 w-16 place-items-center bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
+              )}
+              <span className="absolute inset-0 grid place-items-center bg-ink-950/45 text-white opacity-0 transition group-hover:opacity-100">
+                <Camera className="h-5 w-5" />
+              </span>
+            </button>
+
+            {photoMenuOpen && (
+              <div className="absolute left-0 top-full z-30 mt-2 w-64 rounded-2xl border border-ink-100 bg-white p-2 shadow-elevated sm:left-auto sm:-left-40">
+                {photoPreview && (
+                  <div className="rounded-xl bg-canvas p-3">
+                    <img src={photoPreview} alt="Preview" className="h-16 w-16 rounded-xl object-cover" />
+                    <p className="mt-2 text-xs font-semibold text-ink">Preview your new photo</p>
+                    <div className="mt-3 flex gap-2">
+                      <button type="button" onClick={savePhoto} disabled={photoUpdating} className="flex-1 rounded-xl bg-brand px-3 py-2 text-xs font-bold text-white transition hover:bg-brand-700 disabled:opacity-60">
+                        {photoUpdating ? "Saving..." : "Save Photo"}
+                      </button>
+                      <button type="button" onClick={cancelPhoto} className="rounded-xl border border-ink-200 px-3 py-2 text-xs font-semibold text-ink-600 transition hover:bg-ink-50">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-1 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink-600 transition hover:bg-brand-50"
+                  >
+                    <Camera className="h-4 w-4 text-ink-400" /> Change Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink-600 transition hover:bg-brand-50"
+                  >
+                    <Upload className="h-4 w-4 text-ink-400" /> Upload from Device
+                  </button>
+                  <button
+                    type="button"
+                    onClick={removePhoto}
+                    disabled={photoUpdating}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+                  >
+                    <Trash2 className="h-4 w-4" /> Remove Photo
+                  </button>
+                </div>
+              </div>
+            )}
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(e) => pickPhoto(e.target.files?.[0])}
+            />
+          </div>
           <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -180,7 +323,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-bold text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
-        <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink-200 p-4 text-sm font-semibold text-ink-500 hover:border-brand"><Camera className="h-5 w-5 text-brand" /><span>{avatarFile ? avatarFile.name : "Upload JPG, PNG or WebP (max 5 MB)"}</span><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setAvatarFile(e.target.files?.[0] || null)} /></label></div>
+        <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><div className="flex items-center gap-3 rounded-xl border border-ink-100 bg-canvas p-3.5 text-sm font-medium text-ink-500"><Camera className="h-5 w-5 text-brand" /> Manage your photo from the avatar in the top of this page. Changes save instantly.</div></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">City</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" /></div>
         {accountType === "tasker" ? <><div><label className="mb-1.5 block text-sm font-medium text-ink">Professional title</label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} placeholder="e.g. Full-stack developer" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Shopify, Graphic Design" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Experience (years)</label><Input type="number" min="0" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} /></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Availability</label><select value={availability} onChange={(e) => setAvailability(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink"><option>Available now</option><option>Part-time</option><option>Weekends</option><option>Not available</option></select></div></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Education</label><Input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="e.g. BS Computer Science, Lahore" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label><Input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://yourportfolio.com" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Certifications (comma separated)</label><Input value={certifications} onChange={(e) => setCertifications(e.target.value)} placeholder="Google UX, AWS, TEVTA" /></div></> : <><div><label className="mb-1.5 block text-sm font-medium text-ink">Company / organization (optional)</label><Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Your company or team" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">What do you usually hire for?</label><textarea value={hiringNeeds} onChange={(e) => setHiringNeeds(e.target.value)} rows={3} placeholder="Tell freelancers what kind of help you need..." className="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm text-ink" /></div></>}
