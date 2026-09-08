@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const sizeClasses: Record<string, string> = {
+  xs: "h-7 sm:h-8",
   sm: "h-9 sm:h-10",
   md: "h-10 sm:h-12",
   lg: "h-12 sm:h-14",
@@ -16,7 +17,7 @@ export default function BrandLogo({
   href?: string;
   inverted?: boolean;
   compact?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }) {
   return (
