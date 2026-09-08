@@ -17,9 +17,9 @@ export default function CancelledProjectsPage() {
   return (
     <TaskerPage>
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-ink-400">Cancelled</p>
-        <h1 className="mt-1 text-2xl font-black tracking-[-0.03em] text-ink">Cancelled projects</h1>
-        <p className="mt-1 text-sm font-medium text-ink-500">Tasks tied to you that were cancelled. No payment is released for cancelled work.</p>
+        <p className="page-eyebrow">My Projects</p>
+        <h1 className="page-title">Cancelled projects</h1>
+        <p className="page-sub">Tasks tied to you that were cancelled. No payment is released for cancelled work.</p>
         <div className="mt-5">
           <ProjectList load={load} emptyHint="You have no cancelled projects. Cancelled tasks that involved your offers or assignments appear here." />
         </div>

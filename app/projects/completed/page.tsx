@@ -15,9 +15,9 @@ export default function CompletedProjectsPage() {
   return (
     <TaskerPage>
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-ink-400">Completed</p>
-        <h1 className="mt-1 text-2xl font-black tracking-[-0.03em] text-ink">Completed projects</h1>
-        <p className="mt-1 text-sm font-medium text-ink-500">Tasks you finished and got paid for.</p>
+        <p className="page-eyebrow">My Projects</p>
+        <h1 className="page-title">Completed projects</h1>
+        <p className="page-sub">Tasks you finished and got paid for.</p>
         <div className="mt-5">
           <ProjectList load={load} emptyHint="You have not completed any projects yet. Assigned tasks show up here once they are completed." />
         </div>

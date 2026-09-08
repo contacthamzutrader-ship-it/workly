@@ -11,7 +11,7 @@ type Tab = "all" | "active" | "pending" | "completed" | "cancelled";
 const TABS: { key: Tab; label: string }[] = [
   { key: "all", label: "All" },
   { key: "active", label: "Active" },
-  { key: "pending", label: "Pending offers" },
+  { key: "pending", label: "Pending" },
   { key: "completed", label: "Completed" },
   { key: "cancelled", label: "Cancelled" },
 ];
@@ -69,9 +69,9 @@ export default function ProjectsListPage() {
     <TaskerPage>
       <div className="font-ui space-y-6">
         <div>
-          <p className="page-eyebrow">Workspace</p>
-          <h1 className="page-title">Projects</h1>
-          <p className="page-sub">Tasks assigned to you and offers you have submitted - all in one place.</p>
+          <p className="page-eyebrow">My Projects</p>
+          <h1 className="page-title">My Projects</h1>
+          <p className="page-sub">Manage and track your current and previous work.</p>
         </div>
 
         {/* Tabs */}
