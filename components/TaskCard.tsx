@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock3, MapPin } from "lucide-react";
+import { ArrowRight, Clock3, MapPin } from "lucide-react";
 import type { Task } from "@/lib/tasks";
 import { formatDate, formatPKR } from "@/lib/format";
 
@@ -21,21 +21,33 @@ export default function TaskCard({ task }: { task: Task }) {
     >
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-400">{task.category}</span>
-        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>{status.label}</span>
+        <span className={`flex-none rounded-full px-2.5 py-1 text-[11px] font-semibold ${status.className}`}>{status.label}</span>
       </div>
 
-      <h3 className="mt-3 text-base font-bold leading-snug text-ink group-hover:text-brand-dark">{task.title}</h3>
+      <h3 className="mt-3 text-lg font-bold leading-snug text-ink group-hover:text-brand-dark">{task.title}</h3>
       <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-ink-500">{task.description}</p>
 
-      <div className="mt-4 flex items-center justify-between border-t border-ink-100 pt-4">
-        <div>
-          <p className="text-[11px] font-medium text-ink-400">Budget</p>
-          <p className="mt-0.5 text-lg font-bold text-ink">{formatPKR(task.budget)}</p>
-        </div>
-        <div className="text-right text-xs text-ink-400">
-          <p className="flex items-center justify-end gap-1"><MapPin className="h-3.5 w-3.5" />{task.location}</p>
-          <p className="mt-1 flex items-center justify-end gap-1"><Clock3 className="h-3.5 w-3.5" />{task.deadline ? `Due ${formatDate(task.deadline)}` : "Flexible"}</p>
-        </div>
+      <p className="mt-3 text-sm font-medium text-ink-600">
+        Client: <span className="font-semibold text-ink">{task.posterName}</span>
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] font-medium text-ink-500">
+        <span className="inline-flex items-center gap-1.5">
+          <MapPin className="h-3.5 w-3.5 flex-none text-ink-400" />
+          {task.location}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Clock3 className="h-3.5 w-3.5 flex-none text-ink-400" />
+          {task.deadline ? `Due ${formatDate(task.deadline)}` : "Flexible"}
+        </span>
+        <span>{task.bidsCount} {task.bidsCount === 1 ? "offer" : "offers"}</span>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink-100 pt-4">
+        <p className="text-xl font-extrabold tracking-[-0.02em] text-ink">{formatPKR(task.budget)}</p>
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-2 text-xs font-bold text-brand transition group-hover:bg-brand group-hover:text-white">
+          View Task <ArrowRight className="h-3.5 w-3.5" />
+        </span>
       </div>
     </Link>
   );

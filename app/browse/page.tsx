@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { List, Map as MapIcon, Search, SlidersHorizontal, X } from "lucide-react";
 import TaskerPage from "@/components/TaskerPage";
 import TaskCard from "@/components/TaskCard";
 import { useAuth } from "@/lib/auth-context";
@@ -12,11 +11,13 @@ import { computeBidMatch } from "@/lib/matching";
 
 const sortOptions = [
   { key: "recommended", label: "Recommended" },
-  { key: "recent", label: "Most recent" },
+  { key: "recent", label: "Most recent posted" },
   { key: "due_soon", label: "Due soon" },
   { key: "lowest_price", label: "Lowest price" },
   { key: "highest_price", label: "Highest price" },
 ] as const;
+
+type ViewMode = "list" | "map";
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -25,6 +26,10 @@ export default function BrowsePage() {
   const [profile, setProfile] = useState({ trust: 70, success: 80, skills: [] as string[] });
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [view, setView] = useState<ViewMode>("list");
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [draftFilters, setDraftFilters] = useState<{ availableOnly: boolean; noOffersOnly: boolean }>(filters);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -37,8 +42,19 @@ export default function BrowsePage() {
         if (!cancelled) setTasks([]);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
+
+  useEffect(() => {
+    if (!filterPanelOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setFilterPanelOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [filterPanelOpen]);
 
   const sorted = useMemo(() => {
     if (!tasks) return [];
@@ -56,27 +72,54 @@ export default function BrowsePage() {
     else if (sort === "due_soon") list.sort((a, b) => (a.deadline ? new Date(a.deadline).getTime() : Infinity) - (b.deadline ? new Date(b.deadline).getTime() : Infinity));
     else if (sort === "lowest_price") list.sort((a, b) => a.budget - b.budget);
     else if (sort === "highest_price") list.sort((a, b) => b.budget - a.budget);
-    else list.sort((a, b) => (computeBidMatch(b, profile).percent) - (computeBidMatch(a, profile).percent) || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    else list.sort((a, b) => computeBidMatch(b, profile).percent - computeBidMatch(a, profile).percent || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, filters, sort, search, category]);
 
-  const activeSwitches = Number(filters.availableOnly) + Number(filters.noOffersOnly);
+  const groupedByLocation = useMemo(() => {
+    const groups = new Map<string, Task[]>();
+    sorted.forEach((t) => {
+      const key = (t.location || "Remote").trim() || "Remote";
+      groups.set(key, [...(groups.get(key) || []), t]);
+    });
+    return Array.from(groups.entries());
+  }, [sorted]);
+
+  const openFilterPanel = () => {
+    setDraftFilters({ ...filters });
+    setFilterPanelOpen(true);
+  };
+
+  const applyFilters = () => {
+    setFilters({ ...draftFilters });
+    setFilterPanelOpen(false);
+  };
+
+  const hasActiveFilters = filters.availableOnly || filters.noOffersOnly || search.trim() !== "" || category !== "all";
+
+  const clearAll = () => {
+    setFilters({ availableOnly: false, noOffersOnly: false });
+    setSearch("");
+    setCategory("all");
+  };
+
+  const toggleClass = (active: boolean) =>
+    `inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition ${
+      active ? "bg-brand-50 text-brand" : "text-ink-500 hover:bg-ink-50 hover:text-ink"
+    }`;
 
   return (
     <TaskerPage>
       <div className="font-ui space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="page-eyebrow">Browse Tasks</p>
-            <h1 className="page-title">Available tasks</h1>
-            <p className="page-sub">
-              {sorted === null ? "Loading the latest opportunities..." : `${sorted.length} ${sorted.length === 1 ? "task" : "tasks"} you can send an offer on`}
-            </p>
-          </div>
+        {/* Page header */}
+        <div>
+          <p className="page-eyebrow">Browse Tasks</p>
+          <h1 className="page-title">Find work worth doing.</h1>
+          <p className="page-sub">Explore available tasks that match your skills and availability.</p>
         </div>
 
-        {/* Controls */}
+        {/* Search + controls */}
         <div className="card p-3 sm:p-4">
           <div className="flex flex-col gap-3 lg:flex-row">
             <div className="relative flex-1">
@@ -94,60 +137,161 @@ export default function BrowsePage() {
               className="min-h-12 rounded-xl border border-ink-100 bg-white px-4 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
             >
               <option value="all">All categories</option>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
+            <div className="relative" ref={panelRef}>
+              <button
+                onClick={() => (filterPanelOpen ? setFilterPanelOpen(false) : openFilterPanel())}
+                className={`inline-flex min-h-12 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition ${
+                  filterPanelOpen
+                    ? "border-brand-300 bg-brand-50 text-brand"
+                    : "border-ink-100 bg-white text-ink-600 hover:border-brand-200 hover:text-ink"
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Other Filters
+              </button>
+
+              {filterPanelOpen && (
+                <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-2xl border border-ink-100 bg-white p-4 shadow-elevated">
+                  <div className="space-y-3">
+                    <label className="flex cursor-pointer items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={draftFilters.availableOnly}
+                        onChange={(e) => setDraftFilters({ ...draftFilters, availableOnly: e.target.checked })}
+                        className="h-4 w-4 rounded border-ink-200 accent-[#228B22]"
+                      />
+                      <span className="text-sm font-medium text-ink-700">Available tasks only</span>
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={draftFilters.noOffersOnly}
+                        onChange={(e) => setDraftFilters({ ...draftFilters, noOffersOnly: e.target.checked })}
+                        className="h-4 w-4 rounded border-ink-200 accent-[#228B22]"
+                      />
+                      <span className="text-sm font-medium text-ink-700">Tasks with no offers only</span>
+                    </label>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={applyFilters}
+                      className="flex-1 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
+                    >
+                      Apply
+                    </button>
+                    <button
+                      onClick={() => setFilterPanelOpen(false)}
+                      className="flex-1 rounded-xl border border-ink-100 bg-white px-4 py-2.5 text-sm font-semibold text-ink-600 transition hover:bg-ink-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink-100 pt-3">
-            <button
-              onClick={() => setFilters({ ...filters, availableOnly: !filters.availableOnly })}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${filters.availableOnly ? "border-brand-300 bg-brand-50 text-brand-dark" : "border-ink-100 bg-white text-ink-500 hover:border-ink-200"}`}
-            >
-              Available only
-            </button>
-            <button
-              onClick={() => setFilters({ ...filters, noOffersOnly: !filters.noOffersOnly })}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${filters.noOffersOnly ? "border-brand-300 bg-brand-50 text-brand-dark" : "border-ink-100 bg-white text-ink-500 hover:border-ink-200"}`}
-            >
-              No offers yet
-            </button>
-            {(activeSwitches > 0 || search || category !== "all") && (
-              <button
-                onClick={() => { setFilters({ availableOnly: false, noOffersOnly: false }); setSearch(""); setCategory("all"); }}
-                className="text-xs font-semibold text-ink-400 underline-offset-2 transition hover:text-ink"
-              >
-                Clear all
-              </button>
-            )}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-ink-400">Sort</span>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
                 className="rounded-xl border border-ink-100 bg-white px-3 py-2 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
               >
-                {sortOptions.map((opt) => <option key={opt.key} value={opt.key}>{opt.label}</option>)}
+                {sortOptions.map((opt) => (
+                  <option key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
+            </div>
+
+            <div className="ml-auto flex items-center gap-1 rounded-xl border border-ink-100 bg-white p-1">
+              <button onClick={() => setView("list")} className={toggleClass(view === "list")}>
+                <List className="h-4 w-4" /> List
+              </button>
+              <button onClick={() => setView("map")} className={toggleClass(view === "map")}>
+                <MapIcon className="h-4 w-4" /> Map
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Results */}
-        <div className="mt-2">
-          {sorted === null ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 animate-pulse rounded-2xl border border-ink-100 bg-white" />)}</div>
-          ) : sorted.length === 0 ? (
-            <div className="card py-20 text-center">
-              <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-ink-50 text-ink-300"><Search className="h-6 w-6" /></span>
-              <h3 className="mt-5 text-lg font-bold text-ink">No matching tasks right now</h3>
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-ink-500">Try adjusting your filters or search, or check back soon for new opportunities.</p>
-              <Link href="/dashboard" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">Back to dashboard <ArrowRight className="h-4 w-4" /></Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">{sorted.map((t) => <TaskCard key={t.id} task={t} />)}</div>
+        {/* Results heading */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-[-0.02em] text-ink">Available Tasks</h2>
+            {sorted !== null && (
+              <p className="mt-0.5 text-sm font-medium text-ink-500">
+                {sorted.length} {sorted.length === 1 ? "task" : "tasks"} matching your search
+              </p>
+            )}
+          </div>
+          {hasActiveFilters && (
+            <button
+              onClick={clearAll}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-400 transition hover:text-ink"
+            >
+              <X className="h-4 w-4" /> Clear filters
+            </button>
           )}
         </div>
-      </div>
+
+        {/* Results */}
+        {sorted === null ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-64 animate-pulse rounded-2xl border border-ink-100 bg-white" />
+            ))}
+          </div>
+        ) : sorted.length === 0 ? (
+          <div className="card px-6 py-16 text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-ink-50 text-ink-300">
+              <Search className="h-5 w-5" />
+            </span>
+            <h3 className="mt-4 text-lg font-bold text-ink">No tasks found</h3>
+            <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-ink-500">Try changing your search or filters.</p>
+            <button
+              onClick={clearAll}
+              className="mt-5 inline-flex min-h-10 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-bold text-brand transition hover:bg-brand-100"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : view === "map" ? (
+          <div className="space-y-6">
+            {groupedByLocation.map(([location, items]) => (
+              <section key={location}>
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
+                  <MapIcon className="h-4 w-4 text-brand" /> {location}
+                  <span className="text-xs font-medium text-ink-400">
+                    {items.length} {items.length === 1 ? "task" : "tasks"}
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {items.map((t) => (
+                    <TaskCard key={t.id} task={t} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {sorted.map((t) => (
+              <TaskCard key={t.id} task={t} />
+            ))}
+          </div>
+        )}
+
+        </div>
     </TaskerPage>
   );
 }
