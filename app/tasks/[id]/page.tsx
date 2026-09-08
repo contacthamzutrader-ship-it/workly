@@ -31,7 +31,7 @@ import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { MapPin, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Tag, Wallet, AlertTriangle, BriefcaseBusiness, XCircle } from "lucide-react";
+import { MapPin, Calendar, User, MessageSquare, CheckCircle2, Clock, Star, Gavel, ShieldCheck, Zap, ArrowLeft, Send, Banknote, Tag, Wallet, AlertTriangle, BriefcaseBusiness, XCircle, Globe } from "lucide-react";
 import { formatDate, formatPKR } from "@/lib/format";
 
 type BidView = Bid & { match?: BidMatch; fresh?: boolean };
@@ -43,6 +43,12 @@ const STATUS_TAGS: Record<string, { label: string; color: string }> = {
   in_progress: { label: "In Progress", color: "bg-purple-50 text-purple-700 border-purple-200" },
   completed: { label: "Completed", color: "bg-green-50 text-green-700 border-green-200" },
   cancelled: { label: "Cancelled", color: "bg-red-50 text-red-700 border-red-200" },
+};
+
+const isRemoteTask = (loc?: string) => {
+  const s = (loc || "").trim().toLowerCase();
+  if (!s) return true;
+  return ["remote", "online", "anywhere", "virtual", "work from home", "wfh", "from home", "hybrid"].some((k) => s.includes(k));
 };
 
 export default function TaskDetailPage() {
@@ -70,6 +76,18 @@ export default function TaskDetailPage() {
   const [rehireError, setRehireError] = useState("");
 
   const isAdmin = role === "company_admin" || role === "super_admin";
+
+  const backToList = () => {
+    const params = new URLSearchParams();
+    const cat = searchParams.get("category");
+    const q = searchParams.get("q");
+    const view = searchParams.get("view");
+    if (cat) params.set("category", cat);
+    if (q) params.set("q", q);
+    if (view) params.set("view", view);
+    const qs = params.toString();
+    return `/browse${qs ? `?${qs}` : ""}`;
+  };
 
   const load = async () => {
     setLoading(true);
@@ -143,7 +161,7 @@ export default function TaskDetailPage() {
   }, [id, inviteReady]);
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-  if (notFound || !task) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500"><p>{error || "Task not found."}</p> <Link href="/tasks" className="font-semibold text-brand">Back to tasks</Link></div>;
+  if (notFound || !task) return <div className="mx-auto max-w-3xl px-4 py-20 text-center text-ink-500"><p>{error || "Task not found."}</p> <Link href={backToList()} className="font-semibold text-brand">Back to tasks</Link></div>;
 
   const isPoster = user?.uid === task.posterId;
   const isAssigned = user?.uid === task.assignedTo;
@@ -235,7 +253,7 @@ export default function TaskDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link href="/tasks" className="mb-6 flex items-center gap-1 text-sm text-ink-500 hover:text-ink"><ArrowLeft className="h-4 w-4" /> Back to tasks</Link>
+      <Link href={backToList()} className="mb-6 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 transition hover:text-ink"><ArrowLeft className="h-4 w-4" /> Back to Tasks</Link>
 
       {task.status === "cancelled" && (
         <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
@@ -247,29 +265,59 @@ export default function TaskDetailPage() {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* ============ LEFT COLUMN ============ */}
         <div className="min-w-0 space-y-6">
-          <div className="rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
-            <div className="flex items-center justify-between gap-2">
+          <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-50 px-3 py-1 text-sm font-medium text-ink-600"><Tag className="h-3.5 w-3.5" /> {task.category}</span>
               <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold ${statusInfo.color}`}>{statusInfo.label}{task.visibility === "private" ? " - Private" : ""}</span>
             </div>
-            <h1 className="mt-5 text-3xl font-black tracking-[-0.035em] text-ink sm:text-4xl">{task.title}</h1>
-            <p className="mt-3 whitespace-pre-wrap text-ink-600 leading-relaxed">{task.description}</p>
+            <h1 className="mt-5 text-2xl font-black tracking-[-0.03em] text-ink sm:text-3xl">{task.title}</h1>
+            <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-ink-600">{task.description}</p>
 
-            {/* Client information */}
-            <div className="mt-6 grid gap-3 rounded-2xl border border-ink-100 bg-canvas p-4 sm:grid-cols-3">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><User className="h-5 w-5" /></span>
-                <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Client Name</p><p className="truncate text-sm font-extrabold text-ink">{task.posterName}</p></div>
+            {/* Key details */}
+            <dl className="mt-6 grid gap-x-6 gap-y-4 rounded-2xl border border-ink-100 bg-canvas p-5 sm:grid-cols-2">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><User className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Client</dt>
+                  <dd className="truncate text-sm font-bold text-ink">{task.posterName}</dd>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><MapPin className="h-5 w-5" /></span>
-                <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Task Location</p><p className="truncate text-sm font-extrabold text-ink">{task.location}</p></div>
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><MapPin className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Location</dt>
+                  <dd className="truncate text-sm font-bold text-ink">{task.location || "Remote"}</dd>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Clock className="h-5 w-5" /></span>
-                <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">To Be Done On</p><p className="truncate text-sm font-extrabold text-ink">{task.deadline ? formatDate(task.deadline) : "Flexible (Anytime)"}</p></div>
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Globe className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Work Mode</dt>
+                  <dd className="text-sm font-bold text-ink">{isRemoteTask(task.location) ? "Remote" : "Onsite"}</dd>
+                </div>
               </div>
-            </div>
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Clock className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Deadline / To be done on</dt>
+                  <dd className="text-sm font-bold text-ink">{task.deadline ? formatDate(task.deadline) : "Flexible (Anytime)"}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Banknote className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Budget</dt>
+                  <dd className="text-sm font-bold text-ink">{formatPKR(task.budget)}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Gavel className="h-4 w-4" /></span>
+                <div className="min-w-0">
+                  <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">Offers</dt>
+                  <dd className="text-sm font-bold text-ink">{task.bidsCount} {task.bidsCount === 1 ? "offer" : "offers"}</dd>
+                </div>
+              </div>
+            </dl>
 
             {/* Lifecycle Progress Bar */}
             <div className="mt-6 flex items-center gap-2">
@@ -293,8 +341,8 @@ export default function TaskDetailPage() {
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
-              <span className="rounded-lg bg-brand-50 px-3 py-2 font-black text-brand-dark">{formatPKR(task.budget)}</span>
-              <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />{formatDate(task.createdAt)}</span>
+              <span className="rounded-lg bg-brand-50 px-3 py-2 font-black text-brand-dark">{formatPKR(task.heldAmount ?? task.budget)}</span>
+              <span className="flex items-center gap-1.5 text-ink-500"><Calendar className="h-4 w-4" />Posted {formatDate(task.createdAt)}</span>
               {task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: {formatDate(task.deadline)}</span>}
               {!task.deadline && <span className="flex items-center gap-1.5 text-ink-500"><Clock className="h-4 w-4" />Due: Flexible (Anytime)</span>}
               {task.heldAmount && <span className="flex items-center gap-1.5 text-ink-500"><Banknote className="h-4 w-4" />{formatPKR(task.heldAmount)} held</span>}
@@ -463,23 +511,36 @@ export default function TaskDetailPage() {
         {/* ============ RIGHT COLUMN ============ */}
         <aside className="space-y-4 lg:sticky lg:top-6">
           {canBid ? (
-            <form onSubmit={submitBid} className="rounded-3xl border border-brand-200 bg-white p-6 shadow-card">
+            <form onSubmit={submitBid} className="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
               <h2 className="flex items-center gap-2 text-lg font-black text-ink"><BriefcaseBusiness className="h-5 w-5 text-brand" /> Make an Offer</h2>
               <p className="mt-1 text-xs font-medium text-ink-400">{task.visibility === "private" ? "Private invitation" : "Open"} task · Client&apos;s listed price: <span className="font-extrabold text-ink">{formatPKR(task.budget)}</span></p>
 
               <div className="mt-4">
-                <label className="mb-1.5 block text-sm font-medium text-ink">Your proposed price (PKR)</label>
-                <Input type="number" min={MIN_BID} step={100} placeholder={String(MIN_BID)} value={amount} onChange={(e) => { setAmount(e.target.value); setWarning(false); }} required />
+                <label htmlFor="offer-amount" className="mb-1.5 block text-sm font-semibold text-ink">Your Offer</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-ink-400">PKR</span>
+                  <Input
+                    id="offer-amount"
+                    type="number"
+                    min={MIN_BID}
+                    step={100}
+                    placeholder={String(MIN_BID)}
+                    value={amount}
+                    onChange={(e) => { setAmount(e.target.value); setWarning(false); }}
+                    required
+                    className="pl-14"
+                  />
+                </div>
               </div>
               <div className="mt-3">
-                <label className="mb-1.5 block text-sm font-medium text-ink">Your proposal</label>
-                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} placeholder="Tell the client why you are the right fit for this task and how you will deliver..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                <label htmlFor="offer-proposal" className="mb-1.5 block text-sm font-semibold text-ink">Proposal</label>
+                <textarea id="offer-proposal" value={message} onChange={(e) => setMessage(e.target.value)} rows={4} placeholder="Tell the client why you are the right fit for this task and how you will deliver..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
               </div>
 
               {offerPrice > 0 && (
                 <div className="mt-4 space-y-2 rounded-2xl bg-canvas p-4 text-sm">
                   <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Total Price</span><span className="font-black text-ink">{formatPKR(offerPrice)}</span></div>
-                  <div className="flex items-center justify-between"><span className="flex items-center gap-1 font-semibold text-ink-500"><Wallet className="h-3.5 w-3.5" /> Account Deduction</span><span className="font-black text-ink">{PLATFORM_FEE * 100}%</span></div>
+                  <div className="flex items-center justify-between"><span className="flex items-center gap-1 font-semibold text-ink-500"><Wallet className="h-3.5 w-3.5" /> Platform Deduction</span><span className="font-black text-ink">{formatPKR(offerFee)} ({PLATFORM_FEE * 100}%)</span></div>
                   <div className="flex items-center justify-between border-t border-ink-100 pt-2"><span className="font-bold text-brand-dark">You Will Receive</span><span className="font-black text-brand-dark">{formatPKR(youReceive)}</span></div>
                 </div>
               )}
@@ -502,7 +563,7 @@ export default function TaskDetailPage() {
               <Button type="submit" disabled={submitting || warning} className="mt-4 w-full gap-2">{submitting ? "Submitting offer..." : "Submit Offer"}</Button>
             </form>
           ) : isLockedFromMessaging && task.status === "open" && (
-            <div className="rounded-3xl border border-ink-100 bg-white p-6 shadow-card">
+            <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
               <h2 className="text-lg font-black text-ink">Task summary</h2>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Client&apos;s price</span><span className="font-black text-ink">{formatPKR(task.budget)}</span></div>
@@ -516,7 +577,7 @@ export default function TaskDetailPage() {
             </div>
           )}
 
-          <div className="rounded-3xl border border-ink-100 bg-white p-6 shadow-card">
+          <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-400">About this task</p>
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between"><span className="font-semibold text-ink-500">Status</span><span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${statusInfo.color}`}>{statusInfo.label}</span></div>

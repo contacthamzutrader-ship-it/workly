@@ -12,11 +12,11 @@ const statusRecords: Record<string, { label: string; className: string }> = {
   cancelled: { label: "Cancelled", className: "bg-red-50 text-red-700" },
 };
 
-export default function TaskCard({ task }: { task: Task }) {
+export default function TaskCard({ task, href }: { task: Task; href?: string }) {
   const status = statusRecords[task.status] || statusRecords.open;
   return (
     <Link
-      href={`/tasks/${task.id}`}
+      href={href ?? `/tasks/${task.id}`}
       className="card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
     >
       <div className="flex items-center justify-between gap-3">

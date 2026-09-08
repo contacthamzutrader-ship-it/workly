@@ -35,6 +35,15 @@ export default function BrowsePage() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paramCategory = params.get("category") || "";
+    if (CATEGORIES.includes(paramCategory)) setCategory(paramCategory);
+    const q = params.get("q");
+    if (q) setSearch(q);
+    if (params.get("view") === "map") setView("map");
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
@@ -107,6 +116,15 @@ export default function BrowsePage() {
     if (mapLocation === REMOTE_KEY) return locationGroups.remote;
     return locationGroups.physical.find(([loc]) => loc === mapLocation)?.[1] || [];
   }, [mapLocation, sorted, locationGroups]);
+
+  const taskHref = (t: Task) => {
+    const params = new URLSearchParams();
+    if (category !== "all") params.set("category", category);
+    if (search.trim()) params.set("q", search.trim());
+    if (view === "map") params.set("view", "map");
+    const qs = params.toString();
+    return `/tasks/${t.id}${qs ? `?${qs}` : ""}`;
+  };
 
   const openFilterPanel = () => {
     setDraftFilters({ ...filters });
@@ -323,7 +341,7 @@ export default function BrowsePage() {
                   {mapTasks.map((t) => (
                     <Link
                       key={t.id}
-                      href={`/tasks/${t.id}`}
+                      href={taskHref(t)}
                       className="card group flex items-start gap-4 p-4 transition hover:border-brand-200 hover:shadow-card-hover"
                     >
                       <span className="mt-0.5 grid h-9 w-9 flex-none place-items-center rounded-xl bg-brand-50 text-brand">
@@ -402,7 +420,7 @@ export default function BrowsePage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {sorted.map((t) => (
-              <TaskCard key={t.id} task={t} />
+              <TaskCard key={t.id} task={t} href={taskHref(t)} />
             ))}
           </div>
         )}
