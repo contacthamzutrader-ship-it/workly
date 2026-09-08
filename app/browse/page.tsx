@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { List, Map as MapIcon, Search, SlidersHorizontal, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Globe, List, Map as MapIcon, MapPin, Search, SlidersHorizontal, X } from "lucide-react";
 import TaskerPage from "@/components/TaskerPage";
 import TaskCard from "@/components/TaskCard";
 import { useAuth } from "@/lib/auth-context";
 import { useDashboardPrefs } from "@/components/DashboardPrefs";
 import { listPublicTasks, CATEGORIES, type Task } from "@/lib/tasks";
 import { computeBidMatch } from "@/lib/matching";
+import { formatDate, formatPKR } from "@/lib/format";
 
 const sortOptions = [
   { key: "recommended", label: "Recommended" },
@@ -28,6 +30,7 @@ export default function BrowsePage() {
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<ViewMode>("list");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [mapLocation, setMapLocation] = useState<string | null>(null);
   const [draftFilters, setDraftFilters] = useState<{ availableOnly: boolean; noOffersOnly: boolean }>(filters);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -77,14 +80,33 @@ export default function BrowsePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, filters, sort, search, category]);
 
-  const groupedByLocation = useMemo(() => {
-    const groups = new Map<string, Task[]>();
+  const REMOTE_KEY = "__remote__";
+
+  const isRemoteLocation = (loc?: string) => {
+    const s = (loc || "").trim().toLowerCase();
+    if (!s) return true;
+    return ["remote", "online", "anywhere", "virtual", "work from home", "wfh", "from home", "hybrid"].some((k) => s.includes(k));
+  };
+
+  const locationGroups = useMemo(() => {
+    const physical = new Map<string, Task[]>();
+    const remote: Task[] = [];
     sorted.forEach((t) => {
-      const key = (t.location || "Remote").trim() || "Remote";
-      groups.set(key, [...(groups.get(key) || []), t]);
+      if (isRemoteLocation(t.location)) {
+        remote.push(t);
+        return;
+      }
+      const key = (t.location || "").trim() || "Unspecified";
+      physical.set(key, [...(physical.get(key) || []), t]);
     });
-    return Array.from(groups.entries());
+    return { physical: Array.from(physical.entries()), remote, remoteCount: remote.length };
   }, [sorted]);
+
+  const mapTasks = useMemo(() => {
+    if (!mapLocation) return sorted;
+    if (mapLocation === REMOTE_KEY) return locationGroups.remote;
+    return locationGroups.physical.find(([loc]) => loc === mapLocation)?.[1] || [];
+  }, [mapLocation, sorted, locationGroups]);
 
   const openFilterPanel = () => {
     setDraftFilters({ ...filters });
@@ -214,11 +236,11 @@ export default function BrowsePage() {
             </div>
 
             <div className="ml-auto flex items-center gap-1 rounded-xl border border-ink-100 bg-white p-1">
-              <button onClick={() => setView("list")} className={toggleClass(view === "list")}>
-                <List className="h-4 w-4" /> List
+              <button onClick={() => { setView("list"); setMapLocation(null); }} className={toggleClass(view === "list")}>
+                <List className="h-4 w-4" /> List View
               </button>
               <button onClick={() => setView("map")} className={toggleClass(view === "map")}>
-                <MapIcon className="h-4 w-4" /> Map
+                <MapIcon className="h-4 w-4" /> Map View
               </button>
             </div>
           </div>
@@ -266,22 +288,116 @@ export default function BrowsePage() {
             </button>
           </div>
         ) : view === "map" ? (
-          <div className="space-y-6">
-            {groupedByLocation.map(([location, items]) => (
-              <section key={location}>
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
-                  <MapIcon className="h-4 w-4 text-brand" /> {location}
-                  <span className="text-xs font-medium text-ink-400">
-                    {items.length} {items.length === 1 ? "task" : "tasks"}
+          <div className="space-y-4">
+            {/* Mobile location picker */}
+            <div className="lg:hidden">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-[0.14em] text-ink-400">Browse by location</label>
+              <select
+                value={mapLocation ?? "all"}
+                onChange={(e) => setMapLocation(e.target.value === "all" ? null : e.target.value)}
+                className="min-h-12 w-full rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink focus:border-brand-300 focus:outline-none"
+              >
+                <option value="all">All locations ({sorted.length})</option>
+                {locationGroups.physical.map(([loc, items]) => (
+                  <option key={loc} value={loc}>
+                    {loc} ({items.length})
+                  </option>
+                ))}
+                <option value={REMOTE_KEY}>Remote / Online ({locationGroups.remoteCount})</option>
+              </select>
+            </div>
+
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+            {/* Map task list */}
+            <div>
+              {mapTasks.length === 0 ? (
+                <div className="card px-6 py-14 text-center">
+                  <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-ink-50 text-ink-300">
+                    <MapPin className="h-5 w-5" />
                   </span>
-                </h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {items.map((t) => (
-                    <TaskCard key={t.id} task={t} />
+                  <h3 className="mt-4 text-lg font-bold text-ink">No tasks found nearby</h3>
+                  <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-ink-500">Choose another location or clear your filters.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {mapTasks.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/tasks/${t.id}`}
+                      className="card group flex items-start gap-4 p-4 transition hover:border-brand-200 hover:shadow-card-hover"
+                    >
+                      <span className="mt-0.5 grid h-9 w-9 flex-none place-items-center rounded-xl bg-brand-50 text-brand">
+                        {isRemoteLocation(t.location) ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="min-w-0 font-bold text-ink transition group-hover:text-brand-dark">{t.title}</h3>
+                          <p className="shrink-0 text-sm font-extrabold text-ink">{formatPKR(t.budget)}</p>
+                        </div>
+                        <p className="mt-1 line-clamp-1 text-sm text-ink-500">{t.category} · {t.description}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] font-medium text-ink-500">
+                          {isRemoteLocation(t.location) ? (
+                            <span className="inline-flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-ink-400" /> {t.location || "Remote"}</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-ink-400" /> {t.location}</span>
+                          )}
+                          {t.deadline && <span>Due {formatDate(t.deadline)}</span>}
+                          <span>{t.bidsCount} {t.bidsCount === 1 ? "offer" : "offers"}</span>
+                        </div>
+                      </div>
+                      <ArrowRight className="mt-1 h-4 w-4 flex-none text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-brand" />
+                    </Link>
                   ))}
                 </div>
-              </section>
-            ))}
+              )}
+            </div>
+
+            {/* Location panel */}
+            <aside className="card sticky top-24 hidden p-4 lg:block">
+              <div className="flex items-center gap-2">
+                <MapIcon className="h-4 w-4 text-brand" />
+                <p className="page-eyebrow">Browse by location</p>
+              </div>
+              <div className="mt-3 space-y-1">
+                <button
+                  onClick={() => setMapLocation(null)}
+                  className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    mapLocation === null ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
+                  }`}
+                >
+                  All locations
+                  <span className="float-right text-xs font-bold text-ink-400">{sorted.length}</span>
+                </button>
+                {locationGroups.physical.map(([loc, items]) => (
+                  <button
+                    key={loc}
+                    onClick={() => setMapLocation(loc)}
+                    className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                      mapLocation === loc ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 flex-none text-ink-400" />
+                      <span className="min-w-0 truncate">{loc}</span>
+                    </span>
+                    <span className="float-right text-xs font-bold text-ink-400">{items.length}</span>
+                  </button>
+                ))}
+                <button
+                  onClick={() => setMapLocation(REMOTE_KEY)}
+                  className={`w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    mapLocation === REMOTE_KEY ? "bg-brand-50 text-brand" : "text-ink-600 hover:bg-ink-50"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 flex-none text-ink-400" />
+                    Remote / Online
+                  </span>
+                  <span className="float-right text-xs font-bold text-ink-400">{locationGroups.remoteCount}</span>
+                </button>
+              </div>
+            </aside>
+          </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
