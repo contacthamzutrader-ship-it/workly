@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Send, MessageSquare, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { subscribeMessages, sendMessage, type Message } from "@/lib/chat";
+import { markRead } from "@/lib/read-receipts";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Input from "@/components/ui/Input";
@@ -29,6 +30,7 @@ export default function ConversationPage() {
       const snap = await getDoc(doc(db, "conversations", id));
       if (!snap.exists() || !snap.data().participants.includes(user.uid)) { setAllowed(false); return; }
       setAllowed(true);
+      markRead(id);
       unsub = subscribeMessages(id, setMessages);
     })();
     return () => { if (unsub) unsub(); };
@@ -47,7 +49,7 @@ export default function ConversationPage() {
   );
 
   const send = async (e: React.FormEvent) => { e.preventDefault(); if (!text.trim() || !user || !id) return; setError("");
-    try { await sendMessage(id, user.uid, user.displayName || user.email || "User", text.trim()); setText(""); } catch (err: any) { setError(err?.message || "Could not send"); } };
+    try { await sendMessage(id, user.uid, user.displayName || user.email || "User", text.trim()); markRead(id); setText(""); } catch (err: any) { setError(err?.message || "Could not send"); } };
 
   return (
     <div className="bg-canvas py-4 sm:py-6">
