@@ -79,7 +79,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const cancelPanel = () => setOpenPanel(null);
   const pickSort = (key: DashboardSort) => { setSort(key); setOpenPanel(null); onNavigate?.(); };
 
-  const isActive = (href: string) => href === "/dashboard" && (pathname === "/dashboard");
+  const isActive = (href: string) => pathname === href;
 
   const itemClass = (active: boolean) =>
     `flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
@@ -243,10 +243,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <div>
         <p className="px-3 text-[10px] font-black uppercase tracking-[0.16em] text-white/60">Home</p>
         <div className="mt-1.5 space-y-1">
-          <Link href="/dashboard" onClick={onNavigate} className={itemClass(isActive("/dashboard"))}>
+          <Link href="/browse" onClick={onNavigate} className={itemClass(isActive("/browse"))}>
             <Home className="h-[18px] w-[18px] shrink-0 text-white/80" /> Home
           </Link>
-          <Link href="/dashboard" onClick={onNavigate} className={itemClass(false)}>
+          <Link href="/dashboard" onClick={onNavigate} className={itemClass(isActive("/dashboard"))}>
             <LayoutDashboard className="h-[18px] w-[18px] shrink-0 text-white/80" /> Dashboard
           </Link>
         </div>
