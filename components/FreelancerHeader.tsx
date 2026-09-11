@@ -22,8 +22,8 @@ import { db } from "@/lib/firebase";
 const NAV_ITEMS = [
   { label: "Browse Tasks", href: "/browse" },
   { label: "My Projects", href: "/projects" },
-  { label: "Messages", href: "/messages" },
   { label: "Notifications", href: "/notifications" },
+  { label: "Messages", href: "/messages" },
 ] as const;
 
 export default function FreelancerHeader() {
@@ -97,7 +97,7 @@ export default function FreelancerHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/95 backdrop-blur-sm">
-      <div className="page-shell flex items-center gap-4 py-3 sm:py-3.5">
+      <div className="page-shell flex items-center gap-4 py-4 sm:py-5">
         <BrandLogo size="sm" href="/dashboard" />
 
         <nav className="hidden flex-1 justify-center gap-1 lg:flex">
