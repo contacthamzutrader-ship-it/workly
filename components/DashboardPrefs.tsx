@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 export interface DashboardFilters {
   availableOnly: boolean;
@@ -28,7 +28,95 @@ function isObj(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
-interface DashboardPrefsValue {
+interface PrefsState {
+  filters: DashboardFilters;
+  sort: DashboardSort;
+  priceRange: PriceRange | null;
+  remoteMode: RemoteMode;
+}
+
+let current: PrefsState = {
+  filters: DEFAULT_FILTERS,
+  sort: "recommended",
+  priceRange: null,
+  remoteMode: "all",
+};
+
+const listeners = new Set<() => void>();
+
+function setCurrent(next: PrefsState) {
+  current = next;
+  listeners.forEach((l) => l());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): PrefsState {
+  return current;
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+  } catch {
+    // Storage unavailable; prefs stay in memory for this visit.
+  }
+}
+
+function setFilters(filters: DashboardFilters) {
+  setCurrent({ ...current, filters });
+  persist();
+}
+
+function setSort(sort: DashboardSort) {
+  setCurrent({ ...current, sort });
+  persist();
+}
+
+function setPriceRange(priceRange: PriceRange | null) {
+  setCurrent({ ...current, priceRange });
+  persist();
+}
+
+function setRemoteMode(remoteMode: RemoteMode) {
+  setCurrent({ ...current, remoteMode });
+  persist();
+}
+
+function loadPersisted() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!isObj(parsed)) return;
+    const next: PrefsState = { ...current };
+    if (isObj(parsed.filters)) next.filters = { ...DEFAULT_FILTERS, ...parsed.filters };
+    if (SORT_KEYS.includes(parsed.sort as DashboardSort)) next.sort = parsed.sort as DashboardSort;
+    if (REMOTE_KEYS.includes(parsed.remoteMode as RemoteMode)) next.remoteMode = parsed.remoteMode as RemoteMode;
+    const pr = parsed.priceRange;
+    if (isObj(pr) && typeof pr.min === "number" && typeof pr.max === "number" && pr.min >= 0 && pr.max > pr.min) {
+      next.priceRange = { min: pr.min, max: pr.max };
+    }
+    setCurrent(next);
+  } catch {
+    // Malformed or missing prefs; defaults are used.
+  }
+}
+
+export function DashboardPrefsProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    loadPersisted();
+  }, []);
+
+  return <>{children}</>;
+}
+
+export interface DashboardPrefsValue {
   filters: DashboardFilters;
   sort: DashboardSort;
   priceRange: PriceRange | null;
@@ -39,56 +127,16 @@ interface DashboardPrefsValue {
   setRemoteMode: (mode: RemoteMode) => void;
 }
 
-const DashboardPrefsContext = createContext<DashboardPrefsValue | undefined>(undefined);
-
-export function DashboardPrefsProvider({ children }: { children: React.ReactNode }) {
-  const [filters, setFiltersState] = useState<DashboardFilters>(DEFAULT_FILTERS);
-  const [sort, setSortState] = useState<DashboardSort>("recommended");
-  const [priceRange, setPriceRangeState] = useState<PriceRange | null>(null);
-  const [remoteMode, setRemoteModeState] = useState<RemoteMode>("all");
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (isObj(parsed)) {
-          if (isObj(parsed.filters)) setFiltersState({ ...DEFAULT_FILTERS, ...parsed.filters });
-          if (SORT_KEYS.includes(parsed.sort as DashboardSort)) setSortState(parsed.sort as DashboardSort);
-          if (REMOTE_KEYS.includes(parsed.remoteMode as RemoteMode)) setRemoteModeState(parsed.remoteMode as RemoteMode);
-          const pr = parsed.priceRange;
-          if (isObj(pr) && typeof pr.min === "number" && typeof pr.max === "number" && pr.min >= 0 && pr.max > pr.min) {
-            setPriceRangeState({ min: pr.min, max: pr.max });
-          }
-        }
-      }
-    } catch {
-      // Corrupt or missing prefs; fall back to defaults.
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ filters, sort, priceRange, remoteMode }));
-    } catch {
-      // Storage unavailable; prefs just stay in memory for this visit.
-    }
-  }, [filters, sort, priceRange, remoteMode]);
-
-  const setFilters = (next: DashboardFilters) => setFiltersState(next);
-  const setSort = (next: DashboardSort) => setSortState(next);
-  const setPriceRange = (next: PriceRange | null) => setPriceRangeState(next);
-  const setRemoteMode = (next: RemoteMode) => setRemoteModeState(next);
-
-  return (
-    <DashboardPrefsContext.Provider value={{ filters, sort, priceRange, remoteMode, setFilters, setSort, setPriceRange, setRemoteMode }}>
-      {children}
-    </DashboardPrefsContext.Provider>
-  );
-}
-
 export function useDashboardPrefs(): DashboardPrefsValue {
-  const ctx = useContext(DashboardPrefsContext);
-  if (!ctx) throw new Error("useDashboardPrefs must be used within <DashboardPrefsProvider>");
-  return ctx;
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return {
+    filters: state.filters,
+    sort: state.sort,
+    priceRange: state.priceRange,
+    remoteMode: state.remoteMode,
+    setFilters,
+    setSort,
+    setPriceRange,
+    setRemoteMode,
+  };
 }
