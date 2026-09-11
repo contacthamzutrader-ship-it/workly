@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
-import { doc, getDoc } from "firebase/firestore";
+import { uploadProfileImage } from "@/lib/profile-image";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const NAV_ITEMS = [
@@ -35,7 +36,12 @@ export default function FreelancerHeader() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [photoUpdating, setPhotoUpdating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user || !db) return;
@@ -61,10 +67,47 @@ export default function FreelancerHeader() {
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
+  const resetPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview("");
+    setPhotoFile(null);
+    setPhotoError("");
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    e.target.value = "";
+    setPhotoError("");
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+      setPhotoError("Choose a JPG, PNG or WebP image under 5 MB.");
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const savePhoto = async () => {
+    if (!photoFile || !user || !db) return;
+    setPhotoUpdating(true);
+    setPhotoError("");
+    try {
+      const url = await uploadProfileImage(user.uid, photoFile);
+      await updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() });
+      setAvatarUrl(url);
+      resetPhoto();
+    } catch (err: any) {
+      setPhotoError(err?.message || "Could not save your photo. Try a JPG, PNG or WebP under 5 MB.");
+    } finally {
+      setPhotoUpdating(false);
+    }
+  };
+
   const closeMenus = () => {
     setDropdownOpen(false);
     setMobileMenuOpen(false);
     setConfirmLogout(false);
+    resetPhoto();
   };
 
   const navigate = (href: string) => {
@@ -117,6 +160,7 @@ export default function FreelancerHeader() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => {
+                if (dropdownOpen) resetPhoto();
                 setDropdownOpen(!dropdownOpen);
                 setConfirmLogout(false);
               }}
@@ -149,12 +193,14 @@ export default function FreelancerHeader() {
                   <div className="flex items-center gap-3">
                     <span
                       className={
-                        avatarUrl
-                          ? "h-14 w-14 shrink-0 overflow-hidden rounded-2xl"
-                          : "grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-black text-white"
+                        avatarUrl || photoPreview
+                          ? "h-16 w-16 shrink-0 overflow-hidden rounded-2xl"
+                          : "grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand text-xl font-black text-white"
                       }
                     >
-                      {avatarUrl ? (
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="New profile photo preview" className="h-full w-full object-cover" />
+                      ) : avatarUrl ? (
                         <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
                         (user?.displayName || user?.email || "U")[0].toUpperCase()
@@ -162,15 +208,45 @@ export default function FreelancerHeader() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-ink">{user?.displayName || "Freelancer"}</p>
-                      <p className="truncate text-[12px] font-medium text-ink-400">{role === "tasker" ? "Freelancer" : "Member"}</p>
+                      <p className="truncate text-[12px] font-medium text-ink-400">{photoPreview ? "New photo ready to save" : role === "tasker" ? "Freelancer" : "Member"}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => navigate("/profile")}
-                    className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[12px] font-bold text-brand ring-1 ring-ink-100 transition hover:bg-brand-50"
-                  >
-                    <Camera className="h-3.5 w-3.5" /> Change profile photo
-                  </button>
+
+                  {photoPreview ? (
+                    <div className="mt-2.5 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={resetPhoto}
+                        disabled={photoUpdating}
+                        className="flex-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-[12px] font-bold text-ink-600 transition hover:bg-ink-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={savePhoto}
+                        disabled={photoUpdating}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-3 py-2 text-[12px] font-bold text-white transition hover:bg-brand-700"
+                      >
+                        <Camera className="h-3.5 w-3.5" /> {photoUpdating ? "Saving..." : "Save photo"}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[12px] font-bold text-brand ring-1 ring-ink-100 transition hover:bg-brand-50"
+                      >
+                        <Camera className="h-3.5 w-3.5" /> Change profile photo
+                      </button>
+                    </>
+                  )}
+
+                  {photoError && (
+                    <p className="mt-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-700">{photoError}</p>
+                  )}
                 </div>
 
                 <div className="mt-1.5 space-y-0.5">
