@@ -9,7 +9,7 @@ import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "fireb
 import { db, auth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
-import { uploadProfileImage } from "@/lib/profile-image";
+import { uploadProfileImage, withTimeout } from "@/lib/profile-image";
 import { getAiResult, computeAiScore } from "@/lib/ai-score";
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
@@ -133,7 +133,8 @@ export default function ProfilePage() {
       }
       data.education = education.trim();
       if (isAdmin) data.isPrivate = isPrivate;
-      await updateDoc(doc(db, "users", user.uid), data); setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
+      await withTimeout(updateDoc(doc(db, "users", user.uid), data), 25000, "Saving is taking too long. Check your connection and try again.");
+      setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
     } catch (err: any) { setError(err?.message || "Could not save"); } };
 
   const changePassword = async () => {
@@ -157,12 +158,13 @@ export default function ProfilePage() {
   };
 
   const savePhoto = async () => {
-    if (!avatarFile || !user || !db) return;
+    if (!avatarFile || !user) return;
+    if (!db) { setError("Photo saving is unavailable right now. Please try again later."); return; }
     setPhotoUpdating(true);
     setError("");
     try {
       const url = await uploadProfileImage(user.uid, avatarFile);
-      await updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() });
+      await withTimeout(updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() }), 15000, "Saving took too long. Check your connection and try again.");
       setAvatarUrl(url);
       if (photoPreview) URL.revokeObjectURL(photoPreview);
       setPhotoPreview("");
@@ -177,11 +179,12 @@ export default function ProfilePage() {
   };
 
   const removePhoto = async () => {
-    if (!user || !db) return;
+    if (!user) return;
+    if (!db) { setError("Photo removal is unavailable right now. Please try again later."); return; }
     setPhotoUpdating(true);
     setError("");
     try {
-      await updateDoc(doc(db, "users", user.uid), { avatarUrl: "", profileUpdatedAt: new Date().toISOString() });
+      await withTimeout(updateDoc(doc(db, "users", user.uid), { avatarUrl: "", profileUpdatedAt: new Date().toISOString() }), 15000, "Saving took too long. Check your connection and try again.");
       if (photoPreview) URL.revokeObjectURL(photoPreview);
       setAvatarUrl("");
       setAvatarFile(null);

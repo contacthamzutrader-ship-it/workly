@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
-import { uploadProfileImage } from "@/lib/profile-image";
+import { uploadProfileImage, withTimeout } from "@/lib/profile-image";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -88,12 +88,20 @@ export default function FreelancerHeader() {
   };
 
   const savePhoto = async () => {
-    if (!photoFile || !user || !db) return;
+    if (!photoFile || !user) return;
+    if (!db) {
+      setPhotoError("Photo saving is unavailable right now. Please try again later.");
+      return;
+    }
     setPhotoUpdating(true);
     setPhotoError("");
     try {
       const url = await uploadProfileImage(user.uid, photoFile);
-      await updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() });
+      await withTimeout(
+        updateDoc(doc(db, "users", user.uid), { avatarUrl: url, profileUpdatedAt: new Date().toISOString() }),
+        15000,
+        "Saving took too long. Check your connection and try again."
+      );
       setAvatarUrl(url);
       resetPhoto();
     } catch (err: any) {
