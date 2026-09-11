@@ -23,7 +23,7 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
-import DashboardShell from "@/components/DashboardShell";
+import FreelancerHeader from "@/components/FreelancerHeader";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -323,5 +323,10 @@ export default function SettingsPage() {
   }
   const inChrome = user && role === "tasker";
   if (!inChrome) return renderSettings;
-  return <DashboardShell>{renderSettings}</DashboardShell>;
+  return (
+    <div className="min-h-screen bg-canvas">
+      <FreelancerHeader />
+      {renderSettings}
+    </div>
+  );
 }

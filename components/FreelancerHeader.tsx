@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
+  Camera,
   ChevronDown,
   LayoutDashboard,
   LogOut,
@@ -144,9 +145,32 @@ export default function FreelancerHeader() {
 
             {dropdownOpen && (
               <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-2xl border border-ink-100 bg-white p-1.5 shadow-elevated">
-                <div className="rounded-xl bg-ink-50/60 px-3 py-2.5">
-                  <p className="truncate text-sm font-bold text-ink">{user?.displayName || "Freelancer"}</p>
-                  <p className="truncate text-[12px] font-medium text-ink-400">{role === "tasker" ? "Freelancer" : "Member"}</p>
+                <div className="rounded-xl bg-ink-50/60 p-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={
+                        avatarUrl
+                          ? "h-14 w-14 shrink-0 overflow-hidden rounded-2xl"
+                          : "grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-black text-white"
+                      }
+                    >
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        (user?.displayName || user?.email || "U")[0].toUpperCase()
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-ink">{user?.displayName || "Freelancer"}</p>
+                      <p className="truncate text-[12px] font-medium text-ink-400">{role === "tasker" ? "Freelancer" : "Member"}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[12px] font-bold text-brand ring-1 ring-ink-100 transition hover:bg-brand-50"
+                  >
+                    <Camera className="h-3.5 w-3.5" /> Change profile photo
+                  </button>
                 </div>
 
                 <div className="mt-1.5 space-y-0.5">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, FileText, HelpCircle, Mail, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import DashboardShell from "@/components/DashboardShell";
+import FreelancerHeader from "@/components/FreelancerHeader";
 
 const FAQS: { q: string; a: string; href?: string; cta?: string }[] = [
   {
@@ -141,5 +141,10 @@ export default function HelpPage() {
   }
   const inChrome = user && role === "tasker";
   if (!inChrome) return renderHelp;
-  return <DashboardShell>{renderHelp}</DashboardShell>;
+  return (
+    <div className="min-h-screen bg-canvas">
+      <FreelancerHeader />
+      {renderHelp}
+    </div>
+  );
 }

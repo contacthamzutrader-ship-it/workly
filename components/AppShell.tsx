@@ -70,7 +70,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     isInterviewRoute ||
     isTaskerDashboard ||
     isTaskerArea ||
-    (!!user && (pathname.startsWith("/messages") || pathname.startsWith("/notifications")));
+    (!!user &&
+      (pathname.startsWith("/messages") ||
+        pathname.startsWith("/notifications") ||
+        pathname.startsWith("/settings") ||
+        pathname.startsWith("/help")));
 
   if (isInAppPage) return <main className="min-h-screen">{children}</main>;
 
