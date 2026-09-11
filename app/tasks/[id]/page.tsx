@@ -20,6 +20,7 @@ import {
   rehireFreelancer,
   PLATFORM_FEE,
   MIN_BID,
+  detectSensitiveContent,
   type Task,
   type Bid,
   type Review,
@@ -71,6 +72,8 @@ export default function TaskDetailPage() {
   const [error, setError] = useState("");
   const [inviteReady, setInviteReady] = useState(!inviteToken);
   const [warning, setWarning] = useState(false);
+  const [moderateWarning, setModerateWarning] = useState(false);
+  const [moderateReasons, setModerateReasons] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [rehireAmounts, setRehireAmounts] = useState<Record<string, string>>({});
   const [rehireBusy, setRehireBusy] = useState<string | null>(null);
@@ -187,6 +190,7 @@ export default function TaskDetailPage() {
     e.preventDefault();
     setError("");
     setWarning(false);
+    setModerateWarning(false);
     if (!Number.isFinite(offerPrice) || offerPrice < MIN_BID) {
       setError(`Your offer must be at least ${formatPKR(MIN_BID)}.`);
       return;
@@ -195,6 +199,23 @@ export default function TaskDetailPage() {
       setWarning(true);
       return;
     }
+    const reasons = detectSensitiveContent(message);
+    if (reasons.length > 0) {
+      setModerateReasons(reasons);
+      setModerateWarning(true);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      if (!user) return;
+      await placeBid({ taskId: id, bidderId: user.uid, bidderName: user.displayName || user.email || "Freelancer", amount: offerPrice, message: message.trim() });
+      setAmount(""); setMessage(""); load();
+    } catch (err: any) { setError(err?.message || "Could not place your offer"); }
+    finally { setSubmitting(false); }
+  };
+
+  const confirmModeratedSubmit = async () => {
+    setModerateWarning(false);
     setSubmitting(true);
     try {
       if (!user) return;
@@ -208,6 +229,8 @@ export default function TaskDetailPage() {
     setSubmitting(true);
     try {
       if (!user) return;
+      const reasons = detectSensitiveContent(message);
+      if (reasons.length > 0) { setModerateReasons(reasons); setModerateWarning(true); setWarning(false); setSubmitting(false); return; }
       await placeBid({ taskId: id, bidderId: user.uid, bidderName: user.displayName || user.email || "Freelancer", amount: offerPrice, message: message.trim() });
       setAmount(""); setMessage(""); setWarning(false); load();
     } catch (err: any) { setError(err?.message || "Could not place your offer"); }
@@ -567,6 +590,19 @@ export default function TaskDetailPage() {
                   <div className="mt-3 flex gap-2">
                     <button type="button" onClick={() => setWarning(false)} className="flex-1 rounded-xl border border-amber-300 px-3 py-2.5 text-sm font-bold transition hover:bg-amber-100">Cancel</button>
                     <button type="button" onClick={confirmHighOffer} disabled={submitting} className="flex-1 rounded-xl bg-amber-600 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-amber-700">{submitting ? "Submitting..." : "Yes, continue"}</button>
+                  </div>
+                </div>
+              )}
+
+              {moderateWarning && (
+                <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>Your proposal contains sensitive content (<span className="font-bold">{moderateReasons.join(", ")}</span>) and will be <span className="font-bold">flagged for moderation</span>. Please remove any personal contact details, links or external references before submitting.</p>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" onClick={() => setModerateWarning(false)} className="flex-1 rounded-xl border border-red-300 px-3 py-2.5 text-sm font-bold transition hover:bg-red-100">Edit proposal</button>
+                    <button type="button" onClick={confirmModeratedSubmit} disabled={submitting} className="flex-1 rounded-xl bg-red-600 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-red-700">{submitting ? "Submitting..." : "Submit anyway"}</button>
                   </div>
                 </div>
               )}

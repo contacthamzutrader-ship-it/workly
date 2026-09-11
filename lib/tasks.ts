@@ -89,6 +89,25 @@ export interface Bid {
   message: string;
   status: "pending" | "selected" | "withdrawn" | "rejected";
   createdAt: any;
+  moderated?: boolean;
+  moderationReason?: string;
+}
+
+const SENSITIVE_PATTERNS = [
+  { re: /https?:\/\/[^\s]+/gi, label: "link" },
+  { re: /\b[\w.-]+@[\w.-]+\.\w{2,}\b/gi, label: "email address" },
+  { re: /\b\d{3}[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/g, label: "phone number" },
+  { re: /\b(wa\.me|t\.me|telegram|whatsapp|instagram|facebook|linkedin|twitter|x\.com)\b/gi, label: "social media link" },
+  { re: /@\w+/g, label: "social handle" },
+];
+
+export function detectSensitiveContent(text: string): string[] {
+  const reasons: string[] = [];
+  for (const { re, label } of SENSITIVE_PATTERNS) {
+    if (re.test(text)) reasons.push(label);
+    re.lastIndex = 0;
+  }
+  return [...new Set(reasons)];
 }
 
 export interface Review {
@@ -333,10 +352,13 @@ export async function placeBid(input: {
   if (!existing.empty) {
     throw new Error("You have already submitted an offer for this task.");
   }
+  const moderateReasons = detectSensitiveContent(input.message);
+  const isModerated = moderateReasons.length > 0;
   await addDoc(collection(database, "bids"), {
     ...input,
     status: "pending",
     createdAt: serverTimestamp(),
+    ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
   });
   await updateDoc(doc(database, "tasks", input.taskId), {
     bidsCount: increment(1),
