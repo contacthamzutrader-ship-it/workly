@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const sizeClasses: Record<string, string> = {
-  xs: "h-10 w-[140px] sm:h-11 sm:w-[160px] lg:h-12 lg:w-[180px]",
-  sm: "h-12 w-[180px] sm:h-13 sm:w-[200px] lg:h-14 lg:w-[220px]",
-  md: "h-14 w-[200px] sm:h-15 sm:w-[230px] lg:h-16 lg:w-[260px]",
-  lg: "h-16 w-[240px] sm:h-17 sm:w-[270px] lg:h-18 lg:w-[300px]",
+  xs: "h-12 w-[160px] sm:h-14 sm:w-[200px]",
+  sm: "h-14 w-[200px] sm:h-16 sm:w-[260px]",
+  md: "h-16 w-[260px] sm:h-[72px] sm:w-[320px]",
+  lg: "h-[72px] w-[320px] sm:h-20 sm:w-[400px]",
 };
 
 export default function BrandLogo({
@@ -21,11 +21,15 @@ export default function BrandLogo({
   className?: string;
 }) {
   return (
-    <Link href={href} aria-label="Parwaz home" className={`inline-flex items-center ${className}`}>
+    <Link
+      href={href}
+      aria-label="Parwaz home"
+      className={`inline-flex shrink-0 items-center ${sizeClasses[size]} ${className}`}
+    >
       <img
         src="/img/Parwaz.png"
         alt="Parwaz"
-        className={`object-contain ${sizeClasses[size]} ${inverted ? "opacity-95" : ""}`}
+        className={`h-full w-full object-contain ${inverted ? "opacity-95" : ""}`}
       />
     </Link>
   );
