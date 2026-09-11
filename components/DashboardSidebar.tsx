@@ -228,7 +228,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       {
         key: "price" as const,
         label: "Any Price",
-        badge: priceRange ? `PKR ${priceRange.min.toLocaleString("en-PK")} – ${priceRange.max.toLocaleString("en-PK")}` : undefined,
+        badge:
+          priceRange && typeof priceRange.min === "number" && typeof priceRange.max === "number"
+            ? `PKR ${priceRange.min.toLocaleString("en-PK")} – ${priceRange.max.toLocaleString("en-PK")}`
+            : undefined,
       },
       { key: "filter" as const, label: "Other Filter", badge: undefined },
       { key: "sort" as const, label: "Sort", badge: SORT_OPTIONS.find((s) => s.key === sort)?.label },

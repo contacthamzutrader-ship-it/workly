@@ -21,6 +21,13 @@ const STORAGE_KEY = "parwaz.dashboard.prefs.v1";
 
 const DEFAULT_FILTERS: DashboardFilters = { availableOnly: false, noOffersOnly: false, hideAssigned: false, hideHasOffers: false };
 
+const SORT_KEYS: DashboardSort[] = ["recommended", "recent", "due_soon", "lowest_price", "highest_price"];
+const REMOTE_KEYS: RemoteMode[] = ["all", "remote", "in_person"];
+
+function isObj(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
 interface DashboardPrefsValue {
   filters: DashboardFilters;
   sort: DashboardSort;
@@ -45,11 +52,14 @@ export function DashboardPrefsProvider({ children }: { children: React.ReactNode
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") {
-          if (parsed.filters) setFiltersState({ ...DEFAULT_FILTERS, ...parsed.filters });
-          if (parsed.sort) setSortState(parsed.sort);
-          if (parsed.priceRange) setPriceRangeState(parsed.priceRange);
-          if (parsed.remoteMode) setRemoteModeState(parsed.remoteMode);
+        if (isObj(parsed)) {
+          if (isObj(parsed.filters)) setFiltersState({ ...DEFAULT_FILTERS, ...parsed.filters });
+          if (SORT_KEYS.includes(parsed.sort as DashboardSort)) setSortState(parsed.sort as DashboardSort);
+          if (REMOTE_KEYS.includes(parsed.remoteMode as RemoteMode)) setRemoteModeState(parsed.remoteMode as RemoteMode);
+          const pr = parsed.priceRange;
+          if (isObj(pr) && typeof pr.min === "number" && typeof pr.max === "number" && pr.min >= 0 && pr.max > pr.min) {
+            setPriceRangeState({ min: pr.min, max: pr.max });
+          }
         }
       }
     } catch {

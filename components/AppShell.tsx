@@ -65,9 +65,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       pathname.startsWith("/messages") ||
       pathname.startsWith("/tasks/"));
 
-  if (ownerMode || isInterviewRoute || isTaskerDashboard) return <main className="min-h-screen">{children}</main>;
+  const isInAppPage =
+    ownerMode ||
+    isInterviewRoute ||
+    isTaskerDashboard ||
+    isTaskerArea ||
+    (!!user && (pathname.startsWith("/messages") || pathname.startsWith("/notifications")));
 
-  if (isTaskerArea) return <main className="min-h-screen">{children}</main>;
+  if (isInAppPage) return <main className="min-h-screen">{children}</main>;
 
   return (
     <div className="flex min-h-screen flex-col">
