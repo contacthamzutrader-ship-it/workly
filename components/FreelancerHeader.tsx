@@ -99,7 +99,7 @@ export default function FreelancerHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/95 backdrop-blur-sm">
       <div className="page-shell flex items-center gap-4 py-4 sm:py-5">
-        <BrandLogo size="md" href="/dashboard" />
+        <BrandLogo size="lg" href="/dashboard" />
 
         <nav className="hidden flex-1 justify-center gap-1 lg:flex">
           {NAV_ITEMS.map(({ href, label }) => navLink(href, label))}
