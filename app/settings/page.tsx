@@ -17,13 +17,16 @@ import {
   Mail,
   Pencil,
   Save,
-  Settings2,
   ShieldCheck,
   Smartphone,
   Sparkles,
   User,
 } from "lucide-react";
 import FreelancerHeader from "@/components/FreelancerHeader";
+import NotificationSettingsPanel from "@/components/settings/NotificationSettingsPanel";
+import TaskerAlertPanel from "@/components/settings/TaskerAlertPanel";
+import SkillsPanel from "@/components/settings/SkillsPanel";
+import BadgesPanel from "@/components/settings/BadgesPanel";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -56,10 +59,6 @@ const SECTIONS: { key: SettingKey; label: string; icon: any }[] = [
 
 const DEDICATED: Partial<Record<SettingKey, string>> = {
   password: "/change-password",
-  notifications: "/notification-settings",
-  "tasker-alert": "/tasker-alert",
-  skills: "/skills",
-  badges: "/badges",
   portfolio: "/portfolio",
 };
 
@@ -175,29 +174,19 @@ export default function SettingsPage() {
   const renderSettings = (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-6xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Settings2 className="h-7 w-7" /></div>
-              <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Account centre</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Account &amp; Settings</h1><p className="mt-1 text-sm text-white/55">Manage your contact details, security, alerts and professional profile.</p></div>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-white/65"><Settings2 className="h-4 w-4 text-brand-300" /> {SECTIONS.length} settings</div>
-          </div>
-        </div>
-
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <nav className="rounded-3xl border border-ink-100 bg-white p-3 shadow-card lg:sticky lg:top-6">
+        <div className="grid items-start gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
+          <aside className="rounded-2xl bg-brand p-3 text-white shadow-card lg:sticky lg:top-[76px]">
             <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {SECTIONS.map((section) => {
                 const target = DEDICATED[section.key];
                 const isActive = section.key === active;
                 const outer = `flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-bold transition lg:w-full ${
-                  isActive ? "bg-brand-50 text-brand-dark" : "text-ink-600 hover:bg-ink-50"
+                  isActive ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
                 }`;
                 const inner = (<>
-                  <section.icon className={`h-4 w-4 ${isActive ? "text-brand" : "text-ink-400"}`} />
+                  <section.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-white/70"}`} />
                   <span className="hidden sm:inline">{section.label}</span>
-                  <ChevronRight className={`ml-auto h-3.5 w-3.5 lg:block ${isActive ? "text-brand" : "text-ink-300"} hidden`} />
+                  <ChevronRight className={`ml-auto h-3.5 w-3.5 lg:block ${isActive ? "text-white" : "text-white/40"} hidden`} />
                 </>);
                 return target ? (
                   <Link key={section.key} href={target} className={outer}>{inner}</Link>
@@ -206,7 +195,7 @@ export default function SettingsPage() {
                 );
               })}
             </div>
-          </nav>
+          </aside>
 
           <div className="min-w-0 space-y-5">
             {active === "mobile" && (
@@ -293,7 +282,35 @@ export default function SettingsPage() {
               </section>
             )}
 
-            {(active === "password" || active === "notifications" || active === "tasker-alert" || active === "skills" || active === "badges" || active === "portfolio") && (
+            {active === "notifications" && (
+              <section className="surface p-6 sm:p-7">
+                {panelHeader(<Bell className="h-5 w-5" />, "Notification Settings", "Choose what you want to be notified about.")}
+                <div className="mt-5"><NotificationSettingsPanel user={user} /></div>
+              </section>
+            )}
+
+            {active === "tasker-alert" && (
+              <section className="surface p-6 sm:p-7">
+                {panelHeader(<BellRing className="h-5 w-5" />, "Tasker Alert", "Control the tasks and alerts you receive as a freelancer.")}
+                <div className="mt-5"><TaskerAlertPanel user={user} /></div>
+              </section>
+            )}
+
+            {active === "skills" && (
+              <section className="surface p-6 sm:p-7">
+                {panelHeader(<Award className="h-5 w-5" />, "Skills", "Add, edit or remove the services and tools you offer.")}
+                <div className="mt-5"><SkillsPanel user={user} /></div>
+              </section>
+            )}
+
+            {active === "badges" && (
+              <section className="surface p-6 sm:p-7">
+                {panelHeader(<Sparkles className="h-5 w-5" />, "Badges", "Milestones that build client trust. Every badge is earned.")}
+                <div className="mt-5"><BadgesPanel user={user} /></div>
+              </section>
+            )}
+
+            {(active === "password" || active === "portfolio") && (
               <section className="surface p-6 sm:p-7">
                 {(() => {
                   const meta = SECTIONS.find((s) => s.key === active)!;
@@ -301,10 +318,6 @@ export default function SettingsPage() {
                 })()}
                 <p className="mt-4 text-sm leading-6 text-ink-500">
                   {active === "password" && "Set a new password by confirming your current one. Includes visibility toggles, validation and minimum requirements."}
-                  {active === "notifications" && "Toggle new task, offer, project, payment, message and system notifications. Preferences are saved to your account."}
-                  {active === "tasker-alert" && "Enable or pause task alerts, choose your preferred categories from the live task catalogue and control offer, assignment and payout alerts."}
-                  {active === "skills" && "Add, edit or remove the skills you offer and view your existing AI skill assessment."}
-                  {active === "badges" && "Review the badges you have earned from real activity, with descriptions and where available the date they were awarded."}
                   {active === "portfolio" && "Showcase your projects with titles, descriptions, skills, images and links. Add, edit or delete each project."}
                 </p>
                 <div className="mt-5">
