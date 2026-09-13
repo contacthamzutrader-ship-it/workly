@@ -20,11 +20,9 @@ export default function AntiCheatGuard({
   violations,
   integrityScore,
 }: AntiCheatGuardProps) {
-  const [manager, setManager] = useState<AntiCheatManager | null>(null);
   const [activeWarning, setActiveWarning] = useState<AntiCheatViolation | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
   const [isFaceDetected, setIsFaceDetected] = useState<boolean>(true);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -46,7 +44,6 @@ export default function AntiCheatGuard({
     );
 
     acm.start();
-    setManager(acm);
 
     // Check Fullscreen
     const checkFs = () => {
@@ -83,10 +80,8 @@ export default function AntiCheatGuard({
           videoRef.current.srcObject = stream;
         }
         setCameraActive(true);
-        setCameraError(null);
       } catch (err: any) {
         console.warn('Webcam permission denied or unavailable:', err);
-        setCameraError('Camera access required for AI proctoring.');
         setCameraActive(false);
       }
     }

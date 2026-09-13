@@ -177,7 +177,7 @@ export default function MessagesPage() {
           <p className="page-sub">All your task chats in one place — pick a chat to open it on the side.</p>
         </div>
 
-        <div className="mt-6 flex h-[calc(100dvh-12rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card lg:flex-row">
+        <div className="mt-6 flex h-[calc(100dvh-12rem)] min-h-[420px] flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card lg:min-h-[520px] lg:flex-row">
           <div className={`${activeId ? "hidden" : "flex"} w-full flex-col border-b border-ink-100 lg:flex lg:w-[340px] lg:shrink-0 lg:border-b-0 lg:border-r`}>
             <div className="shrink-0 space-y-3 border-b border-ink-100 p-3">
               <div className="flex gap-1 rounded-xl bg-ink-50 p-1">

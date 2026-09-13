@@ -6,13 +6,20 @@ import AppShell from "@/components/AppShell";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = headers();
-  const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host") || "localhost:3000";
+  const rawHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host") || "localhost:3000";
+  const host = String(rawHost).split(",")[0].trim().replace(/[^a-z0-9.:\-[\] ]/gi, "").replace(/\s+/g, "").slice(0, 255) || "localhost:3000";
   const protocol = requestHeaders.get("x-forwarded-proto") || (host.includes("localhost") ? "http" : "https");
   const origin = `${protocol}://${host}`;
+  let metadataBase: URL;
+  try {
+    metadataBase = new URL(origin);
+  } catch {
+    metadataBase = new URL("http://localhost:3000");
+  }
   const description = "Pakistan's smarter freelancing marketplace, powered by AI. Connect with verified talent, discover the right opportunities, and build your freelance career with intelligent AI-powered matching.";
 
   return {
-    metadataBase: new URL(origin),
+    metadataBase,
     title: {
       default: "Parwaz.pk - Pakistan's smarter freelancing marketplace",
       template: "%s | Parwaz.pk",

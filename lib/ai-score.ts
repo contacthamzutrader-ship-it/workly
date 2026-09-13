@@ -8,15 +8,6 @@ export type AiResult = {
 
 const KEY = "workly-ai-result";
 
-export function saveAiResult(result: AiResult) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(result));
-  } catch {
-    /* ignore */
-  }
-}
-
 export function getAiResult(): AiResult | null {
   if (typeof window === "undefined") return null;
   try {

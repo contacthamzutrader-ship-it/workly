@@ -218,13 +218,6 @@ export async function dispatchWebhookToPlatform(session: InterviewSession, evalu
     signature: `sig_${Math.random().toString(36).substring(2, 12)}`,
   };
 
-  console.log('[Webhook Dispatcher] Sending payload to external platform:', {
-    target: session.candidate.callbackWebhookUrl,
-    sessionId: session.sessionId,
-    score: evaluation.overallScorePercentage,
-    integrity: evaluation.integrityScorePercentage,
-  });
-
   // If external webhook URL exists, attempt fetch
   if (session.candidate.callbackWebhookUrl && session.candidate.callbackWebhookUrl.startsWith('http')) {
     try {

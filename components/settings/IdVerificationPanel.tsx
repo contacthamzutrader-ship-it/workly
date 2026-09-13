@@ -149,9 +149,9 @@ export default function IdVerificationPanel({ user }: { user: User }) {
           <div className="mt-4 space-y-3">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-ink">ID type</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {ID_TYPES.map((t) => (
-                  <button key={t.value} type="button" onClick={() => setIdType(t.value)} className={`rounded-xl border p-3 text-xs font-extrabold transition ${idType === t.value ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-brand/40"}`}>{t.label}</button>
+                  <button key={t.value} type="button" onClick={() => setIdType(t.value)} className={`flex min-h-11 min-w-[120px] flex-1 items-center justify-center rounded-xl border p-3 text-xs font-extrabold transition ${idType === t.value ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500 hover:border-brand/40"}`}>{t.label}</button>
                 ))}
               </div>
             </div>

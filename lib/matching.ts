@@ -40,14 +40,3 @@ export function isFreshTalent(createdAt: any): boolean {
   const ageDays = (Date.now() / 1000 - seconds) / 86400;
   return ageDays <= 14;
 }
-
-// Visibility Rotation (docs Part 2): inject ~10% fresh/unseen candidates.
-export function withRotation<T>(ranked: T[], fresh: T[]): T[] {
-  if (!fresh.length) return ranked;
-  const rotated: T[] = [];
-  ranked.forEach((item, i) => {
-    rotated.push(item);
-    if (i % 10 === 9 && fresh.length) rotated.push(fresh.shift() as T);
-  });
-  return rotated.concat(fresh);
-}

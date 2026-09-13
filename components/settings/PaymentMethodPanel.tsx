@@ -60,7 +60,7 @@ export default function PaymentMethodPanel({ user }: { user: User }) {
     }
     setBusy(true);
     try {
-      const item: PaymentMethod = { id: `${Date.now()}`, method, accountTitle: title, accountNumber: number };
+      const item: PaymentMethod = { id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, method, accountTitle: title, accountNumber: number };
       await updateDoc(doc(db, "users", user.uid), { paymentMethods: arrayUnion(item) });
       setMethods((m) => [...m, item]);
       setFormOpen(false);

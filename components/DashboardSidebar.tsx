@@ -102,7 +102,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
       {openPanel === "remote" && (
         <>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-1 min-[340px]:grid-cols-3 gap-1.5">
             {REMOTE_MODES.map((m) => (
               <button
                 key={m.key}

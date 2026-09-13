@@ -338,33 +338,32 @@ export async function placeBid(input: {
   if (!Number.isFinite(input.amount) || input.amount < MIN_BID) {
     throw new Error(`Your offer must be at least ${MIN_BID.toLocaleString("en-PK")}.`);
   }
-  const taskSnap = await getDoc(doc(database, "tasks", input.taskId));
-  if (!taskSnap.exists()) throw new Error("This task is no longer available.");
-  const task = taskSnap.data() as Task;
-  if (task.status !== "open") throw new Error("This task is not accepting offers.");
-  if (task.posterId === input.bidderId) throw new Error("You cannot bid on your own task.");
-  const existing = await getDocs(query(
-    collection(database, "bids"),
-    where("taskId", "==", input.taskId),
-    where("bidderId", "==", input.bidderId),
-    limit(1)
-  ));
-  if (!existing.empty) {
-    throw new Error("You have already submitted an offer for this task.");
-  }
   const moderateReasons = detectSensitiveContent(input.message);
   const isModerated = moderateReasons.length > 0;
-  await addDoc(collection(database, "bids"), {
-    ...input,
-    status: "pending",
-    createdAt: serverTimestamp(),
-    ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
+  await runTransaction(database, async (transaction) => {
+    const taskRef = doc(database, "tasks", input.taskId);
+    const taskSnap = await transaction.get(taskRef);
+    if (!taskSnap.exists()) throw new Error("This task is no longer available.");
+    const task = taskSnap.data() as Task;
+    if (task.status !== "open") throw new Error("This task is not accepting offers.");
+    if (task.posterId === input.bidderId) throw new Error("You cannot bid on your own task.");
+    const bidRef = doc(database, "bids", `${input.taskId}_${input.bidderId}`);
+    const existing = await transaction.get(bidRef);
+    if (existing.exists()) throw new Error("You have already submitted an offer for this task.");
+    transaction.set(bidRef, {
+      ...input,
+      status: "pending",
+      createdAt: serverTimestamp(),
+      ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
+    });
+    transaction.update(taskRef, {
+      bidsCount: increment(1),
+    });
   });
-  await updateDoc(doc(database, "tasks", input.taskId), {
-    bidsCount: increment(1),
-  });
-  if (taskSnap.exists()) {
-    const posterId = taskSnap.data().posterId;
+
+  try {
+    const taskAfter = await getDoc(doc(database, "tasks", input.taskId));
+    const posterId = taskAfter.exists() ? taskAfter.data().posterId : "";
     if (posterId && posterId !== input.bidderId) {
       await notify({
         userId: posterId,
@@ -374,6 +373,8 @@ export async function placeBid(input: {
         link: `/tasks/${input.taskId}`,
       });
     }
+  } catch {
+    // Notification failure should not fail the bid itself.
   }
 }
 
@@ -384,25 +385,6 @@ export async function listBidsForTask(taskId: string): Promise<Bid[]> {
     .map((d) => ({ id: d.id, ...d.data() }) as Bid)
     .filter((b) => b.taskId === taskId)
     .sort(byNewest);
-}
-
-export function subscribeBidsForTask(taskId: string, callback: (bids: Bid[]) => void) {
-  const database = needDb();
-  const q = query(collection(database, "bids"), where("taskId", "==", taskId), limit(200));
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Bid).sort(byNewest));
-  });
-}
-
-export async function updateBid(bidId: string, amount: number, message: string): Promise<void> {
-  const database = needDb();
-  if (!Number.isFinite(amount) || amount < MIN_BID) throw new Error(`Offer must be at least PKR ${MIN_BID.toLocaleString("en-PK")}.`);
-  await updateDoc(doc(database, "bids", bidId), { amount, message: message.trim(), updatedAt: serverTimestamp() });
-}
-
-export async function withdrawBid(bidId: string): Promise<void> {
-  const database = needDb();
-  await updateDoc(doc(database, "bids", bidId), { status: "withdrawn", withdrawnAt: serverTimestamp() });
 }
 
 export async function listBidsByUser(bidderId: string): Promise<Bid[]> {
@@ -489,44 +471,56 @@ export async function releasePayment(taskId: string): Promise<void> {
   const snap = await getDoc(doc(database, "tasks", taskId));
   if (!snap.exists()) return;
   const data = snap.data();
+  if (data.paymentReleased) return;
   const amount = data.heldAmount || 0;
   const fee = Math.round(amount * PLATFORM_FEE);
   const taskerGets = amount - fee;
 
-  await runTransaction(database, async (transaction) => {
-    transaction.update(doc(database, "tasks", taskId), {
+  const released = await runTransaction(database, async (transaction) => {
+    const taskRef = doc(database, "tasks", taskId);
+    const taskSnap = await transaction.get(taskRef);
+    if (!taskSnap.exists()) return false;
+    if (taskSnap.data().paymentReleased) return false;
+    transaction.update(taskRef, {
       paymentReleased: true,
       paidAt: serverTimestamp(),
       status: "completed",
     });
+    return true;
   });
+  if (!released) return;
 
-  await Promise.all([
-    addDoc(collection(database, "wallet_txs"), {
+  const posterId = data.posterId;
+  if (!posterId) throw new Error("This task has no poster to settle.");
+  if (taskerGets > 0) {
+    if (!data.assignedTo) throw new Error("This task has no assigned freelancer to pay.");
+    await addDoc(collection(database, "wallet_txs"), {
       userId: data.assignedTo,
       amount: taskerGets,
       type: "release",
-      note: `Payment for task (${snap.data()?.title || taskId}) - ${fee} platform fee`,
+      note: `Payment for task (${data.title || taskId}) - ${fee} platform fee`,
       createdAt: new Date().toISOString(),
       taskId,
-    }),
-    addDoc(collection(database, "wallet_txs"), {
-      userId: data.posterId,
-      amount,
-      type: "payment",
-      note: `Payment released for ${snap.data()?.title || taskId}`,
-      createdAt: new Date().toISOString(),
-      taskId,
-    }),
-  ]);
-
-  await notify({
-    userId: data.assignedTo,
-    type: "payment_released",
-    title: "Payment released",
-    body: `PKR ${taskerGets.toLocaleString("en-PK")} has been added to your wallet.`,
-    link: `/wallet`,
+    });
+  }
+  await addDoc(collection(database, "wallet_txs"), {
+    userId: posterId,
+    amount,
+    type: "payment",
+    note: `Payment released for ${data.title || taskId}`,
+    createdAt: new Date().toISOString(),
+    taskId,
   });
+
+  if (data.assignedTo) {
+    await notify({
+      userId: data.assignedTo,
+      type: "payment_released",
+      title: "Payment released",
+      body: `PKR ${taskerGets.toLocaleString("en-PK")} has been added to your wallet.`,
+      link: `/wallet`,
+    });
+  }
 }
 
 export async function setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
@@ -678,7 +672,12 @@ export async function addReview(input: {
   comment: string;
 }): Promise<void> {
   const database = needDb();
-  await addDoc(collection(database, "reviews"), {
+  if (!input.taskId || !input.fromId || !input.toId) throw new Error("Task and reviewers are required.");
+  if (input.fromId === input.toId) throw new Error("You cannot review yourself.");
+  if (!Number.isFinite(input.rating) || input.rating < 1 || input.rating > 5) {
+    throw new Error("Rating must be between 1 and 5.");
+  }
+  await setDoc(doc(collection(database, "reviews"), `${input.taskId}_${input.fromId}`), {
     ...input,
     createdAt: serverTimestamp(),
   });

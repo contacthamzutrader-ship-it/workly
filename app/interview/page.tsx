@@ -29,8 +29,6 @@ import {
   ArrowLeft, 
   ShieldCheck, 
   AlertTriangle, 
-  CheckCircle2, 
-  HelpCircle,
   Sparkles
 } from 'lucide-react';
 
@@ -416,7 +414,6 @@ function InterviewRoomContent() {
           interviewFailedAttempts: newFailedCount,
           lastInterviewAttemptAt: new Date().toISOString(),
         });
-        console.log("Successfully synced proctored assessment scores to Firestore.");
         setInterviewPassed(isPassed);
       }
     } catch (e) {
@@ -656,7 +653,7 @@ function InterviewRoomContent() {
             </div>
 
             {/* Stages Step Indicator */}
-            <div className="flex items-center gap-2 text-xs font-mono">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-xs font-mono">
               <span
                 className={`px-3 py-1 rounded-xl border flex items-center gap-1.5 ${
                   stage === 'round1_mcq'
@@ -756,7 +753,7 @@ function InterviewRoomContent() {
                   </div>
 
                   {/* Navigation Buttons */}
-                  <div className="flex items-center justify-between pt-6 border-t border-zinc-800">
+                  <div className="flex flex-wrap items-center gap-3 pt-6 border-t border-zinc-800">
                     <button
                       disabled={currentMcqIndex === 0}
                       onClick={() => {
@@ -832,7 +829,7 @@ function InterviewRoomContent() {
                 />
 
                 {/* AI Navigation / Finish Button */}
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     disabled={currentAiIndex === 0}
                     onClick={() => setCurrentAiIndex((prev) => prev - 1)}

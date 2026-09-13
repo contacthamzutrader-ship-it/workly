@@ -16,9 +16,7 @@ import {
   AlertTriangle,
   ChevronRight,
   ChevronDown,
-  Layers,
-  Zap,
-  Check
+  Zap
 } from 'lucide-react';
 
 interface CodeEditorProps {

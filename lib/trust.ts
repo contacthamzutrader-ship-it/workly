@@ -26,14 +26,3 @@ export async function recalcTrust(uid: string): Promise<void> {
   const score = clamp((await computeTrustScore(uid)) + penalty);
   await updateDoc(ref, { trustScore: score });
 }
-
-// Fraud Detection applies a persistent penalty stored separately so it
-// survives future review-based recalculations.
-export async function applyTrustPenalty(uid: string, points: number): Promise<void> {
-  if (!db) return;
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  const penalty = (snap.exists() ? (snap.data().trustPenalty ?? 0) : 0) + points;
-  const score = clamp((await computeTrustScore(uid)) + penalty);
-  await updateDoc(ref, { trustPenalty: penalty, trustScore: score });
-}

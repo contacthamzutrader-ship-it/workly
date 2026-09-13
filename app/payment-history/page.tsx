@@ -228,7 +228,7 @@ export default function PaymentHistoryPage() {
                         <div><p className="font-semibold text-ink-400">Client</p><p className="mt-0.5 truncate font-bold text-ink">{r.client}</p></div>
                         <div><p className="font-semibold text-ink-400">Date</p><p className="mt-0.5 font-bold text-ink">{formatDate(r.date)}</p></div>
                         <div><p className="font-semibold text-ink-400">Amount</p><p className="mt-0.5 font-bold text-ink-600">{formatPKR(r.gross)}</p></div>
-                        <div><p className="font-semibold text-ink-400">Platform deduction</p><p className="mt-0.5 font-bold text-red-500">- {formatPKR(r.fee)}</p></div>
+                        <div className="col-span-2 sm:col-span-1"><p className="font-semibold text-ink-400">Platform deduction</p><p className="mt-0.5 font-bold text-red-500">- {formatPKR(r.fee)}</p></div>
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-3">
                         <p className="text-xs font-semibold text-ink-400">Net received</p>

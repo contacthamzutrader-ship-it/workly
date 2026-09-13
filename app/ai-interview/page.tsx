@@ -8,7 +8,6 @@ import {
   Cpu, 
   Terminal, 
   Radio, 
-  Lock, 
   Layers, 
   Palette, 
   TrendingUp, 
@@ -18,10 +17,7 @@ import {
   ShieldAlert, 
   Play, 
   ArrowRight,
-  UserCheck,
-  CheckCircle2,
-  Briefcase,
-  Zap
+  UserCheck
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -109,16 +105,16 @@ function HomePageContent() {
 
       {/* Navigation Header */}
       <nav className="border-b border-zinc-800/80 bg-zinc-950/75 backdrop-blur-md sticky top-0 z-40 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <div>
+            <div className="min-w-0">
               <span className="font-extrabold text-white text-base tracking-tight flex items-center gap-2">
                 AI Assessment &amp; Proctoring Platform
               </span>
-              <p className="text-[11px] text-zinc-400 font-mono">Automated Freelancer Verification &amp; Anti-Cheating Engine</p>
+              <p className="text-[11px] text-zinc-400 font-mono hidden sm:block">Automated Freelancer Verification &amp; Anti-Cheating Engine</p>
             </div>
           </div>
 

@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowRight,
   Briefcase,
   CheckCircle2,
   ChevronRight,
   Globe,
   Languages,
   Loader2,
-  MapPin,
   Plus,
-  RotateCcw,
   Sparkles,
   User,
   X,

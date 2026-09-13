@@ -111,7 +111,7 @@ export default function EducationPanel({ user }: { user: User }) {
       let imageUrl = existingImage;
       if (imageFile) imageUrl = await uploadEducationImage(user.uid, imageFile);
       const entry: EducationEntry = {
-        id: editingId || String(Date.now()),
+        id: editingId || (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`),
         degree: trimmedDegree,
         institution: institution.trim(),
         field: field.trim(),

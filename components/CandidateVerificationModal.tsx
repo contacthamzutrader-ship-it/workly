@@ -126,8 +126,8 @@ export default function CandidateVerificationModal({
       if (document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
       }
-    } catch (e) {
-      console.log('Fullscreen request handled');
+    } catch {
+      // Some browsers block fullscreen without a user gesture.
     }
     onProceed();
   };
@@ -310,7 +310,12 @@ export default function CandidateVerificationModal({
             </div>
           )}
 
-          {/* If physical camera is active, show small live preview box */}
+          {errorMessage && (
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs leading-relaxed">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
           {cameraGranted && !isVirtualMode && (
             <div className="p-3 rounded-2xl bg-zinc-950 border border-emerald-500/30 flex items-center gap-3">
               <div className="w-16 h-12 rounded-lg bg-zinc-900 overflow-hidden border border-zinc-800 shrink-0">

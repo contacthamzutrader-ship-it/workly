@@ -38,12 +38,3 @@ export function markRead(convId: string) {
   receipts[convId] = Date.now();
   save(receipts);
 }
-
-export function receiptTimestamps(convIds: string[]): Record<string, number> {
-  const receipts = load();
-  const out: Record<string, number> = {};
-  convIds.forEach((id) => {
-    out[id] = receipts[id] || 0;
-  });
-  return out;
-}

@@ -144,9 +144,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // 3) Check admins collection for permission-based admin.
         const admin = await getAdminDoc(u.uid);
+        const loadedRole = snap.exists() ? (snap.data().role as Role) : null;
         if (admin) {
           setRole("company_admin");
           setAdminSession({ role: "company_admin", isOwner: false, permissions: admin.permissions });
+        } else if (loadedRole === "moderator") {
+          setAdminSession({
+            role: "moderator",
+            isOwner: false,
+            permissions: ["approveTasks", "manageUsers", "manageContent", "viewAnalytics"] as Permission[],
+          });
         } else {
           setAdminSession(null);
         }

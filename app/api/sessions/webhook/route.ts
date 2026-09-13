@@ -12,8 +12,6 @@ export async function POST(req: NextRequest) {
     RECEIVED_WEBHOOKS.unshift(logged);
     if (RECEIVED_WEBHOOKS.length > 50) RECEIVED_WEBHOOKS.pop();
 
-    console.log('--- [GLOBAL FREELANCER PLATFORM WEBHOOK RECEIVED] ---', payload);
-
     return NextResponse.json({
       success: true,
       message: 'Global Freelancer platform webhook received and logged successfully.',

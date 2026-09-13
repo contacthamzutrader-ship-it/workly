@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowRight,
-  BadgeCheck,
   BarChart3,
   BriefcaseBusiness,
   Check,
   CheckCircle2,
-  ChevronDown,
   CircleDollarSign,
   Clock3,
   Eye,

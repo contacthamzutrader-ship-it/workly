@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import Link from "next/link";
-import { CheckCircle2, Clock3, GraduationCap, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { sendEmailVerification } from "firebase/auth";

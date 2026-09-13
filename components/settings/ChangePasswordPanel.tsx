@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { User } from "firebase/auth";
-import { Check, Eye, EyeOff, Lock, Save } from "lucide-react";
+import { Check, Eye, EyeOff, Lock } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 

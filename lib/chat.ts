@@ -3,7 +3,6 @@ import {
   doc,
   addDoc,
   getDoc,
-  getDocs,
   query,
   orderBy,
   serverTimestamp,
@@ -120,15 +119,6 @@ export function subscribeMessages(
   return onSnapshot(q, (snap) => {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Message));
   });
-}
-
-export async function listConversations(userId: string): Promise<Conversation[]> {
-  const database = needDb();
-  const snap = await getDocs(query(collection(database, "conversations"), where("participants", "array-contains", userId), limit(200)));
-  return snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }) as Conversation)
-    .filter((c) => c.participants.includes(userId))
-    .sort((a, b) => (b.updatedAt?.seconds ?? 0) - (a.updatedAt?.seconds ?? 0));
 }
 
 export function subscribeConversations(userId: string, callback: (items: Conversation[]) => void) {

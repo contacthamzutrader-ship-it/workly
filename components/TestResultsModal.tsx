@@ -4,10 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { TestEvaluationResult } from '@/types/interview';
 import confetti from 'canvas-confetti';
 import { 
-  Award, 
   CheckCircle, 
   ShieldCheck, 
-  ShieldAlert, 
   ExternalLink, 
   CheckCircle2, 
   XCircle, 
@@ -19,8 +17,7 @@ import {
   ArrowRight,
   RotateCcw,
   Timer,
-  RefreshCw,
-  Lock
+  RefreshCw
 } from 'lucide-react';
 
 interface TestResultsModalProps {

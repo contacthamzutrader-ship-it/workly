@@ -16,8 +16,6 @@ import {
   Bot, 
   Sparkles, 
   CheckCircle2, 
-  HelpCircle, 
-  Cpu, 
   Radio 
 } from 'lucide-react';
 

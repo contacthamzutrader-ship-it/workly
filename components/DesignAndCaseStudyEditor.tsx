@@ -5,11 +5,8 @@ import { PracticalTask } from '@/types/interview';
 import { 
   FileText, 
   CheckSquare, 
-  Sparkles, 
-  Clock, 
   Layers, 
-  Award, 
-  HelpCircle 
+  Award 
 } from 'lucide-react';
 
 interface DesignAndCaseStudyEditorProps {
