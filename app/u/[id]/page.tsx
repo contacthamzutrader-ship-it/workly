@@ -413,11 +413,15 @@ export default function PublicProfilePage() {
                 ) : (
                   <ul className="space-y-3">
                     {data.education.map((entry: any, i: number) => (
-                      <li key={i} className="rounded-2xl border border-ink-100 p-4">
-                        <p className="text-sm font-black text-ink">{entry.degree || entry.title || entry}</p>
-                        {(entry.institution || entry.field || entry.startYear || entry.endYear) && (
-                          <p className="mt-1 text-xs font-semibold text-ink-500">{[entry.institution, entry.field, [entry.startYear, entry.endYear].filter(Boolean).join(" – ")].filter(Boolean).join(" · ")}</p>
-                        )}
+                      <li key={i} className="flex gap-3.5 rounded-2xl border border-ink-100 p-4">
+                        {entry.imageUrl && <img src={entry.imageUrl} alt={`${entry.degree || "Education"} document`} className="h-16 w-24 shrink-0 rounded-lg object-cover" />}
+                        <div className="min-w-0">
+                          <p className="text-sm font-black text-ink">{entry.degree || entry.title || entry}</p>
+                          {(entry.institution || entry.field || entry.startYear || entry.endYear) && (
+                            <p className="mt-1 text-xs font-semibold text-ink-500">{[entry.institution, entry.field, [entry.startYear, entry.endYear].filter(Boolean).join(" – ")].filter(Boolean).join(" · ")}</p>
+                          )}
+                          {entry.description && <p className="mt-1.5 text-xs leading-5 text-ink-400">{entry.description}</p>}
+                        </div>
                       </li>
                     ))}
                   </ul>

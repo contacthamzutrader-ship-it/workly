@@ -9,11 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { db } from "@/lib/firebase";
 import { uploadProfileImage, withTimeout } from "@/lib/profile-image";
 import { AlertTriangle, Camera, CheckCircle2, Save, ShieldCheck, Trash2, X } from "lucide-react";
-
-const GOALS = [
-  { value: "get-things-done", label: "Get things done", hint: "Hire talented freelancers to complete your tasks." },
-  { value: "earn-money", label: "Earn money", hint: "Offer your services and take on paid tasks." },
-];
+import EducationPanel from "@/components/settings/EducationPanel";
 
 const inputClass = "min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/20";
 
@@ -23,7 +19,6 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
 
   const [avatarUrl, setAvatarUrl] = useState("");
   const [about, setAbout] = useState("");
-  const [mainGoal, setMainGoal] = useState("");
   const [verified, setVerified] = useState(false);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -48,7 +43,6 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
           const d = snap.data();
           setAvatarUrl(d.avatarUrl || "");
           setAbout(d.bio || "");
-          setMainGoal(d.mainGoal || "");
           setVerified(d.idVerification?.status === "verified");
         }
       } catch { /* best effort */ }
@@ -89,7 +83,6 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
 
       const data: Record<string, any> = {
         bio: about.trim(),
-        mainGoal,
         profileUpdatedAt: new Date().toISOString(),
       };
       if (photoFile || photoRemoved) data.avatarUrl = nextAvatar;
@@ -192,31 +185,6 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
           <p className="mt-1.5 text-xs font-medium text-ink-400">This is shown in the About section of your public profile.</p>
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-extrabold text-ink">What is your main goal?</label>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {GOALS.map((goal) => {
-              const active = mainGoal === goal.value;
-              return (
-                <button
-                  key={goal.value}
-                  type="button"
-                  onClick={() => setMainGoal(goal.value)}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    active ? "border-brand bg-brand-50" : "border-ink-100 bg-white hover:border-brand/40"
-                  }`}
-                >
-                  <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full border ${active ? "border-brand" : "border-ink-200"}`}>
-                    <span className={`h-2.5 w-2.5 rounded-full ${active ? "bg-brand" : "bg-transparent"}`} />
-                  </span>
-                  <p className={`mt-2 text-sm font-black ${active ? "text-brand-dark" : "text-ink"}`}>{goal.label}</p>
-                  <p className="mt-0.5 text-xs font-medium leading-5 text-ink-400">{goal.hint}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
         {success && (
           <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600">
@@ -228,6 +196,8 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
           <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Profile"}
         </button>
       </form>
+
+      <EducationPanel user={user} />
 
       {verified && (
         <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
