@@ -3,17 +3,58 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, Award, BadgeCheck, BriefcaseBusiness, Camera, CheckCircle2, GraduationCap, Key, Languages, Link2, MapPin, Pencil, Percent, Save, Shield, Sparkles, Star, Trash2, Upload, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Award,
+  BadgeCheck,
+  Bell,
+  BellRing,
+  BriefcaseBusiness,
+  Camera,
+  CheckCircle2,
+  CreditCard,
+  Fingerprint,
+  GraduationCap,
+  History,
+  Images,
+  KeyRound,
+  Languages,
+  Link2,
+  Mail,
+  MapPin,
+  Pencil,
+  Percent,
+  Save,
+  Settings2,
+  Shield,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Star,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { db } from "@/lib/firebase";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
 import { uploadProfileImage, withTimeout } from "@/lib/profile-image";
 import { getAiResult, computeAiScore } from "@/lib/ai-score";
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import MobilePanel from "@/components/settings/MobilePanel";
+import EmailPanel from "@/components/settings/EmailPanel";
+import VerifyAccountPanel from "@/components/settings/VerifyAccountPanel";
+import ChangePasswordPanel from "@/components/settings/ChangePasswordPanel";
+import NotificationSettingsPanel from "@/components/settings/NotificationSettingsPanel";
+import TaskerAlertPanel from "@/components/settings/TaskerAlertPanel";
+import SkillsPanel from "@/components/settings/SkillsPanel";
+import BadgesPanel from "@/components/settings/BadgesPanel";
+import PortfolioPanel from "@/components/settings/PortfolioPanel";
+import PaymentMethodPanel from "@/components/settings/PaymentMethodPanel";
+import PaymentHistoryPanel from "@/components/settings/PaymentHistoryPanel";
+import IdVerificationPanel from "@/components/settings/IdVerificationPanel";
 
 export default function ProfilePage() {
   const { user, role, loading, setAccountType, interviewPassed } = useAuth();
@@ -44,11 +85,9 @@ export default function ProfilePage() {
   const [hiringNeeds, setHiringNeeds] = useState("");
   const [education, setEducation] = useState("");
   const [editing, setEditing] = useState(false);
-  const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoUpdating, setPhotoUpdating] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const photoMenuRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === "company_admin" || role === "super_admin";
 
@@ -137,18 +176,6 @@ export default function ProfilePage() {
       setAvatarUrl(uploadedAvatar); setAvatarFile(null); setSaved(true);
     } catch (err: any) { setError(err?.message || "Could not save"); } };
 
-  const changePassword = async () => {
-    if (!user?.email || !auth) return;
-    try {
-      await sendPasswordResetEmail(auth, user.email);
-      setError("");
-      setSaved(true);
-      alert("Password reset link sent to your email!");
-    } catch (err: any) {
-      setError(err?.message || "Could not send reset email");
-    }
-  };
-
   const pickPhoto = (file?: File | null) => {
     if (!file) return;
     const preview = URL.createObjectURL(file);
@@ -169,7 +196,7 @@ export default function ProfilePage() {
       if (photoPreview) URL.revokeObjectURL(photoPreview);
       setPhotoPreview("");
       setAvatarFile(null);
-      setPhotoMenuOpen(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
       setSaved(true);
     } catch (err: any) {
       setError(err?.message || "Could not save your photo. Try a JPG, PNG or WebP under 5 MB.");
@@ -189,7 +216,7 @@ export default function ProfilePage() {
       setAvatarUrl("");
       setAvatarFile(null);
       setPhotoPreview("");
-      setPhotoMenuOpen(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
       setSaved(true);
     } catch (err: any) {
       setError(err?.message || "Could not remove your photo.");
@@ -202,97 +229,35 @@ export default function ProfilePage() {
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoPreview("");
     setAvatarFile(null);
-    setPhotoMenuOpen(false);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+    setError("");
   };
 
-  useEffect(() => {
-    if (!photoMenuOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (photoMenuRef.current && !photoMenuRef.current.contains(e.target as Node)) {
-        if (photoPreview) URL.revokeObjectURL(photoPreview);
-        setPhotoPreview("");
-        setAvatarFile(null);
-        setPhotoMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photoMenuOpen]);
+  const scrollToSection = (id: string) => () => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const AccountSection = ({ id, icon, title, sub, children }: { id: string; icon: any; title: string; sub: string; children: React.ReactNode }) => (
+    <section id={id} className="card scroll-mt-24 p-6 sm:p-7">
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand">{icon}</span>
+        <div><h2 className="text-lg font-black tracking-[-0.03em] text-ink">{title}</h2><p className="text-xs font-medium text-ink-400">{sub}</p></div>
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-5 rounded-2xl border border-ink-100 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-8">
-        <div className="flex items-center gap-4">
-          <div className="relative shrink-0" ref={photoMenuRef}>
-            <button
-              type="button"
-              onClick={() => setPhotoMenuOpen((o) => !o)}
-              className="group relative block overflow-hidden rounded-2xl transition hover:opacity-95"
-              aria-label="Manage profile photo"
-            >
-              {photoPreview ? (
-                <img src={photoPreview} alt="New profile photo preview" className="h-16 w-16 object-cover" />
-              ) : avatarUrl ? (
-                <img src={avatarUrl} alt="" className="h-16 w-16 object-cover" />
-              ) : (
-                <span className="grid h-16 w-16 place-items-center bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
-              )}
-              <span className="absolute inset-0 grid place-items-center bg-ink-950/45 text-white opacity-0 transition group-hover:opacity-100">
-                <Camera className="h-5 w-5" />
-              </span>
-            </button>
-
-            {photoMenuOpen && (
-              <div className="absolute left-0 top-full z-30 mt-2 w-64 rounded-2xl border border-ink-100 bg-white p-2 shadow-elevated sm:left-auto sm:-left-40">
-                {photoPreview && (
-                  <div className="rounded-xl bg-canvas p-3">
-                    <img src={photoPreview} alt="Preview" className="h-16 w-16 rounded-xl object-cover" />
-                    <p className="mt-2 text-xs font-semibold text-ink">Preview your new photo</p>
-                    <div className="mt-3 flex gap-2">
-                      <button type="button" onClick={savePhoto} disabled={photoUpdating} className="flex-1 min-h-10 rounded-xl bg-brand px-4 text-sm font-bold text-white transition hover:bg-brand-700 disabled:opacity-60">
-                        {photoUpdating ? "Saving..." : "Save Photo"}
-                      </button>
-                      <button type="button" onClick={cancelPhoto} className="min-h-10 rounded-xl border border-ink-200 px-4 text-sm font-semibold text-ink-600 transition hover:bg-ink-50">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-1 space-y-0.5">
-                  <button
-                    type="button"
-                    onClick={() => photoInputRef.current?.click()}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink-600 transition hover:bg-brand-50"
-                  >
-                    <Camera className="h-4 w-4 text-ink-400" /> Change Photo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => photoInputRef.current?.click()}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink-600 transition hover:bg-brand-50"
-                  >
-                    <Upload className="h-4 w-4 text-ink-400" /> Upload from Device
-                  </button>
-                  <button
-                    type="button"
-                    onClick={removePhoto}
-                    disabled={photoUpdating}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
-                  >
-                    <Trash2 className="h-4 w-4" /> Remove Photo
-                  </button>
-                </div>
-              </div>
+        <div className="flex items-center gap-4" id="account-profile">
+          <div className="shrink-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
+            ) : (
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
             )}
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="sr-only"
-              onChange={(e) => pickPhoto(e.target.files?.[0])}
-            />
           </div>
           <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-[28px] font-extrabold tracking-[-0.025em] text-ink sm:text-[32px]">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
         </div>
@@ -326,22 +291,43 @@ export default function ProfilePage() {
         <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-bold text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
-        <div><label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label><div className="flex items-center gap-3 rounded-xl border border-ink-100 bg-canvas p-3.5 text-sm font-medium text-ink-500"><Camera className="h-5 w-5 text-brand" /> Manage your photo from the avatar in the top of this page. Changes save instantly.</div></div>
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-ink">Profile photo</label>
+          <div className="flex flex-col gap-4 rounded-2xl border border-ink-100 bg-canvas p-4 sm:flex-row sm:items-center">
+            <div className="shrink-0">
+              {photoPreview ? (
+                <img src={photoPreview} alt="New profile photo preview" className="h-20 w-20 rounded-2xl object-cover" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="" className="h-20 w-20 rounded-2xl object-cover" />
+              ) : (
+                <span className="grid h-20 w-20 place-items-center rounded-2xl bg-brand text-3xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-ink-200 bg-white px-4 text-xs font-extrabold text-ink-600 transition hover:bg-ink-50">
+                <Camera className="h-4 w-4 text-brand" /> {avatarUrl || photoPreview ? "Choose a different photo" : "Upload photo"}
+                <input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+              </label>
+              {photoPreview && (
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={savePhoto} disabled={photoUpdating} className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-brand px-3.5 text-xs font-extrabold text-white shadow-forest transition hover:bg-brand-700 disabled:opacity-60"><Save className="h-3.5 w-3.5" /> {photoUpdating ? "Saving..." : "Save photo"}</button>
+                  <button type="button" onClick={cancelPhoto} className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3.5 text-xs font-extrabold text-ink-600 transition hover:bg-ink-50"><X className="h-3.5 w-3.5" /> Cancel</button>
+                </div>
+              )}
+              {avatarUrl && !photoPreview && (
+                <button type="button" onClick={removePhoto} disabled={photoUpdating} className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3.5 text-xs font-extrabold text-red-600 transition hover:bg-red-50 disabled:opacity-60"><Trash2 className="h-3.5 w-3.5" /> Remove photo</button>
+              )}
+              <p className="text-xs font-medium text-ink-400">JPG, PNG or WebP under 5 MB. Changes save instantly - the same photo shows in your header and profile everywhere.</p>
+            </div>
+          </div>
+        </div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Bio</label><textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Tell others about yourself..." className="w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" /></div>
         <div><label className="mb-1.5 block text-sm font-medium text-ink">City</label><Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Lahore" /></div>
-        {accountType === "tasker" ? <><div><label className="mb-1.5 block text-sm font-medium text-ink">Professional title</label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} placeholder="e.g. Full-stack developer" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Shopify, Graphic Design" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Experience (years)</label><Input type="number" min="0" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} /></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Availability</label><select value={availability} onChange={(e) => setAvailability(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink"><option>Available now</option><option>Part-time</option><option>Weekends</option><option>Not available</option></select></div></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Education</label><Input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="e.g. BS Computer Science, Lahore" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label><Input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://yourportfolio.com" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Certifications (comma separated)</label><Input value={certifications} onChange={(e) => setCertifications(e.target.value)} placeholder="Google UX, AWS, TEVTA" /></div></> : <><div><label className="mb-1.5 block text-sm font-medium text-ink">Company / organization (optional)</label><Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Your company or team" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">What do you usually hire for?</label><textarea value={hiringNeeds} onChange={(e) => setHiringNeeds(e.target.value)} rows={3} placeholder="Tell freelancers what kind of help you need..." className="w-full rounded-xl border border-ink-200 px-4 py-3 text-sm text-ink" /></div></>}
+        {accountType === "tasker" ? <><div><label className="mb-1.5 block text-sm font-medium text-ink">Professional title</label><Input value={professionalTitle} onChange={(e) => setProfessionalTitle(e.target.value)} placeholder="e.g. Full-stack developer" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Skills (comma separated)</label><Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Shopify, Graphic Design" /></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Hourly rate (PKR)</label><Input type="number" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Experience (years)</label><Input type="number" min="0" value={experienceYears} onChange={(e) => setExperienceYears(e.target.value)} /></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1.5 block text-sm font-medium text-ink">Languages</label><Input value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Urdu, English" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Availability</label><select value={availability} onChange={(e) => setAvailability(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 text-sm text-ink"><option>Available now</option><option>Part-time</option><option>Weekends</option><option>Not available</option></select></div></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Education</label><Input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="e.g. BS Computer Science, Lahore" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Portfolio URL</label><Input type="url" value={portfolioUrl} onChange={(e) => setPortfolioUrl(e.target.value)} placeholder="https://yourportfolio.com" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Certifications</label><Input value={certifications} onChange={(e) => setCertifications(e.target.value)} placeholder="e.g. AWS Certified, Google Ads" /></div></> : <><div><label className="mb-1.5 block text-sm font-medium text-ink">Organization</label><Input value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Your company or brand name" /></div><div><label className="mb-1.5 block text-sm font-medium text-ink">Hiring needs</label><Input value={hiringNeeds} onChange={(e) => setHiringNeeds(e.target.value)} placeholder="e.g. Need a developer for 3 months" /></div></>}
         {isAdmin && <label className="flex items-start gap-3 rounded-2xl bg-[#00501F] p-4 text-sm text-white"><input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-white/30 text-brand focus:ring-brand" /><span><span className="block font-extrabold">Internal private provider</span><span className="mt-1 block text-xs leading-5 text-white/50">Hidden from public discovery and available for managed private assignments.</span></span></label>}
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         {saved && <div className="rounded-lg bg-green-50 p-3 text-sm text-green-600">Profile saved successfully!</div>}
         <Button type="submit" className="flex items-center gap-2 rounded-xl"><Save className="h-4 w-4" /> Save profile</Button>
-
-        <div className="border-t border-ink-100 pt-5">
-          <p className="text-sm font-medium text-ink mb-2">Change Password</p>
-          <p className="text-xs text-ink-500 mb-3">A reset link will be sent to {user.email}</p>
-          <button type="button" onClick={changePassword} className="flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-ink-50">
-            <Key className="h-4 w-4" /> Send reset link
-          </button>
-        </div>
       </form>
       ) : (
         <div className="card mt-6 p-6 sm:p-8">
@@ -406,6 +392,27 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      <div className="mt-10">
+        <div className="flex items-center gap-3 border-b border-ink-100 pb-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-brand text-white"><Settings2 className="h-5 w-5" /></span>
+          <div><h2 className="text-xl font-black tracking-[-0.03em] text-ink">Account &amp; settings</h2><p className="text-sm text-ink-400">Everything about your account - all in one place.</p></div>
+        </div>
+        <div className="mt-6 space-y-6">
+          <AccountSection id="mobile" icon={<Smartphone className="h-5 w-5" />} title="Mobile" sub="Your registered contact number."><MobilePanel user={user} /></AccountSection>
+          <AccountSection id="email" icon={<Mail className="h-5 w-5" />} title="Email" sub="The address you use to sign in."><EmailPanel user={user} /></AccountSection>
+          <AccountSection id="verify" icon={<ShieldCheck className="h-5 w-5" />} title="Verify Account" sub="Status of your identity and profile checks."><VerifyAccountPanel user={user} onGotoMobile={scrollToSection("mobile")} onGotoProfile={scrollToSection("account-profile")} /></AccountSection>
+          <AccountSection id="password" icon={<KeyRound className="h-5 w-5" />} title="Change Password" sub="Set a new password by confirming your current one."><ChangePasswordPanel user={user} /></AccountSection>
+          <AccountSection id="notifications" icon={<Bell className="h-5 w-5" />} title="Notification Settings" sub="Choose what you want to be notified about."><NotificationSettingsPanel user={user} /></AccountSection>
+          <AccountSection id="tasker-alert" icon={<BellRing className="h-5 w-5" />} title="Tasker Alert" sub="Control the tasks and alerts you receive as a freelancer."><TaskerAlertPanel user={user} /></AccountSection>
+          <AccountSection id="skills" icon={<Award className="h-5 w-5" />} title="Skills" sub="Add, edit or remove the services and tools you offer."><SkillsPanel user={user} /></AccountSection>
+          <AccountSection id="badges" icon={<Sparkles className="h-5 w-5" />} title="Badges" sub="Milestones that build client trust. Every badge is earned."><BadgesPanel user={user} /></AccountSection>
+          <AccountSection id="portfolio" icon={<Images className="h-5 w-5" />} title="Portfolio" sub="Show clients the work you have delivered."><PortfolioPanel user={user} /></AccountSection>
+          <AccountSection id="payment-method" icon={<CreditCard className="h-5 w-5" />} title="Payment Method" sub="Where your task payments are paid out."><PaymentMethodPanel user={user} /></AccountSection>
+          <AccountSection id="payment-history" icon={<History className="h-5 w-5" />} title="Payment History" sub="Every hold, payout and wallet movement."><PaymentHistoryPanel user={user} /></AccountSection>
+          <AccountSection id="id-verification" icon={<Fingerprint className="h-5 w-5" />} title="ID Verification" sub="Confirm your identity with a government ID."><IdVerificationPanel user={user} /></AccountSection>
+        </div>
+      </div>
 
       {reviews.length > 0 && (
         <div className="card mt-6 p-6">
