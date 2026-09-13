@@ -74,6 +74,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       (pathname.startsWith("/messages") ||
         pathname.startsWith("/notifications") ||
         pathname.startsWith("/settings") ||
+        pathname.startsWith("/u/") ||
         pathname.startsWith("/help")));
 
   if (isInAppPage) return <main className="min-h-screen">{children}</main>;

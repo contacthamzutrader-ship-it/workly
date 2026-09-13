@@ -266,8 +266,8 @@ export default function FreelancerHeader() {
                   <button onClick={() => navigate("/dashboard")} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
                     <LayoutDashboard className="h-4 w-4 text-ink-400" /> Dashboard
                   </button>
-                  <button onClick={() => navigate("/profile")} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
-                    <UserRound className="h-4 w-4 text-ink-400" /> Profile
+                  <button onClick={() => user && navigate(`/u/${user.uid}`)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold text-ink-600 transition hover:bg-brand-50">
+                    <UserRound className="h-4 w-4 text-ink-400" /> Profile (Public View)
                   </button>
                 </div>
 
