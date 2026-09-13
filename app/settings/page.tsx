@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowUpRight,
   Award,
   Bell,
   BellRing,
@@ -15,13 +13,13 @@ import {
   Images,
   KeyRound,
   Mail,
-  Pencil,
   ShieldCheck,
   Smartphone,
   Sparkles,
   User,
 } from "lucide-react";
 import FreelancerHeader from "@/components/FreelancerHeader";
+import ProfilePanel from "@/components/settings/ProfilePanel";
 import MobilePanel from "@/components/settings/MobilePanel";
 import EmailPanel from "@/components/settings/EmailPanel";
 import VerifyAccountPanel from "@/components/settings/VerifyAccountPanel";
@@ -35,8 +33,6 @@ import PaymentMethodPanel from "@/components/settings/PaymentMethodPanel";
 import PaymentHistoryPanel from "@/components/settings/PaymentHistoryPanel";
 import IdVerificationPanel from "@/components/settings/IdVerificationPanel";
 import { useAuth } from "@/lib/auth-context";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 type SettingKey =
   | "mobile"
@@ -73,26 +69,10 @@ export default function SettingsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [active, setActive] = useState<SettingKey>("mobile");
-  const [profile, setProfile] = useState<any>({});
 
   useEffect(() => { if (!loading && !user) router.replace("/login?redirect=/settings"); }, [loading, user, router]);
 
-  useEffect(() => {
-    if (!user || !db) return;
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
-          const d = snap.data();
-          setProfile(d);
-        }
-      } catch { /* Profile is optional for settings. */ }
-    })();
-  }, [user]);
-
   if (loading || !user) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
-
-  const profileComplete = Boolean(profile.profileComplete);
 
   const panelHeader = (icon: any, title: string, sub: string) => (
     <div className="flex items-center gap-3">
@@ -140,24 +120,8 @@ export default function SettingsPage() {
 
             {active === "profile" && (
               <section className="surface p-6 sm:p-7">
-                {panelHeader(<User className="h-5 w-5" />, "Profile", "Everything clients see about you.")}
-                <div className="mt-5 flex items-center gap-4 rounded-2xl bg-ink-50 p-4">
-                  {profile.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-                  ) : (
-                    <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(profile.name || user.email || "U")[0].toUpperCase()}</span>
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-lg font-black text-ink">{profile.name || "Your Parwaz profile"}</p>
-                    <p className="truncate text-sm font-semibold text-ink-400">{profile.professionalTitle || "Freelancer"}</p>
-                    <p className="mt-0.5 text-xs font-medium text-ink-400">{profileComplete ? "Profile complete" : "Profile incomplete"}</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm leading-6 text-ink-500">Your complete profile includes your photo, professional title, bio, location, skills, experience, education, languages, portfolio, badges and scores. Clients review it before contacting you.</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Link href="/profile" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</Link>
-                  <Link href="/profile" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink-200 bg-white px-5 text-sm font-extrabold text-ink transition hover:bg-ink-50">View full profile <ArrowUpRight className="h-4 w-4" /></Link>
-                </div>
+                {panelHeader(<User className="h-5 w-5" />, "Profile", "Manage the details clients see about you.")}
+                <div className="mt-5"><ProfilePanel user={user} /></div>
               </section>
             )}
 

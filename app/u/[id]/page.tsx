@@ -211,9 +211,6 @@ export default function PublicProfilePage() {
                   )}
                 </div>
               </div>
-              <Link href="/messages" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">
-                <MessageSquareText className="h-4 w-4" /> Send a message
-              </Link>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-4 text-sm font-semibold text-ink-500">
