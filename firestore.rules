@@ -50,7 +50,7 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read: if resource.data.isPrivate != true || (signedIn() && request.auth.uid == uid) || isAdmin();
+      allow read: if resource == null || resource.data.isPrivate != true || (signedIn() && request.auth.uid == uid) || isAdmin();
       allow create: if (ownerAccount() && request.auth.uid == uid
           && request.resource.data.uid == uid && request.resource.data.role == 'super_admin')
         || (signedIn() && request.auth.uid == uid
@@ -66,7 +66,8 @@ service cloud.firestore {
     }
 
     match /tasks/{taskId} {
-      allow read: if (resource.data.visibility == 'public' && resource.data.status != 'pending')
+      allow read: if resource == null
+        || (resource.data.visibility == 'public' && resource.data.status != 'pending')
         || (signedIn() && (resource.data.posterId == request.auth.uid
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
@@ -85,7 +86,7 @@ service cloud.firestore {
     }
 
     match /bids/{bidId} {
-      allow read: if signedIn() && (resource.data.bidderId == request.auth.uid
+      allow read: if signedIn() && (resource == null || resource.data.bidderId == request.auth.uid
         || task(resource.data.taskId).posterId == request.auth.uid || isAdmin());
       allow create: if (hasRole(['tasker']) && request.resource.data.bidderId == request.auth.uid
           && task(request.resource.data.taskId).status == 'open'

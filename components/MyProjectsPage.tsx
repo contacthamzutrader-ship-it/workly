@@ -66,12 +66,6 @@ export default function MyProjectsPage({ initialTab = "all" }: { initialTab?: Pr
 
   return (
     <div className="font-ui space-y-6">
-      <div>
-        <p className="page-eyebrow">My Projects</p>
-        <h1 className="page-title">My Projects</h1>
-        <p className="page-sub">Manage and track your current and previous work.</p>
-      </div>
-
       {/* Tabs */}
       <div className="flex gap-1 overflow-x-auto rounded-2xl border border-ink-100 bg-white p-1.5">
         {TABS.map((t) => {

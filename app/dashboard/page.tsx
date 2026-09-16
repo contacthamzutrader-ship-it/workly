@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { listTasksByPoster, type Task } from "@/lib/tasks";
 import DashboardShell from "@/components/DashboardShell";
 import TaskerDashboard from "@/components/TaskerDashboard";
+import DashboardVideoSlider from "@/components/DashboardVideoSlider";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
@@ -49,7 +50,7 @@ export default function DashboardPage() {
 
   if (role === "tasker") {
     return (
-      <DashboardShell>
+      <DashboardShell headerSlot={<DashboardVideoSlider />}>
         <TaskerDashboard />
       </DashboardShell>
     );

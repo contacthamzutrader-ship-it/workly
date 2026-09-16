@@ -28,7 +28,7 @@ import {
 } from "@/lib/tasks";
 import { getOrCreateConversation } from "@/lib/chat";
 import { computeBidMatch, isFreshTalent, type BidMatch } from "@/lib/matching";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc, doc, collection, query, where, getDocs, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -61,6 +61,7 @@ export default function TaskDetailPage() {
   const { user, role, loading: authLoading } = useAuth();
   const [task, setTask] = useState<Task | null>(null);
   const [bids, setBids] = useState<BidView[]>([]);
+  const [myBid, setMyBid] = useState<Bid | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rehireCandidates, setRehireCandidates] = useState<RehireCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,24 +100,57 @@ export default function TaskDetailPage() {
       const t = await getTask(id);
       if (!t) { setNotFound(true); return; }
       setTask(t);
-      if (user && t.posterId === user.uid) setRehireCandidates(await listRehireCandidates(t.posterId));
+      if (user && t.posterId === user.uid) {
+        try {
+          setRehireCandidates(await listRehireCandidates(t.posterId));
+        } catch (rhErr) {
+          console.warn("Could not load rehire candidates:", rhErr);
+        }
+      }
+      if (user && role === "tasker" && db) {
+        try {
+          const myBidSnap = await getDocs(query(
+            collection(db, "bids"),
+            where("taskId", "==", id),
+            where("bidderId", "==", user.uid),
+            limit(1)
+          ));
+          if (!myBidSnap.empty) {
+            setMyBid({ id: myBidSnap.docs[0].id, ...myBidSnap.docs[0].data() } as Bid);
+          } else {
+            setMyBid(null);
+          }
+        } catch (mbErr) {
+          console.warn("Could not check user's existing bid:", mbErr);
+        }
+      }
       const canReadBids = !!user && (user.uid === t.posterId || isAdmin);
       const rawBids = canReadBids ? await listBidsForTask(id) : [];
       const withMatch = await Promise.all(rawBids.map(async (b) => {
         let match: BidMatch | undefined; let fresh = false;
         if (db) {
-          const s = await getDoc(doc(db, "users", b.bidderId));
-          if (s.exists()) {
-            const d = s.data();
-            match = computeBidMatch(t, { trust: d.trustScore ?? 70, success: d.successRate ?? 80, skills: d.skills ?? [] });
-            fresh = isFreshTalent(d.createdAt);
+          try {
+            const s = await getDoc(doc(db, "users", b.bidderId));
+            if (s.exists()) {
+              const d = s.data();
+              match = computeBidMatch(t, { trust: d.trustScore ?? 70, success: d.successRate ?? 80, skills: d.skills ?? [] });
+              fresh = isFreshTalent(d.createdAt);
+            }
+          } catch (userErr) {
+            console.warn("Could not read bidder profile details:", userErr);
           }
         }
         return { ...b, match, fresh };
       }));
       withMatch.sort((a, b) => (b.match?.percent ?? 0) - (a.match?.percent ?? 0));
       setBids(withMatch);
-      if (t.assignedTo) setReviews(await listReviewsForUser(t.assignedTo));
+      if (t.assignedTo) {
+        try {
+          setReviews(await listReviewsForUser(t.assignedTo));
+        } catch (revErr) {
+          console.warn("Could not load reviews:", revErr);
+        }
+      }
     } catch (err: any) {
       setError(err?.message || "This task is not available to this account.");
       setNotFound(true);
@@ -158,10 +192,16 @@ export default function TaskDetailPage() {
 
   useEffect(() => {
     if (!id || !inviteReady) return;
-    return subscribeTask(id, (liveTask) => {
-      if (!liveTask) setNotFound(true);
-      else setTask(liveTask);
-    });
+    return subscribeTask(
+      id,
+      (liveTask) => {
+        if (!liveTask) setNotFound(true);
+        else setTask(liveTask);
+      },
+      (err) => {
+        console.warn("Realtime task subscription error:", err);
+      }
+    );
   }, [id, inviteReady]);
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" /></div>;
@@ -171,7 +211,8 @@ export default function TaskDetailPage() {
   const isAssigned = user?.uid === task.assignedTo;
   const canBid = !!user && role === "tasker" && task.status === "open"
     && (task.visibility === "public" || (task.visibility === "private" && inviteReady))
-    && !isPoster;
+    && !isPoster
+    && !myBid;
   const canSelect = (isPoster || isAdmin) && task.status === "open";
   const canManage = (isAssigned || isAdmin) && (task.status === "assigned" || task.status === "in_progress");
   const canRequestPayment = isAssigned && task.status === "completed" && !task.paymentRequested && !task.paymentReleased;
@@ -536,6 +577,29 @@ export default function TaskDetailPage() {
 
         {/* ============ RIGHT COLUMN ============ */}
         <aside className="space-y-4 lg:sticky lg:top-6">
+          {myBid && (
+            <div className="rounded-2xl border border-green-200 bg-white p-6 shadow-card">
+              <div className="flex items-center gap-2 text-green-700 font-bold text-sm">
+                <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                <span>Offer Submitted</span>
+              </div>
+              <p className="mt-2 text-3xl font-black text-ink">{formatPKR(myBid.amount)}</p>
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-bold text-green-800 capitalize">
+                Status: {myBid.status || "pending"}
+              </div>
+              {myBid.message && (
+                <div className="mt-4 rounded-xl border border-ink-100 bg-canvas p-3.5 text-sm text-ink-700">
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-ink-400 mb-1">Your Proposal</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{myBid.message}</p>
+                </div>
+              )}
+              <div className="mt-4 flex items-start gap-2 rounded-xl bg-ink-50 p-3 text-xs leading-5 text-ink-500">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                <span>You have submitted an offer for this task. You will receive a notification when the client reviews your proposal.</span>
+              </div>
+            </div>
+          )}
+
           {canBid ? (
             <form onSubmit={submitBid} className="rounded-2xl border border-brand-200 bg-white p-6 shadow-card">
               <h2 className="flex items-center gap-2 text-lg font-black text-ink"><BriefcaseBusiness className="h-5 w-5 text-brand" /> Make an Offer</h2>

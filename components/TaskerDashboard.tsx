@@ -38,17 +38,8 @@ export default function TaskerDashboard() {
     );
   }
 
-  const firstName = (user?.displayName || "there").split(" ")[0];
-
   return (
     <div className="font-ui space-y-8">
-      {/* Welcome band */}
-      <section>
-        <p className="page-eyebrow">Freelancer workspace</p>
-        <h1 className="page-title">Welcome back, {firstName}.</h1>
-        <p className="page-sub">Find your next opportunity and manage your projects.</p>
-      </section>
-
       {/* Recommended tasks */}
       <section className="card overflow-hidden">
         <div className="flex items-center justify-between gap-4 border-b border-ink-100 px-5 py-4 sm:px-6">

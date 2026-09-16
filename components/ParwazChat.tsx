@@ -140,21 +140,35 @@ export default function ParwazChat() {
     });
   };
 
-  const handleResetChat = () => {
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleResetChat = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsResetting(true);
+    setTimeout(() => setIsResetting(false), 650);
+
     try {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch {
-      // Ignore
+      // Ignore storage errors
     }
-    setMessages([
-      {
-        ...INITIAL_MESSAGE,
-        id: `msg_welcome_${Date.now()}`,
-        timestamp: "Just now",
-        emotion: "laugh",
-      },
-    ]);
+
+    setInput("");
+    setIsLoading(false);
     setCurrentEmotion("laugh");
+
+    const freshWelcome: ChatMessage = {
+      ...INITIAL_MESSAGE,
+      id: `msg_welcome_${Date.now()}`,
+      timestamp: "Just now",
+      emotion: "laugh",
+      suggestedQuestions: DEFAULT_SUGGESTIONS,
+    };
+
+    setMessages([freshWelcome]);
   };
 
   const handleSend = async (customText?: string) => {
@@ -174,6 +188,8 @@ export default function ParwazChat() {
     setIsLoading(true);
     setCurrentEmotion("thinking");
 
+    const startTime = Date.now();
+
     try {
       const res = await fetch("/api/parwaz-chat", {
         method: "POST",
@@ -191,6 +207,13 @@ export default function ParwazChat() {
       }
 
       const data = await res.json();
+
+      // Ensure user sees a natural, thoughtful thinking animation (min 450ms)
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 450) {
+        await new Promise((resolve) => setTimeout(resolve, 450 - elapsed));
+      }
+
       const botEmotion: EmojiEmotion = data.emotion || (data.isOutOfScope ? "apologetic" : "speaking");
       setCurrentEmotion(botEmotion);
 
@@ -211,7 +234,7 @@ export default function ParwazChat() {
       const fallbackMsg: ChatMessage = {
         id: `bot_${Date.now()}`,
         sender: "assistant",
-        text: "I am ParwazChat, your dedicated Parwaz.pk assistant. You can ask me how to post a task, take the AI skill interview, or withdraw earnings to your wallet!",
+        text: "I am **ParwazChat**, your dedicated Parwaz.pk assistant. You can ask me how to post a task, take the AI skill interview, or win clients on Parwaz!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         emotion: "smile",
         suggestedQuestions: DEFAULT_SUGGESTIONS,
@@ -335,12 +358,13 @@ export default function ParwazChat() {
 
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={handleResetChat}
-                title="Start new conversation"
-                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-colors"
-                aria-label="Start new conversation"
+                title="Restart conversation"
+                className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-all active:scale-90"
+                aria-label="Restart conversation"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className={`w-4 h-4 transition-transform duration-500 ${isResetting ? "animate-spin text-emerald-300" : ""}`} />
               </button>
               <button
                 onClick={handleToggle}

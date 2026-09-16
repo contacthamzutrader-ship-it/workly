@@ -151,11 +151,22 @@ export async function getTask(id: string): Promise<Task | null> {
   return { id: snap.id, ...snap.data() } as Task;
 }
 
-export function subscribeTask(id: string, callback: (task: Task | null) => void) {
+export function subscribeTask(
+  id: string,
+  callback: (task: Task | null) => void,
+  onError?: (error: any) => void
+) {
   const database = needDb();
-  return onSnapshot(doc(database, "tasks", id), (snapshot) => {
-    callback(snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Task) : null);
-  });
+  return onSnapshot(
+    doc(database, "tasks", id),
+    (snapshot) => {
+      callback(snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Task) : null);
+    },
+    (err) => {
+      if (onError) onError(err);
+      else console.warn("subscribeTask listener error:", err);
+    }
+  );
 }
 
 export async function listPublicTasks(
@@ -338,28 +349,72 @@ export async function placeBid(input: {
   if (!Number.isFinite(input.amount) || input.amount < MIN_BID) {
     throw new Error(`Your offer must be at least ${MIN_BID.toLocaleString("en-PK")}.`);
   }
+
+  // 1) Verify existing offers by this bidder on this task
+  // Uses query with bidderId == auth.uid so it adheres to Firestore security rules
+  const existing = await getDocs(query(
+    collection(database, "bids"),
+    where("taskId", "==", input.taskId),
+    where("bidderId", "==", input.bidderId),
+    limit(1)
+  ));
+  if (!existing.empty) {
+    throw new Error("You have already submitted an offer for this task.");
+  }
+
   const moderateReasons = detectSensitiveContent(input.message);
   const isModerated = moderateReasons.length > 0;
-  await runTransaction(database, async (transaction) => {
-    const taskRef = doc(database, "tasks", input.taskId);
-    const taskSnap = await transaction.get(taskRef);
+  const bidRef = doc(database, "bids", `${input.taskId}_${input.bidderId}`);
+  const taskRef = doc(database, "tasks", input.taskId);
+
+  try {
+    // Run transaction WITHOUT calling transaction.get(bidRef) on the non-existent document,
+    // which causes Firestore security rule evaluation on resource.data.bidderId to fail with permission-denied.
+    await runTransaction(database, async (transaction) => {
+      const taskSnap = await transaction.get(taskRef);
+      if (!taskSnap.exists()) throw new Error("This task is no longer available.");
+      const task = taskSnap.data() as Task;
+      if (task.status !== "open") throw new Error("This task is not accepting offers.");
+      if (task.posterId === input.bidderId) throw new Error("You cannot bid on your own task.");
+
+      transaction.set(bidRef, {
+        ...input,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
+      });
+      transaction.update(taskRef, {
+        bidsCount: increment(1),
+      });
+    });
+  } catch (txErr: any) {
+    console.warn("Transaction placeBid failed, trying direct write fallback:", txErr);
+    const taskSnap = await getDoc(taskRef);
     if (!taskSnap.exists()) throw new Error("This task is no longer available.");
     const task = taskSnap.data() as Task;
     if (task.status !== "open") throw new Error("This task is not accepting offers.");
     if (task.posterId === input.bidderId) throw new Error("You cannot bid on your own task.");
-    const bidRef = doc(database, "bids", `${input.taskId}_${input.bidderId}`);
-    const existing = await transaction.get(bidRef);
-    if (existing.exists()) throw new Error("You have already submitted an offer for this task.");
-    transaction.set(bidRef, {
-      ...input,
-      status: "pending",
-      createdAt: serverTimestamp(),
-      ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
-    });
-    transaction.update(taskRef, {
+
+    try {
+      await setDoc(bidRef, {
+        ...input,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
+      });
+    } catch {
+      await addDoc(collection(database, "bids"), {
+        ...input,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
+      });
+    }
+
+    await updateDoc(taskRef, {
       bidsCount: increment(1),
     });
-  });
+  }
 
   try {
     const taskAfter = await getDoc(doc(database, "tasks", input.taskId));

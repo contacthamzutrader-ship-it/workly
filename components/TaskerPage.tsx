@@ -1,13 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import DashboardShell from "@/components/DashboardShell";
+import DashboardVideoSlider from "@/components/DashboardVideoSlider";
 import { useAuth } from "@/lib/auth-context";
 
-export default function TaskerPage({ children }: { children: React.ReactNode }) {
+export default function TaskerPage({
+  children,
+  headerSlot,
+}: {
+  children: React.ReactNode;
+  headerSlot?: React.ReactNode;
+}) {
   const { user, role, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -20,5 +28,13 @@ export default function TaskerPage({ children }: { children: React.ReactNode }) 
 
   if (role !== "tasker") return null;
 
-  return <DashboardShell>{children}</DashboardShell>;
+  // On /projects routes, display the full-width DashboardVideoSlider
+  const activeHeaderSlot =
+    headerSlot !== undefined
+      ? headerSlot
+      : pathname.startsWith("/projects")
+      ? <DashboardVideoSlider />
+      : undefined;
+
+  return <DashboardShell headerSlot={activeHeaderSlot}>{children}</DashboardShell>;
 }
