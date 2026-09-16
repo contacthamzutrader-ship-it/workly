@@ -21,6 +21,7 @@ import { notify } from "./notifications";
 
 export const PLATFORM_FEE = 0.15; // 15% commission like Airtasker
 export const MIN_BID = 1000; // minimum proposal amount (PKR)
+export const MIN_BUDGET = 1000; // minimum task budget (PKR)
 
 export const CATEGORIES = [
   "Cleaning",
@@ -136,6 +137,9 @@ export async function createTask(
   input: Omit<Task, "id" | "bidsCount" | "createdAt" | "assignedTo" | "assignedName">
 ): Promise<string> {
   const database = needDb();
+  if (!Number.isFinite(input.budget) || input.budget < MIN_BUDGET) {
+    throw new Error(`Total budget must be at least PKR ${MIN_BUDGET.toLocaleString("en-PK")}.`);
+  }
   const ref = await addDoc(collection(database, "tasks"), {
     ...input,
     bidsCount: 0,

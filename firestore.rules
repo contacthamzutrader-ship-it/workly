@@ -71,8 +71,9 @@ service cloud.firestore {
         || (signedIn() && (resource.data.posterId == request.auth.uid
           || resource.data.assignedTo == request.auth.uid || isModerator()))
         || hasPrivateInvite(taskId);
-      allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
-        || (isAdmin() && request.resource.data.posterId == request.auth.uid);
+      allow create: if ((hasRole(['customer']) && request.resource.data.posterId == request.auth.uid)
+        || (isAdmin() && request.resource.data.posterId == request.auth.uid))
+        && request.resource.data.budget >= 1000;
       allow update: if isAdmin()
         || (signedIn() && resource.data.posterId == request.auth.uid)
         || (signedIn() && resource.data.assignedTo == request.auth.uid

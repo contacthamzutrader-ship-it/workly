@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { createTask, CATEGORIES } from "@/lib/tasks";
+import { createTask, CATEGORIES, MIN_BUDGET } from "@/lib/tasks";
 import { analyzeTask, type TaskSuggestion } from "@/lib/hf";
 import { getAutoApprove } from "@/lib/admin";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import {
+  AlertTriangle,
   ArrowRight,
   Calendar,
   Check,
@@ -79,6 +80,14 @@ export default function PostTaskPage() {
     e.preventDefault();
     setBusy(true);
     setError("");
+
+    const budgetNum = Number(budget);
+    if (!Number.isFinite(budgetNum) || budgetNum < MIN_BUDGET) {
+      setError(`Total budget must be at least ${formatPKR(MIN_BUDGET)}.`);
+      setBusy(false);
+      return;
+    }
+
     try {
       const auto = await getAutoApprove();
       const moderation = auto
@@ -89,7 +98,7 @@ export default function PostTaskPage() {
         title: title.trim(),
         description: description.trim(),
         category,
-        budget: Number(budget),
+        budget: budgetNum,
         location: location.trim(),
         deadline: deadline || undefined,
         posterId: user.uid,
@@ -174,7 +183,24 @@ export default function PostTaskPage() {
                 </div>
                 <div>
                   <label className={labelClass}><CircleDollarSign className="h-4 w-4 text-brand" /> Total budget (PKR)</label>
-                  <Input type="number" min={500} step={100} value={budget} onChange={(e) => setBudget(e.target.value)} required placeholder="25,000" />
+                  <Input
+                    type="number"
+                    min={MIN_BUDGET}
+                    step={100}
+                    value={budget}
+                    onChange={(e) => {
+                      setBudget(e.target.value);
+                      if (error && Number(e.target.value) >= MIN_BUDGET) setError("");
+                    }}
+                    required
+                    placeholder="e.g. 5,000 (Min. PKR 1,000)"
+                    className={budget && Number(budget) < MIN_BUDGET ? "border-red-300 focus:border-red-500 focus:ring-red-400/15" : ""}
+                  />
+                  {budget && Number(budget) < MIN_BUDGET && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Total budget must be at least {formatPKR(MIN_BUDGET)}.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className={labelClass}><MapPin className="h-4 w-4 text-brand" /> Location</label>
@@ -212,7 +238,7 @@ export default function PostTaskPage() {
             <div className="surface p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-ink-400">Budget preview</p>
               <p className="mt-2 text-2xl font-black text-ink">{budget ? formatPKR(Number(budget)) : "PKR -"}</p>
-              <p className="mt-2 text-xs leading-5 text-ink-500">Professionals see one clear total budget. You can compare offers before choosing anyone.</p>
+              <p className="mt-2 text-xs leading-5 text-ink-500">Professionals see one clear total budget (minimum {formatPKR(MIN_BUDGET)}). You can compare offers before choosing anyone.</p>
             </div>
           </aside>
         </div>
