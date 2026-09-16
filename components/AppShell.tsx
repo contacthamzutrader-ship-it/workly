@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { OWNER_EMAIL } from "@/lib/admin";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ParwazChat from "@/components/ParwazChat";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, role, loading, onboardingCompleted, interviewPassed } = useAuth();
@@ -15,6 +16,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
+
+    if (ownerMode && pathname !== "/admin") {
+      router.replace("/admin");
+      return;
+    }
 
     if (user && role === "tasker") {
       if (!onboardingCompleted) {
@@ -77,13 +83,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         pathname.startsWith("/u/") ||
         pathname.startsWith("/help")));
 
-  if (isInAppPage) return <main className="min-h-screen">{children}</main>;
-
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">{children}</main>
-      <Footer />
-    </div>
+    <>
+      {isInAppPage ? (
+        <main className="min-h-screen">{children}</main>
+      ) : (
+        <div className="flex min-h-screen flex-col">
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
+      )}
+      {!isInterviewRoute && <ParwazChat />}
+    </>
   );
 }
