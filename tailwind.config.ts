@@ -81,8 +81,8 @@ const config: Config = {
         sun: "#F6B94A",
       },
       fontFamily: {
-        sans: ["Open Sans", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
-        heading: ["Playfair Display", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "Inter", "system-ui", "-apple-system", "sans-serif"],
+        heading: ["var(--font-heading)", "Plus Jakarta Sans", "system-ui", "-apple-system", "sans-serif"],
       },
       boxShadow: {
         card: "0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)",

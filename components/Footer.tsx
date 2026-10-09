@@ -13,11 +13,11 @@ const columns = {
     { label: "AI Skill Check", href: "/interview" },
     { label: "How it works", href: "/#how-it-works" },
     { label: "AI features", href: "/#ai" },
-    { label: "Why Parwaz", href: "/#why" },
+    { label: "Why Workly", href: "/#why" },
   ],
   Support: [
     { label: "Safety & trust", href: "/#trust" },
-    { label: "Parwaz SafeGuard", href: "/#trust" },
+    { label: "Workly SafeGuard", href: "/#trust" },
     { label: "Help centre", href: "/help" },
   ],
 };
@@ -53,7 +53,7 @@ export default function Footer() {
           ))}
 
           <div>
-            <h3 className="text-xs font-extrabold uppercase tracking-[0.16em] text-white/40">Powered by Parwaz AI</h3>
+            <h3 className="text-xs font-extrabold uppercase tracking-[0.16em] text-white/40">Powered by Workly AI</h3>
             <p className="mt-4 text-sm leading-6 text-white/60">Smart skill verification, intelligent matching, and milestone protection keep every hire fair and safe.</p>
             <Link href="/interview" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">
               <Sparkles className="h-4 w-4" /> Try the AI Skill Check
@@ -62,7 +62,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>&copy; {new Date().getFullYear()} Parwaz.pk. All rights reserved.</span>
+          <span>&copy; {new Date().getFullYear()} Workly.pk. All rights reserved.</span>
           <span>Pakistan&apos;s premier freelancing and task marketplace.</span>
         </div>
       </div>
