@@ -320,7 +320,7 @@ export default function Home() {
                     </select>
                     <button
                       type="submit"
-                      className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-95"
+                      className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-extrabold text-white shadow-md transition hover:bg-emerald-700 active:scale-95"
                     >
                       Find Talent <ArrowRight className="h-4 w-4" />
                     </button>
@@ -347,13 +347,13 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
                   href="/post"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#00501F] px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-deep-800"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-700 px-6 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-800"
                 >
                   <BriefcaseBusiness className="h-4 w-4" /> Post a Project in 60s
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-ink-200 bg-white px-6 text-sm font-extrabold text-ink transition hover:-translate-y-0.5 hover:border-brand-500 hover:text-brand-700"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 text-sm font-extrabold text-slate-800 transition hover:-translate-y-0.5 hover:border-emerald-500 hover:text-emerald-700"
                 >
                   <UserPlus className="h-4 w-4" /> Apply as a Freelancer
                 </Link>
@@ -802,7 +802,7 @@ export default function Home() {
       {/* Enterprise Dual Call to Action */}
       <section className="bg-white py-20">
         <div className="page-shell">
-          <div className="relative overflow-hidden rounded-3xl bg-[#00501F] p-8 text-white shadow-elevated sm:p-14 lg:p-16">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 p-8 text-white shadow-elevated sm:p-14 lg:p-16">
             <div className="pointer-events-none absolute inset-0 soft-grid opacity-30" />
             <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl" />
             <div className="pointer-events-none absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl" />
@@ -821,7 +821,7 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link
                   href="/post"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-7 text-sm font-extrabold text-deep shadow-md transition hover:-translate-y-0.5 hover:bg-slate-100"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-7 text-sm font-extrabold text-slate-950 shadow-md transition hover:-translate-y-0.5 hover:bg-slate-100"
                 >
                   <BriefcaseBusiness className="h-4 w-4 text-emerald-700" /> Post a Project Now
                 </Link>

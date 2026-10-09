@@ -501,7 +501,7 @@ export default function TaskDetailPage() {
           <div>
             <p className="font-black">Dispute Resolution Active</p>
             <p className="mt-1 text-sm">
-              A formal dispute has been raised on this contract. Parwaz Support is currently investigating the project records to ensure fair resolution.
+              A formal dispute has been raised on this contract. Workly Support is currently investigating the project records to ensure fair resolution.
             </p>
           </div>
         </div>
@@ -600,9 +600,9 @@ export default function TaskDetailPage() {
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50/60 p-4 text-xs">
               <ShieldCheck className="h-5 w-5 shrink-0 text-brand" />
               <div className="text-ink-600">
-                <p className="font-extrabold text-ink">Parwaz.pk Escrow & Buyer Protection</p>
+                <p className="font-extrabold text-ink">Workly Safepay Escrow &amp; Buyer Protection</p>
                 <p className="mt-0.5 leading-relaxed">
-                  Project payments are held securely in protected digital escrow upon hire and only disbursed when you approve the finished work. Keeping messaging on-platform guarantees full mediation & fraud protection.
+                  Project payments are held securely in protected digital escrow upon hire and only disbursed when you approve the finished work. Keeping messaging on-platform guarantees full mediation &amp; fraud protection.
                 </p>
               </div>
             </div>
@@ -1116,7 +1116,7 @@ export default function TaskDetailPage() {
                 <div className="flex items-start gap-2">
                   <Lock className="h-4 w-4 shrink-0 text-brand mt-0.5" />
                   <p>
-                    <strong>100% Escrow Protection:</strong> Funds are safely secured in Parwaz Escrow. They are only released to {checkoutBid.bidderName} once you inspect and approve their completed deliverables.
+                    <strong>100% Escrow Protection:</strong> Funds are safely secured in Workly Escrow. They are only released to {checkoutBid.bidderName} once you inspect and approve their completed deliverables.
                   </p>
                 </div>
               </div>
@@ -1144,7 +1144,7 @@ export default function TaskDetailPage() {
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-brand-200 bg-white py-3 text-sm font-bold text-brand-dark hover:bg-brand-50 transition"
                   >
                     <Wallet className="h-4 w-4 text-brand" />
-                    Pay from Parwaz Wallet ({formatPKR(clientWalletBalance)} available)
+                    Pay from Workly Wallet ({formatPKR(clientWalletBalance)} available)
                   </button>
                 )}
 
@@ -1194,7 +1194,7 @@ export default function TaskDetailPage() {
                     <ShieldCheck className="h-4 w-4 shrink-0 text-green-700 mt-0.5" />
                     <div>
                       <strong className="block font-bold">Automatic Escrow Refund:</strong>
-                      {formatPKR(task.heldAmount)} currently held in escrow will be immediately credited back to the client&apos;s Parwaz Wallet.
+                      {formatPKR(task.heldAmount)} currently held in escrow will be immediately credited back to the client&apos;s Workly Wallet.
                     </div>
                   </div>
                 </div>
@@ -1255,7 +1255,7 @@ export default function TaskDetailPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-ink">Raise a Formal Dispute</h3>
-                  <p className="text-xs text-ink-500">Escalate to Parwaz Resolution Support</p>
+                  <p className="text-xs text-ink-500">Escalate to Workly Resolution Support</p>
                 </div>
               </div>
               <button
@@ -1269,7 +1269,7 @@ export default function TaskDetailPage() {
             <form onSubmit={handleRaiseDispute} className="mt-5 space-y-4">
               <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs leading-5 text-amber-800">
                 <p>
-                  Parwaz mediates disputes fairly. Escrow funds remain securely frozen while our support team reviews conversation logs, deliverables, and revision requests.
+                  Workly mediates disputes fairly. Escrow funds remain securely frozen while our support team reviews conversation logs, deliverables, and revision requests.
                 </p>
               </div>
 

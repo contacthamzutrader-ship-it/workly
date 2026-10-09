@@ -94,7 +94,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink-100 bg-white/95 backdrop-blur-md transition-all shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md transition-all shadow-sm">
       <div className="page-shell flex h-[72px] items-center justify-between gap-4">
         {/* Brand Logo & Left Navigation */}
         <div className="flex items-center gap-6">

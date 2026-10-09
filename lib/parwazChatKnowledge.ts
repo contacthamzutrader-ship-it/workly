@@ -15,7 +15,19 @@
  *    - Direct client/freelancer navigation links
  */
 
-import type { EmojiEmotion } from "@/components/ParwazEmojiAvatar";
+export type EmojiEmotion =
+  | "smile"
+  | "neutral"
+  | "happy"
+  | "thinking"
+  | "wink"
+  | "laugh"
+  | "dance"
+  | "cheeky"
+  | "love"
+  | "sparkle"
+  | "giggle"
+  | "curious";
 
 export interface ChatResponseResult {
   reply: string;

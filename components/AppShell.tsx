@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { OWNER_EMAIL } from "@/lib/admin";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ParwazChat from "@/components/ParwazChat";
+import WorklyCopilot from "@/components/WorklyCopilot";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, role, loading } = useAuth();
@@ -45,7 +45,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1">{children}</main>
         {!isChatRoute && <Footer />}
       </div>
-      <ParwazChat />
+      <WorklyCopilot />
     </>
   );
 }
