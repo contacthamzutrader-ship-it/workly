@@ -99,10 +99,10 @@ const categories = [
 ];
 
 const topFreelancers = [
-  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", trust: 94, jobs: 12, rating: 4.9, avatar: "A", tag: "First job in 3 weeks" },
-  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", trust: 92, jobs: 9, rating: 4.8, avatar: "B", tag: "First job in 2 weeks" },
-  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", trust: 96, jobs: 15, rating: 5.0, avatar: "M", tag: "First job in 1 week" },
-  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", trust: 90, jobs: 8, rating: 4.7, avatar: "U", tag: "First job in 4 weeks" },
+  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", trust: 94, jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
+  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", trust: 92, jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
+  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", trust: 96, jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
+  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", trust: 90, jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
 ];
 
 const heroJobs = [
@@ -227,7 +227,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-center text-[11px] font-semibold text-ink-300">Target figures at launch — live statistics update automatically once Parwaz.pk goes live.</p>
+            <p className="mt-6 text-center text-[10px] text-ink-300">Target figures at launch — live statistics update automatically once Parwaz.pk goes live.</p>
           </div>
         </div>
       </section>
@@ -436,8 +436,8 @@ export default function Home() {
             {topFreelancers.map((person) => (
               <div key={person.name} className="rounded-2xl border border-ink-100 bg-white p-6 text-center shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <div className="relative mx-auto h-16 w-16">
-                  <span className="grid h-16 w-16 place-items-center rounded-2xl bg-deep text-xl font-black text-white">{person.avatar}</span>
-                  <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-brand text-[10px] font-black text-white ring-2 ring-white">{person.trust}</span>
+                  <img src={person.avatar} alt={person.name} className="h-16 w-16 rounded-2xl object-cover" />
+                  <span className="absolute -bottom-1 -right-1 inline-flex items-center rounded-full bg-brand px-2 py-0.5 text-[10px] font-black text-white ring-2 ring-white">AI Score: {person.trust}%</span>
                 </div>
                 <h3 className="mt-4 font-black text-ink">{person.name}</h3>
                 <p className="mt-1 text-xs font-bold text-ink-400">{person.title} · {person.city}</p>
