@@ -268,7 +268,7 @@ export default function Home() {
       </section>
 
       {/* Trust / Verification bar */}
-      <section id="trust" className="border-b border-ink-100 bg-canvas py-16">
+      <section id="trust" className="border-b border-ink-100 bg-[#F7FAF8] py-16">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Trust &amp; safety</span>
@@ -287,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* Why TQRA AI */}
-      <section id="why" className="bg-white py-24">
+      <section id="why" className="bg-[#F7FAF8] py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why TQRA AI?</span>
@@ -383,7 +383,7 @@ export default function Home() {
       </section>
 
       {/* AI Section */}
-      <section id="ai" className="relative bg-white py-24 text-ink">
+      <section id="ai" className="relative bg-[#F7FAF8] py-24 text-ink">
         <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
         <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
