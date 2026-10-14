@@ -464,8 +464,7 @@ export default function Home() {
               <h2 className="mx-auto mt-6 max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project is <span className="text-brand-300">AI-matched.</span></h2>
               <p className="mx-auto mt-5 max-w-xl text-base font-medium text-[#E0E0E0]">Join free, verify your skills with TQRA AI, and get matched with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Find Freelancers <ArrowRight className="h-4 w-4" /></Link>
-                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-white/20 bg-white/5 px-7 text-sm font-extrabold text-[#E0E0E0] transition hover:bg-white/10"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
+                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#0B4619] px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-[#0F5132]"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
               </div>
             </div>
           </div>
