@@ -232,6 +232,41 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 3-Tier Talent Engine */}
+      <section className="bg-[#F6FAF7] py-16">
+        <div className="page-shell">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Right Talent for Every Budget. Powered by Merit, Not Ratings.</h2>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
+              <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 75% - 84%</span>
+              <h3 className="mt-4 text-xl font-black text-ink">Rising Talent (Fresh Graduates & High-Potential)</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Quick turnaround, clean fundamentals, entry-level budgets.</p>
+              <p className="mt-4 text-sm font-semibold text-ink-600">Best For: MVPs, bug fixes, basic UI implementations.</p>
+              <span className="mt-4 inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-ink-600">Affordable Rates • High Energy</span>
+            </div>
+            <div className="rounded-2xl border-2 border-brand-200 bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
+              <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 85% - 92%</span>
+              <h3 className="mt-4 text-xl font-black text-ink">Professional Tier (Proven Practitioners)</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Production-grade execution, minimal supervision.</p>
+              <p className="mt-4 text-sm font-semibold text-ink-600">Best For: Full features, database optimizations, commercial projects.</p>
+              <span className="mt-4 inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-ink-600">Market Competitive • Fast Delivery</span>
+            </div>
+            <div className="rounded-2xl border-2 border-[#0D5C3A] bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 93%+</span>
+                <span className="inline-flex items-center rounded-full bg-[#0D5C3A] px-2 py-1 text-[10px] font-extrabold text-white">Top 5%</span>
+              </div>
+              <h3 className="mt-4 text-xl font-black text-ink">Elite Tier (Architects & Seniors)</h3>
+              <p className="mt-2 text-sm leading-6 text-ink-500">Mission-critical apps, complex architecture, enterprise solutions.</p>
+              <p className="mt-4 text-sm font-semibold text-ink-600">Best For: Complex systems, tech leadership.</p>
+              <span className="mt-4 inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-ink-600">Premium Rates • Guaranteed Quality</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Trust / Verification bar */}
       <section id="trust" className="border-b border-ink-100 bg-canvas py-16">
         <div className="page-shell">
