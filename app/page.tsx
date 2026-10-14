@@ -90,12 +90,12 @@ const aiCards = [
 ];
 
 const categories = [
-  { icon: Laptop2, name: "Web & App", count: "Build sites, apps & support" },
-  { icon: Paintbrush, name: "Design", count: "Logos, branding & creative" },
-  { icon: Wrench, name: "Handyman", count: "Fixing, assembly & maintenance" },
-  { icon: BriefcaseBusiness, name: "Virtual Assistant", count: "Admin & online support" },
-  { icon: Truck, name: "Delivery & Moving", count: "Errands, delivery & relocation" },
-  { icon: MessageSquareText, name: "Content & Writing", count: "Copy, blogs & translations" },
+  { icon: Laptop2, name: "Web & App Development", count: "React, Node, Next.js, Python" },
+  { icon: Paintbrush, name: "UI/UX & Product Design", count: "Figma, Design Systems" },
+  { icon: BrainCircuit, name: "AI, Automation & Data", count: "LLMs, Workflows, Scraping" },
+  { icon: Paintbrush, name: "Graphic Design & Branding", count: "Brand Identity, Social Assets" },
+  { icon: MessageSquareText, name: "Technical Writing & Content", count: "Docs, Copy, Blogs" },
+  { icon: BriefcaseBusiness, name: "Virtual Assistance & Operations", count: "Admin, CRM, Support" },
 ];
 
 const topFreelancers = [
@@ -344,33 +344,39 @@ export default function Home() {
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Freelancer journey</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Turn Your Skills Into Opportunities.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Seven steps from profile to paycheck — no portfolio or experience needed to start.</p>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">How It Works: From Zero to Hired in 3 Steps</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Portfolio ya purane reviews ki zaroorat nahi. Aapka kaam khud bolta hai.</p>
           </div>
-          <div className="mt-14 rounded-[28px] border border-ink-100 bg-canvas p-8 shadow-card sm:p-12">
-            <div className="overflow-x-auto pb-2">
-              <div className="flex min-w-[940px] items-center">
-                {journey.map((step, index) => (
-                  <Fragment key={step.label}>
-                    <div className="flex w-28 shrink-0 flex-col items-center text-center">
-                      <div className="relative">
-                        <span className={`grid h-14 w-14 place-items-center rounded-full border-2 shadow-card ${index === 0 ? "border-brand bg-brand text-white" : "border-brand-200 bg-white text-deep"}`}>
-                          <step.icon className="h-6 w-6" />
-                        </span>
-                        {index === 0 && <span className="absolute -inset-1.5 -z-10 animate-pulse-soft rounded-full bg-brand-200" />}
-                      </div>
-                      <p className="mt-3 text-xs font-extrabold text-ink-600"><span className="text-brand-700">{index + 1}.</span> {step.label}</p>
-                    </div>
-                    {index < journey.length - 1 && (
-                      <div className="mx-1 h-0.5 min-w-0 flex-1 rounded-full bg-gradient-to-r from-brand to-brand-200" />
-                    )}
-                  </Fragment>
-                ))}
+          <div className="mt-14">
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 01</span>
+                <h3 className="mt-4 text-lg font-black text-ink">Pick Domain & Run the AI Assessment</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">Apni domain choose karein (Web, UI/UX, Python etc.). Real practical test solve karein, na ke boring multiple-choice questions.</p>
+              </div>
+              <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 02</span>
+                <h3 className="mt-4 text-lg font-black text-ink">Get Your Instant Benchmark & Tier</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">AI code quality, logic aur speed analyse karke aapko instant verified score aur tier badge assign karta hai.</p>
+                <div className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
+                  <svg width="60" height="2" className="stroke-brand-300" strokeDasharray="6 6">
+                    <line x1="0" y1="1" x2="60" y2="1" />
+                  </svg>
+                </div>
+              </div>
+              <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 03</span>
+                <h3 className="mt-4 text-lg font-black text-ink">Direct Client Visibility</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">Clients direct aapke test score aur tier ke mutabiq contact karte hain. Bid wars aur review begging ka chapter close.</p>
+                <div className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
+                  <svg width="60" height="2" className="stroke-brand-300" strokeDasharray="6 6">
+                    <line x1="0" y1="1" x2="60" y2="1" />
+                  </svg>
+                </div>
               </div>
             </div>
-            <div className="mt-10 flex flex-col items-center gap-4 border-t border-ink-100 pt-8 sm:flex-row sm:justify-between">
-              <p className="max-w-md text-center text-sm font-medium leading-6 text-ink-500 sm:text-left">Every completed project improves your trust score, ranking, and earning power.</p>
-              <Link href="/signup" className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
+            <div className="mt-10 flex justify-center">
+              <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
             </div>
           </div>
         </div>
@@ -411,7 +417,7 @@ export default function Home() {
             {categories.map((category) => (
               <Link key={category.name} href={`/tasks?category=${encodeURIComponent(category.name)}`} className="group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><category.icon className="h-6 w-6" /></span>
-                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p></div>
+                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p><p className="mt-1 text-[10px] font-semibold text-brand-700">Average AI Benchmark: 88%</p></div>
                 <ArrowRight className="h-5 w-5 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-600" />
               </Link>
             ))}
