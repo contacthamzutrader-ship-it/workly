@@ -23,7 +23,6 @@ import { db } from "@/lib/firebase";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Find Talent", href: "/#talent" },
-  { label: "Find Jobs", href: "/tasks" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "AI Features", href: "/#ai" },
   { label: "Categories", href: "/#categories" },
