@@ -22,7 +22,6 @@ import {
   ReceiptText,
   Settings,
   ShieldCheck,
-  Sparkles,
   Trash2,
   TrendingUp,
   UserPlus,
@@ -337,7 +336,7 @@ export default function AdminPage() {
                           <div key={task.id} className="p-5 sm:p-6">
                             <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                               <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ink-500">{task.category}</span><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand-dark">{formatPKR(task.budget)}</span>{task.moderation === "review" && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">AI flagged review</span>}</div>
+                                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-ink-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ink-500">{task.category}</span><span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand-dark">{formatPKR(task.budget)}</span>{task.moderation === "review" && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-700">Flagged for review</span>}</div>
                                 <h3 className="mt-3 text-lg font-black text-ink">{task.title}</h3>
                                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink-500">{task.description}</p>
                                 <p className="mt-3 text-xs font-bold text-ink-400">{task.location} - posted by {task.posterName}</p>
@@ -366,7 +365,7 @@ export default function AdminPage() {
                 </section>
 
                 <aside className="space-y-4 lg:sticky lg:top-24">
-                  <div className="rounded-3xl bg-[#00501F] p-6 text-white shadow-elevated"><Sparkles className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
+                  <div className="rounded-3xl bg-[#00501F] p-6 text-white shadow-elevated"><ShieldCheck className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
                   <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
                   {privateTasks.some((task) => task.status === "open" && task.shareToken) && <div className="surface p-5"><p className="text-xs font-black text-ink">Active private links</p><div className="mt-3 space-y-2">{privateTasks.filter((task) => task.status === "open" && task.shareToken).slice(0, 8).map((task) => <button key={task.id} onClick={() => { const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`; setPrivateInviteLink(link); navigator.clipboard.writeText(link).catch(() => {}); }} className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 hover:bg-brand-50"><Link2 className="h-3.5 w-3.5 shrink-0 text-brand" /><span className="min-w-0 flex-1 truncate">{task.title}</span><span className="text-brand-dark">Copy</span></button>)}</div></div>}
                 </aside>
@@ -469,12 +468,12 @@ function AutoApproveControl({ onChanged }: { onChanged: () => void }) {
     <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes Parwaz&apos;s AI quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
+          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes Parwaz&apos;s quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
           <button type="button" onClick={toggle} disabled={busy} aria-pressed={enabled} className={`relative h-8 w-14 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-ink-200"}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${enabled ? "left-7" : "left-1"}`} /></button>
         </div>
         <div className="mt-7 grid gap-3 sm:grid-cols-3">
           {[
-            [Sparkles, "AI category check", "Keeps discovery organised"],
+            [ShieldCheck, "Category check", "Keeps discovery organised"],
             [ShieldCheck, "Safety scan", "Flags risky content"],
             [Clock3, "Human fallback", "Uncertain tasks wait"],
           ].map(([Icon,title,body]: any) => <div key={title} className="rounded-2xl bg-ink-50 p-4"><Icon className="h-5 w-5 text-brand" /><p className="mt-3 text-xs font-black text-ink">{title}</p><p className="mt-1 text-[11px] font-medium text-ink-400">{body}</p></div>)}

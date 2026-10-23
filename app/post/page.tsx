@@ -17,9 +17,7 @@ import {
   Info,
   MapPin,
   ShieldCheck,
-  Sparkles,
   Tag,
-  WandSparkles,
   Zap,
 } from "lucide-react";
 import { formatPKR } from "@/lib/format";
@@ -115,7 +113,7 @@ export default function PostTaskPage() {
       <div className="page-shell">
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> New task</span>
+            <span className="eyebrow"><Tag className="h-3.5 w-3.5" /> New task</span>
             <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] text-ink sm:text-5xl">What do you need done?</h1>
             <p className="mt-3 max-w-xl text-base font-medium text-ink-500">Share the outcome, budget and timing. Parwaz handles the safest route from there.</p>
           </div>
@@ -144,13 +142,13 @@ export default function PostTaskPage() {
 
               {title.trim() && description.trim().length >= 20 && !suggestion && (
                 <button type="button" onClick={handleAiSuggest} disabled={aiLoading} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 text-sm font-extrabold text-brand-dark transition hover:bg-brand-100 disabled:opacity-50">
-                  <WandSparkles className="h-4 w-4" /> {aiLoading ? "Parwaz AI is improving your task..." : "Improve with Parwaz AI"}
+                  <Zap className="h-4 w-4" /> {aiLoading ? "Parwaz is improving your task..." : "Improve with Parwaz"}
                 </button>
               )}
 
               {suggestion && (
                 <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-5">
-                  <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-black text-ink"><Sparkles className="h-4 w-4 text-brand" /> AI recommendation</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${suggestion.moderation === "approved" ? "bg-white text-brand-dark" : "bg-amber-100 text-amber-700"}`}>{suggestion.moderation === "approved" ? "Looks safe" : "Manual review"}</span></div>
+                  <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-black text-ink"><Tag className="h-4 w-4 text-brand" /> Smart suggestion</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${suggestion.moderation === "approved" ? "bg-white text-brand-dark" : "bg-amber-100 text-amber-700"}`}>{suggestion.moderation === "approved" ? "Looks safe" : "Manual review"}</span></div>
                   <p className="mt-3 text-sm leading-6 text-ink-600">{suggestion.improvedDescription}</p>
                   <div className="mt-3 flex flex-wrap gap-2">{suggestion.tags.map(tag => <span key={tag} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink-500">#{tag}</span>)}</div>
                   <div className="mt-4 flex gap-2"><Button type="button" onClick={applySuggestion} className="min-h-9 px-4 py-1.5 text-xs">Apply suggestion</Button><button type="button" onClick={() => setSuggestion(null)} className="px-3 text-xs font-bold text-ink-400">Dismiss</button></div>
@@ -199,10 +197,10 @@ export default function PostTaskPage() {
             <div className="overflow-hidden rounded-3xl bg-[#00501F] p-6 text-white shadow-elevated">
               <div className="flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand"><ShieldCheck className="h-5 w-5" /></span><span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider">{autoMode ? "Smart mode on" : "Team review"}</span></div>
               <h2 className="mt-5 text-xl font-black">Your approval route</h2>
-              <p className="mt-2 text-sm leading-6 text-white/60">{autoMode ? "AI checks safe, complete tasks and can publish them instantly. Anything uncertain goes to the admin team." : "Your task enters the admin approval centre before it becomes visible."}</p>
+              <p className="mt-2 text-sm leading-6 text-white/60">{autoMode ? "Automated checks clear safe, complete tasks and can publish them instantly. Anything uncertain goes to the admin team." : "Your task enters the admin approval centre before it becomes visible."}</p>
               <div className="mt-6 space-y-4">
                 {[
-                  [Zap, autoMode ? "AI quality & safety check" : "Manual quality review"],
+                  [Zap, autoMode ? "Quality & safety check" : "Manual quality review"],
                   [ShieldCheck, "Public or managed private route"],
                   [Check, "Clear status at every step"],
                 ].map(([Icon, text]: any) => <div key={text} className="flex items-center gap-3 text-xs font-bold text-white/80"><span className="grid h-8 w-8 place-items-center rounded-lg bg-white/10"><Icon className="h-4 w-4 text-brand-light" /></span>{text}</div>)}

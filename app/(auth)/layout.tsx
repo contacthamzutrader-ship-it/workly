@@ -1,4 +1,4 @@
-import { BadgeCheck, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { BadgeCheck, ShieldCheck, Star } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute inset-0 noise opacity-50" />
         <div className="absolute -left-32 bottom-10 h-96 w-96 rounded-full bg-brand/25 blur-3xl" />
         <div className="relative">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><Sparkles className="h-3.5 w-3.5" /> Parwaz membership</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><BadgeCheck className="h-3.5 w-3.5" /> Parwaz membership</span>
           <h1 className="mt-8 max-w-lg text-5xl font-black leading-[1.02] tracking-[-0.05em]">One account. Two ways to move forward.</h1>
           <p className="mt-5 max-w-lg text-base font-medium leading-7 text-white/55">Hire trusted professionals when you need help. Switch to earning mode when your skills can help someone else.</p>
         </div>

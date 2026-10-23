@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   ChevronDown,
@@ -16,7 +17,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
-import { useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -24,18 +24,26 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Find Talent", href: "/#talent" },
   { label: "How It Works", href: "/#how-it-works" },
-  { label: "AI Features", href: "/#ai" },
+  { label: "Features", href: "/#ai" },
   { label: "Categories", href: "/#categories" },
   { label: "About Us", href: "/#why" },
 ];
 
+const HEADER_OFFSET = 88;
+
+const isHashLink = (href: string) => href.startsWith("/#");
+const sectionIdFromHref = (href: string) => href.replace("/#", "");
+
 export default function Navbar() {
   const { user, role, signOut, onboardingCompleted, interviewPassed } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
   const isAdmin = role === "moderator" || role === "company_admin" || role === "super_admin";
   const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
     if (!user || !db) return;
@@ -54,6 +62,94 @@ export default function Navbar() {
     setAccountOpen(false);
   };
 
+  const scrollToSection = (id: string) => {
+    if (id === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const element = document.getElementById(id);
+    if (!element) return;
+    const top = element.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setActiveSection("");
+      return;
+    }
+
+    const sectionIds = navLinks.filter((link) => isHashLink(link.href)).map((link) => sectionIdFromHref(link.href));
+    const syncActiveSection = () => {
+      const marker = window.scrollY + HEADER_OFFSET + 1;
+      let current = "home";
+      let closestTop = -1;
+      for (const id of sectionIds) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const top = element.getBoundingClientRect().top + window.scrollY;
+        if (top <= marker && top >= closestTop) {
+          closestTop = top;
+          current = id;
+        }
+      }
+      setActiveSection(window.scrollY < 24 ? "home" : current);
+    };
+
+    syncActiveSection();
+    window.addEventListener("scroll", syncActiveSection, { passive: true });
+    window.addEventListener("resize", syncActiveSection);
+    return () => {
+      window.removeEventListener("scroll", syncActiveSection);
+      window.removeEventListener("resize", syncActiveSection);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const hashId = window.location.hash.replace("#", "");
+    if (!hashId) return;
+    const timer = window.setTimeout(() => scrollToSection(hashId), 120);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/" && (activeSection === "home" || !activeSection);
+    if (isHashLink(href)) return pathname === "/" && activeSection === sectionIdFromHref(href);
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  const navLinkClass = (href: string) =>
+    `rounded-xl px-3 py-2 text-sm font-bold transition ${
+      isActive(href) ? "bg-brand-50 text-brand-700" : "text-ink-600 hover:bg-ink-50 hover:text-ink"
+    }`;
+
+  const handleNavClick = (event: ReactMouseEvent<HTMLAnchorElement>, href: string) => {
+    close();
+
+    if (href === "/" && pathname === "/") {
+      event.preventDefault();
+      window.history.replaceState(null, "", "/");
+      setActiveSection("home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (!isHashLink(href)) return;
+
+    const id = sectionIdFromHref(href);
+    if (pathname !== "/") {
+      event.preventDefault();
+      router.push(href);
+      return;
+    }
+
+    event.preventDefault();
+    window.history.replaceState(null, "", href);
+    setActiveSection(id);
+    scrollToSection(id);
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-ink-100 bg-white shadow-soft">
       <div className="page-shell flex h-[72px] items-center gap-4">
@@ -61,7 +157,13 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => (
-            <Link key={link.label} href={link.href} onClick={close} className="rounded-xl px-3 py-2 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
+            <Link
+              key={link.label}
+              href={link.href}
+              onClick={(event) => handleNavClick(event, link.href)}
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={navLinkClass(link.href)}
+            >
               {link.label}
             </Link>
           ))}
@@ -93,7 +195,7 @@ export default function Navbar() {
                     {role === "tasker" && !interviewPassed ? (
                       <button
                         onClick={() => {
-                          alert(onboardingCompleted ? "Please complete and pass the AI Skill Check to access your profile!" : "Please fill out your profile onboarding first!");
+                          alert(onboardingCompleted ? "Please complete and pass the Skill Check to access your profile!" : "Please fill out your profile onboarding first!");
                           close();
                         }}
                         className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-400 hover:bg-ink-50"
@@ -126,7 +228,15 @@ export default function Navbar() {
         <div className="border-t border-ink-100 bg-white px-4 pb-5 pt-3 lg:hidden">
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} onClick={close} className="rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={(event) => handleNavClick(event, link.href)}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${
+                  isActive(link.href) ? "bg-brand-50 text-brand-700" : "text-ink-600 hover:bg-ink-50 hover:text-ink"
+                }`}
+              >
                 {link.label}
               </Link>
             ))}
@@ -145,7 +255,7 @@ export default function Navbar() {
                 {role === "tasker" && !interviewPassed ? (
                   <button
                     onClick={() => {
-                      alert(onboardingCompleted ? "Please complete and pass the AI Skill Check to access your profile!" : "Please fill out your profile onboarding first!");
+                      alert(onboardingCompleted ? "Please complete and pass the Skill Check to access your profile!" : "Please fill out your profile onboarding first!");
                       close();
                     }}
                     className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ink-100 px-5 text-sm font-bold text-ink-400 hover:bg-ink-50"

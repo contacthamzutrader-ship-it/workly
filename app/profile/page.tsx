@@ -29,7 +29,6 @@ import {
   Shield,
   ShieldCheck,
   Smartphone,
-  Sparkles,
   Star,
   Trash2,
   X,
@@ -287,7 +286,7 @@ export default function ProfilePage() {
 
       {editing ? (
       <form onSubmit={save} className="card mt-6 space-y-5 p-6 sm:p-8">
-        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><Sparkles className="h-4 w-4" /></span><div><h2 className="font-bold text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
+        <div className="flex items-center gap-3 border-b border-ink-100 pb-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand"><BadgeCheck className="h-4 w-4" /></span><div><h2 className="font-bold text-ink">Profile details</h2><p className="text-xs font-medium text-ink-400">A complete profile ranks better in smart matching</p></div></div>
         {(role === "customer" || role === "tasker") && <div><label className="mb-1.5 block text-sm font-medium text-ink">Account type</label><div className="grid grid-cols-2 gap-2"><button type="button" onClick={() => { setProfileAccountType("customer"); setIsTasker(false); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "customer" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Client<span className="mt-1 block text-[11px] font-medium">Post tasks and hire</span></button><button type="button" onClick={() => { setProfileAccountType("tasker"); setIsTasker(true); }} className={`rounded-xl border p-3 text-left text-sm font-extrabold ${accountType === "tasker" ? "border-brand bg-brand-50 text-brand-dark" : "border-ink-100 text-ink-500"}`}>Freelancer<span className="mt-1 block text-[11px] font-medium">Find tasks and bid</span></button></div></div>}
         <div><label className="mb-1.5 block text-sm font-medium text-ink">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
         <div>
@@ -360,7 +359,7 @@ export default function ProfilePage() {
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><Languages className="h-3.5 w-3.5" /> Languages</dt><dd className="mt-1 text-sm font-bold text-ink">{languages || "Not set"}</dd></div>
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><GraduationCap className="h-3.5 w-3.5" /> Education</dt><dd className="mt-1 text-sm font-bold text-ink">{education || "Not set"}</dd></div>
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><MapPin className="h-3.5 w-3.5" /> Location</dt><dd className="mt-1 text-sm font-bold text-ink">{city || "Not set"}</dd></div>
-                  <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><Sparkles className="h-3.5 w-3.5" /> Hourly rate</dt><dd className="mt-1 text-sm font-bold text-ink">{hourlyRate ? `${formatPKR(Math.max(0, Number(hourlyRate) || 0))}/hr` : "Not set"}</dd></div>
+                  <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><BriefcaseBusiness className="h-3.5 w-3.5" /> Hourly rate</dt><dd className="mt-1 text-sm font-bold text-ink">{hourlyRate ? `${formatPKR(Math.max(0, Number(hourlyRate) || 0))}/hr` : "Not set"}</dd></div>
                   <div className="rounded-xl border border-ink-100 p-3.5"><dt className="flex items-center gap-1.5 text-[11px] font-bold text-ink-400"><Link2 className="h-3.5 w-3.5" /> Portfolio</dt><dd className="mt-1 text-sm font-bold text-ink">{portfolioUrl ? <a href={portfolioUrl} target="_blank" rel="noreferrer" className="text-brand underline decoration-brand/30 underline-offset-2">{portfolioUrl.replace(/^https?:\/\//, "").slice(0, 32)}</a> : "Not set"}</dd></div>
                 </dl>
               </div>
@@ -383,7 +382,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="h-fit rounded-2xl border border-brand-100 bg-brand-50 p-5">
-              <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-brand" /><p className="page-eyebrow">AI skill score</p></div>
+              <div className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-brand" /><p className="page-eyebrow">Skill score</p></div>
               <p className="mt-2 text-4xl font-extrabold tracking-[-0.03em] text-ink">{ai.skillScore}</p>
               <p className="mt-2 text-xs leading-5 text-ink-500">Computed from your skills, bio and trust score. Improves how often your offers are recommended first.</p>
               <Link href="/interview" className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-white transition hover:bg-brand-700">Improve skill check <ArrowUpRight className="h-3.5 w-3.5" /></Link>
@@ -405,7 +404,7 @@ export default function ProfilePage() {
           <AccountSection id="notifications" icon={<Bell className="h-5 w-5" />} title="Notification Settings" sub="Choose what you want to be notified about."><NotificationSettingsPanel user={user} /></AccountSection>
           <AccountSection id="tasker-alert" icon={<BellRing className="h-5 w-5" />} title="Tasker Alert" sub="Control the tasks and alerts you receive as a freelancer."><TaskerAlertPanel user={user} /></AccountSection>
           <AccountSection id="skills" icon={<Award className="h-5 w-5" />} title="Skills" sub="Add, edit or remove the services and tools you offer."><SkillsPanel user={user} /></AccountSection>
-          <AccountSection id="badges" icon={<Sparkles className="h-5 w-5" />} title="Badges" sub="Milestones that build client trust. Every badge is earned."><BadgesPanel user={user} /></AccountSection>
+          <AccountSection id="badges" icon={<BadgeCheck className="h-5 w-5" />} title="Badges" sub="Milestones that build client trust. Every badge is earned."><BadgesPanel user={user} /></AccountSection>
           <AccountSection id="portfolio" icon={<Images className="h-5 w-5" />} title="Portfolio" sub="Show clients the work you have delivered."><PortfolioPanel user={user} /></AccountSection>
           <AccountSection id="payment-method" icon={<CreditCard className="h-5 w-5" />} title="Payment Method" sub="Where your task payments are paid out."><PaymentMethodPanel user={user} /></AccountSection>
           <AccountSection id="payment-history" icon={<History className="h-5 w-5" />} title="Payment History" sub="Every hold, payout and wallet movement."><PaymentHistoryPanel user={user} /></AccountSection>

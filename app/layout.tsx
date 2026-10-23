@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     metadataBase = new URL("http://localhost:3000");
   }
-  const description = "Pakistan's smarter freelancing marketplace, powered by AI. Connect with verified talent, discover the right opportunities, and build your freelance career with intelligent AI-powered matching.";
+  const description = "Pakistan's smarter freelancing marketplace. Connect with verified talent, discover the right opportunities, and build your freelance career with skill-based matching.";
 
   return {
     metadataBase,
@@ -33,13 +33,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       siteName: "Parwaz.pk",
-      title: "Pakistan's Smarter Freelancing Marketplace, Powered by AI.",
+      title: "Pakistan's Smarter Freelancing Marketplace.",
       description,
-      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Parwaz.pk - Pakistan's smarter freelancing marketplace, powered by AI" }],
+      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Parwaz.pk - Pakistan's smarter freelancing marketplace" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Pakistan's Smarter Freelancing Marketplace, Powered by AI.",
+      title: "Pakistan's Smarter Freelancing Marketplace.",
       description,
       images: [`${origin}/og.png`],
     },

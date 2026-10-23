@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Award,
+  BadgeCheck,
   Bell,
   BellRing,
   ChevronRight,
@@ -15,7 +16,6 @@ import {
   Mail,
   ShieldCheck,
   Smartphone,
-  Sparkles,
   User,
 } from "lucide-react";
 import FreelancerHeader from "@/components/FreelancerHeader";
@@ -58,7 +58,7 @@ const SECTIONS: { key: SettingKey; label: string; icon: any }[] = [
   { key: "notifications", label: "Notification Settings", icon: Bell },
   { key: "tasker-alert", label: "Tasker Alert", icon: BellRing },
   { key: "skills", label: "Skills", icon: Award },
-  { key: "badges", label: "Badges", icon: Sparkles },
+  { key: "badges", label: "Badges", icon: BadgeCheck },
   { key: "portfolio", label: "Portfolio", icon: Images },
   { key: "payment-method", label: "Payment Method", icon: CreditCard },
   { key: "payment-history", label: "Payment History", icon: History },
@@ -162,7 +162,7 @@ export default function SettingsPage() {
 
             {active === "badges" && (
               <section className="surface p-6 sm:p-7">
-                {panelHeader(<Sparkles className="h-5 w-5" />, "Badges", "Milestones that build client trust. Every badge is earned.")}
+                {panelHeader(<BadgeCheck className="h-5 w-5" />, "Badges", "Milestones that build client trust. Every badge is earned.")}
                 <div className="mt-5"><BadgesPanel user={user} /></div>
               </section>
             )}

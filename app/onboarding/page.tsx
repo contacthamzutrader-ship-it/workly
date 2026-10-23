@@ -11,7 +11,6 @@ import {
   Languages,
   Loader2,
   Plus,
-  Sparkles,
   User,
   X,
 } from "lucide-react";
@@ -578,7 +577,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   <div className="border-b border-ink-100 pb-4">
                     <span className="inline-flex items-center gap-2 rounded-full bg-mint-50 px-3 py-1 text-xs font-bold text-mint-700">
-                      <Sparkles className="h-3.5 w-3.5" /> Step 4 of 5
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Step 4 of 5
                     </span>
                     <h2 className="mt-3 text-xl font-black text-ink">Add Skills & Expertise</h2>
                     <p className="text-xs text-ink-400">List specific skills that will rank you in client jobs.</p>
@@ -989,7 +988,7 @@ export default function OnboardingPage() {
                       </>
                     ) : (
                       <>
-                        Submit & Start Interview <Sparkles className="h-4 w-4" />
+                        Submit & Start Interview <CheckCircle2 className="h-4 w-4" />
                       </>
                     )}
                   </Button>

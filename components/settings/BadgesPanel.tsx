@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
-import { Award, BadgeCheck, BriefcaseBusiness, CheckCircle2, GraduationCap, Medal, ShieldCheck, Sparkles, User } from "lucide-react";
+import { Award, BadgeCheck, BriefcaseBusiness, CheckCircle2, GraduationCap, Medal, ShieldCheck, User } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { listTasksAssignedTo } from "@/lib/tasks";
@@ -78,7 +78,7 @@ export default function BadgesPanel({ user }: { user: FirebaseUser }) {
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold ${b.earned ? "bg-green-50 text-green-700" : "bg-ink-100 text-ink-400"}`}>{b.earned ? "Earned" : "Locked"}</span>
               </div>
               <div className="mt-4">
-                <h3 className="flex items-center gap-1.5 text-sm font-black text-ink">{b.name}{b.earned && <Sparkles className="h-3.5 w-3.5 text-green-600" />}</h3>
+                <h3 className="flex items-center gap-1.5 text-sm font-black text-ink">{b.name}</h3>
                 <p className="mt-1 text-xs leading-5 text-ink-400">{b.desc}</p>
               </div>
               <p className="mt-3 text-[11px] font-bold text-ink-500">{b.detail}</p>

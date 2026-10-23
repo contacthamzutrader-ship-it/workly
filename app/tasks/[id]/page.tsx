@@ -413,7 +413,6 @@ export default function TaskDetailPage() {
                   <div className="flex items-center gap-2"><p className="font-bold text-ink">{b.bidderName}</p><span className="text-lg font-extrabold text-brand">{formatPKR(b.amount)}</span></div>
                         <p className="mt-0.5 text-sm text-ink-500">{b.message}</p>
                         <div className="mt-1.5 flex gap-2 flex-wrap">
-                          {b.match && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-dark">Match {b.match.percent}%</span>}
                           {b.fresh && <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700"><Zap className="mr-1 inline-block h-3 w-3" /> Fresh</span>}
                         </div>
                       </div>

@@ -29,7 +29,6 @@ import {
   Send,
   ShieldCheck,
   ShieldX,
-  Sparkles,
   Star,
   Target,
   Truck,
@@ -45,20 +44,20 @@ const stats = [
   { value: "10K+", label: "Verified Freelancers" },
   { value: "5K+", label: "Projects Completed" },
   { value: "50+", label: "Skill Categories" },
-  { value: "AI", label: "Powered Matching" },
+  { value: "3-Tier", label: "Verified Talent" },
 ];
 
 const trustCards = [
-  { icon: BadgeCheck, title: "Verified Skills", body: "AI-powered skill verification" },
-  { icon: BrainCircuit, title: "AI Matching", body: "Smart freelancer recommendations" },
+  { icon: BadgeCheck, title: "Verified Skills", body: "Practical skill verification" },
+  { icon: BrainCircuit, title: "Smart Matching", body: "Relevant freelancer recommendations" },
   { icon: Star, title: "Trust Scores", body: "Performance-based reputation" },
   { icon: Lock, title: "Secure Payments", body: "Protected project payments" },
 ];
 
 const whyCards = [
-  { icon: FileCheck2, title: "AI Skill Verification", body: "Freelancers can demonstrate their skills through AI-powered assessments." },
+  { icon: FileCheck2, title: "Skill Verification", body: "Freelancers can demonstrate their skills through practical assessments." },
   { icon: Users, title: "Fair Talent Discovery", body: "New and experienced freelancers get opportunities based on verified capabilities and performance." },
-  { icon: Radar, title: "Smart Recommendations", body: "AI matches clients with relevant freelancers based on project requirements." },
+  { icon: Radar, title: "Smart Recommendations", body: "Clients are connected with relevant freelancers based on project requirements." },
   { icon: ShieldX, title: "Fraud Protection", body: "Intelligent systems identify suspicious accounts, proposals, reviews, and activities." },
   { icon: Rocket, title: "Fresh Talent Boost", body: "Verified beginners can receive additional visibility to help them build their first reputation." },
   { icon: Wallet, title: "Secure Transactions", body: "Protected payment workflows help create confidence between clients and freelancers." },
@@ -66,7 +65,7 @@ const whyCards = [
 
 const clientSteps = [
   { icon: ClipboardList, step: "01", title: "Post a Job", body: "Describe your project and requirements." },
-  { icon: BrainCircuit, step: "02", title: "AI Finds Talent", body: "TQRA AI recommends relevant freelancers." },
+  { icon: BrainCircuit, step: "02", title: "Find Talent", body: "Review relevant freelancers for your project." },
   { icon: Handshake, step: "03", title: "Hire & Fund", body: "Select a freelancer and secure the payment." },
   { icon: CheckCircle2, step: "04", title: "Get Work Done", body: "Review the project and release payment." },
 ];
@@ -82,11 +81,11 @@ const journey = [
 ];
 
 const aiCards = [
-  { icon: Mic, title: "AI Interview", body: "Showcase your technical skills through intelligent assessments." },
-  { icon: LineChart, title: "AI Ranking", body: "Get ranked based on skills, performance, trust, and client satisfaction." },
-  { icon: Radar, title: "AI Recommendations", body: "Discover projects and talent relevant to your requirements." },
-  { icon: ShieldX, title: "AI Fraud Detection", body: "Identify suspicious activity and protect the marketplace." },
-  { icon: Lightbulb, title: "AI Career Insights", body: "Help freelancers understand their strengths and growth opportunities." },
+  { icon: Mic, title: "Skill Interview", body: "Showcase your technical skills through practical assessments." },
+  { icon: LineChart, title: "Merit Ranking", body: "Get ranked based on skills, performance, trust, and client satisfaction." },
+  { icon: Radar, title: "Smart Recommendations", body: "Discover projects and talent relevant to your requirements." },
+  { icon: ShieldX, title: "Fraud Detection", body: "Identify suspicious activity and protect the marketplace." },
+  { icon: Lightbulb, title: "Career Insights", body: "Help freelancers understand their strengths and growth opportunities." },
 ];
 
 const categories = [
@@ -99,15 +98,10 @@ const categories = [
 ];
 
 const topFreelancers = [
-  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", trust: 94, jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
-  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", trust: 92, jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
-  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", trust: 96, jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
-  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", trust: 90, jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
-];
-
-const heroJobs = [
-  { title: "Shopify store speed optimisation", place: "Remote", bids: 8, price: 45000, match: 96 },
-  { title: "Social media kit for a new chai cafe", place: "Karachi", bids: 12, price: 22000, match: 91 },
+  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
+  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
+  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
+  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
 ];
 
 export default function Home() {
@@ -128,12 +122,12 @@ export default function Home() {
                 Get Hired on Verified Skill. Skip the 6-Month Review Trap.
               </h1>
               <p className="mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
-                Pehli baar freelancing kar rahe hain ya fresh graduate hain? 15-minute ka AI domain test dein, verified skill score hasil karein aur bina fake reviews ke pehle din se clients win karein.
+                Pehli baar freelancing kar rahe hain ya fresh graduate hain? 15-minute ka skill test dein, verified skill score hasil karein aur bina fake reviews ke pehle din se clients win karein.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/ai-interview" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 sm:min-h-14 sm:px-7">
-                  Take the AI Skill Test →
+                  Take the Skill Test →
                 </Link>
                 <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-600 bg-white px-6 text-sm font-extrabold text-brand-700 transition hover:bg-brand-50 sm:min-h-14 sm:px-7">
                   Browse Talent by Tier
@@ -178,7 +172,7 @@ export default function Home() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink-500">AI Verified</p>
+                      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink-500">Verified</p>
                       <p className="mt-1 text-2xl font-black text-ink">94/100</p>
                     </div>
                   </div>
@@ -240,14 +234,14 @@ export default function Home() {
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
-              <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 75% - 84%</span>
+              <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">Entry Level</span>
               <h3 className="mt-4 text-xl font-black text-ink">Rising Talent (Fresh Graduates & High-Potential)</h3>
               <p className="mt-2 text-sm leading-6 text-ink-500">Quick turnaround, clean fundamentals, entry-level budgets.</p>
               <p className="mt-4 text-sm font-semibold text-ink-600">Best For: MVPs, bug fixes, basic UI implementations.</p>
               <span className="mt-4 inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-ink-600">Affordable Rates • High Energy</span>
             </div>
             <div className="rounded-2xl border-2 border-brand-200 bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
-              <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 85% - 92%</span>
+              <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">Professional Level</span>
               <h3 className="mt-4 text-xl font-black text-ink">Professional Tier (Proven Practitioners)</h3>
               <p className="mt-2 text-sm leading-6 text-ink-500">Production-grade execution, minimal supervision.</p>
               <p className="mt-4 text-sm font-semibold text-ink-600">Best For: Full features, database optimizations, commercial projects.</p>
@@ -255,7 +249,7 @@ export default function Home() {
             </div>
             <div className="rounded-2xl border-2 border-[#0D5C3A] bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">AI Score: 93%+</span>
+                <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">Elite Level</span>
                 <span className="inline-flex items-center rounded-full bg-[#0D5C3A] px-2 py-1 text-[10px] font-extrabold text-white">Top 5%</span>
               </div>
               <h3 className="mt-4 text-xl font-black text-ink">Elite Tier (Architects & Seniors)</h3>
@@ -268,7 +262,7 @@ export default function Home() {
       </section>
 
       {/* Trust / Verification bar */}
-      <section id="trust" className="border-b border-ink-100 bg-[#F7FAF8] py-16">
+      <section id="trust" className="scroll-mt-24 border-b border-ink-100 bg-[#F7FAF8] py-16">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Trust &amp; safety</span>
@@ -286,13 +280,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why TQRA AI */}
-      <section id="why" className="bg-[#F7FAF8] py-24">
+      {/* Why Parwaz */}
+      <section id="why" className="scroll-mt-24 bg-[#F7FAF8] py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why TQRA AI?</span>
+            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Parwaz?</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. TQRA AI is built to fix what breaks trust online — verification, discovery, and safety.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Parwaz is built to fix what breaks trust online — verification, discovery, and safety.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {whyCards.map((card) => (
@@ -307,12 +301,12 @@ export default function Home() {
       </section>
 
       {/* How it works — For Clients */}
-      <section id="how-it-works" className="bg-canvas py-24">
+      <section id="how-it-works" className="scroll-mt-24 bg-canvas py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Compass className="h-3.5 w-3.5" /> How it works</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Post a job. Get matched. Get it done.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">For clients — four simple steps, with AI doing the heavy lifting.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">For clients — four simple steps, with smart matching doing the heavy lifting.</p>
           </div>
           <div className="mt-14 grid gap-6 lg:grid-cols-4">
             {clientSteps.map((step, index) => (
@@ -340,7 +334,7 @@ export default function Home() {
       </section>
 
       {/* Freelancer Journey */}
-      <section id="journey" className="bg-white py-24">
+      <section id="journey" className="scroll-mt-24 bg-white py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Freelancer journey</span>
@@ -351,13 +345,13 @@ export default function Home() {
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 01</span>
-                <h3 className="mt-4 text-lg font-black text-ink">Pick Domain & Run the AI Assessment</h3>
+                <h3 className="mt-4 text-lg font-black text-ink">Pick Domain & Run the Assessment</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-500">Apni domain choose karein (Web, UI/UX, Python etc.). Real practical test solve karein, na ke boring multiple-choice questions.</p>
               </div>
               <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 02</span>
                 <h3 className="mt-4 text-lg font-black text-ink">Get Your Instant Benchmark & Tier</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">AI code quality, logic aur speed analyse karke aapko instant verified score aur tier badge assign karta hai.</p>
+                <p className="mt-2 text-sm leading-6 text-ink-500">Code quality, logic aur speed analyse karke aapko instant verified score aur tier assign karta hai.</p>
                 <div className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
                   <svg width="60" height="2" className="stroke-brand-300" strokeDasharray="6 6">
                     <line x1="0" y1="1" x2="60" y2="1" />
@@ -382,16 +376,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* AI Section */}
-      <section id="ai" className="relative bg-[#F7FAF8] py-24 text-ink">
+      {/* Platform features */}
+      <section id="ai" className="relative scroll-mt-24 bg-[#F7FAF8] py-24 text-ink">
         <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
         <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="page-shell relative">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> TQRA AI features</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">AI That Works for You.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">TQRA AI is built into every part of Parwaz.pk — from the first assessment to the final payment.</p>
+            <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Platform features</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Smart Tools That Work for You.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of Parwaz.pk — from the first assessment to the final payment.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {aiCards.map((card) => (
@@ -402,12 +396,12 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every match, ranking, and review runs through TQRA AI.</p>
+          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every project is backed by verified skills, fair ranking, and secure payments.</p>
         </div>
       </section>
 
       {/* Categories */}
-      <section id="categories" className="bg-white py-20">
+      <section id="categories" className="scroll-mt-24 bg-white py-20">
         <div className="page-shell">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Categories for every kind of work.</h2></div>
@@ -417,7 +411,7 @@ export default function Home() {
             {categories.map((category) => (
               <Link key={category.name} href={`/tasks?category=${encodeURIComponent(category.name)}`} className="group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><category.icon className="h-6 w-6" /></span>
-                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p><p className="mt-1 text-[10px] font-semibold text-brand-700">Average AI Benchmark: 88%</p></div>
+                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p></div>
                 <ArrowRight className="h-5 w-5 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-600" />
               </Link>
             ))}
@@ -426,7 +420,7 @@ export default function Home() {
       </section>
 
       {/* Top talent */}
-      <section id="talent" className="bg-canvas py-20">
+      <section id="talent" className="scroll-mt-24 bg-canvas py-20">
         <div className="page-shell">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div><span className="eyebrow"><Award className="h-3.5 w-3.5" /> Top talent</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Verified freelancers, ready to start.</h2></div>
@@ -437,7 +431,6 @@ export default function Home() {
               <div key={person.name} className="rounded-2xl border border-ink-100 bg-white p-6 text-center shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <div className="relative mx-auto h-16 w-16">
                   <img src={person.avatar} alt={person.name} className="h-16 w-16 rounded-2xl object-cover" />
-                  <span className="absolute -bottom-1 -right-1 inline-flex items-center rounded-full bg-brand px-2 py-0.5 text-[10px] font-black text-white ring-2 ring-white">AI Score: {person.trust}%</span>
                 </div>
                 <h3 className="mt-4 font-black text-ink">{person.name}</h3>
                 <p className="mt-1 text-xs font-bold text-ink-400">{person.title} · {person.city}</p>
@@ -460,9 +453,8 @@ export default function Home() {
             <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
             <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
             <div className="relative">
-              <span className="inline-flex items-center gap-2 rounded-full border border-brand-300/30 bg-brand/10 px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.16em] text-[#E0E0E0]"><Sparkles className="h-3.5 w-3.5" /> Ready when you are</span>
-              <h2 className="mx-auto mt-6 max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project is <span className="text-brand-300">AI-matched.</span></h2>
-              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-[#E0E0E0]">Join free, verify your skills with TQRA AI, and get matched with work you&apos;re great at — from both sides of the table.</p>
+              <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project starts here.</h2>
+              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-[#E0E0E0]">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
                 <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#0B4619] px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-[#0F5132]"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
               </div>

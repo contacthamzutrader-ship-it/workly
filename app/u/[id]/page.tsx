@@ -17,7 +17,6 @@ import {
   MapPin,
   BriefcaseBusiness,
   ArrowLeft,
-  Sparkles,
   BadgeCheck,
   MessageSquareText,
   FolderOpen,
@@ -349,9 +348,9 @@ export default function PublicProfilePage() {
               )}
             </SectionCard>
 
-            <SectionCard icon={Sparkles} title="Specialities" subtitle="Based on the skills they offer">
+            <SectionCard icon={Star} title="Specialities" subtitle="Based on the skills they offer">
               {specialityList.length === 0 ? (
-                <EmptyState icon={Sparkles} text="No specialities added yet." />
+                <EmptyState icon={Star} text="No specialities added yet." />
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {specialityList.map((s) => (

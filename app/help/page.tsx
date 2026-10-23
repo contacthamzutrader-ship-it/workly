@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FileText, HelpCircle, Mail, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, FileText, HelpCircle, Mail, MessageCircle, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import FreelancerHeader from "@/components/FreelancerHeader";
 
@@ -13,7 +13,7 @@ const FAQS: { q: string; a: string; href?: string; cta?: string }[] = [
     cta: "Browse tasks",
   },
   {
-    q: "What is the AI skill check?",
+    q: "What is the skill check?",
     a: "A short assessment that scores your skills and improves how often your offers are recommended. Passing it also unlocks the Verified Talent badge.",
     href: "/interview",
     cta: "Take the skill check",
@@ -63,7 +63,7 @@ export default function HelpPage() {
 
 <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
-              { icon: Sparkles, title: "How it works", desc: "The full freelancer journey, step by step.", href: "/how-it-works" },
+              { icon: FileText, title: "How it works", desc: "The full freelancer journey, step by step.", href: "/how-it-works" },
               { icon: MessageCircle, title: "Contact us", desc: "Open the contact form and tell us the issue.", href: "/contact" },
               { icon: ShieldCheck, title: "Trust & safety", desc: "Guidelines, insurance and cancellation policies.", href: "/insurance" },
               { icon: Mail, title: "Learn more", desc: "Guides and articles on getting started.", href: "/how-it-works" },

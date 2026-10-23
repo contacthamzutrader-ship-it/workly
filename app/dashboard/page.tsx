@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Plus, ShieldCheck, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BadgeCheck, BriefcaseBusiness, Plus, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listTasksByPoster, type Task } from "@/lib/tasks";
 import DashboardShell from "@/components/DashboardShell";
@@ -76,7 +76,7 @@ export default function DashboardPage() {
         <div>
           <p className="page-eyebrow">{isAdmin ? "Operations workspace" : "Client workspace"}</p>
           <h1 className="page-title">Welcome back, {firstName}.</h1>
-          <p className="page-sub">Hire confidently - every freelancer carries an AI-verified skill score, so you can trust the talent you bring on.</p>
+          <p className="page-sub">Hire confidently - every freelancer carries a verified skill score, so you can trust the talent you bring on.</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {isAdmin && (
@@ -139,11 +139,11 @@ export default function DashboardPage() {
         <aside className="space-y-4">
           <div className="rounded-2xl bg-deep p-5 text-white">
             <div className="flex items-center justify-between">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand"><Sparkles className="h-4 w-4" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand"><BadgeCheck className="h-4 w-4" /></span>
               <TrendingUp className="h-4 w-4 text-brand-300" />
             </div>
             <h3 className="mt-4 text-lg font-bold">Smarter hiring</h3>
-            <p className="mt-1.5 text-sm leading-6 text-white/60">Every profile shows an AI skill score, so you can confidently hire even newcomers.</p>
+            <p className="mt-1.5 text-sm leading-6 text-white/60">Every profile shows a verified skill score, so you can confidently hire even newcomers.</p>
             <Link href="/post" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-300 transition hover:text-brand-200">Post a well-scoped job <ArrowRight className="h-4 w-4" /></Link>
           </div>
 
@@ -162,7 +162,7 @@ export default function DashboardPage() {
       <section className="grid gap-3 sm:grid-cols-3">
         {[
           { title: "Post your next job", body: "One click to the right place.", href: "/post" },
-          { title: "Take the AI Skill Check", body: "Free, 5 minutes, instant score.", href: "/interview" },
+          { title: "Take the Skill Check", body: "Free, 5 minutes, instant score.", href: "/interview" },
           { title: "Complete your profile", body: "Unlock better match position.", href: "/profile" },
         ].map((action) => (
           <Link key={action.title} href={action.href} className="group flex items-center gap-3 rounded-2xl border border-ink-100 bg-white px-5 py-4 transition hover:border-brand-200 hover:bg-brand-50/30">

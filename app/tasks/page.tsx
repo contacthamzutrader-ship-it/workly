@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness, Check, Plus, Search, ShieldCheck, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { BriefcaseBusiness, Check, Plus, Search, ShieldCheck, SlidersHorizontal, X } from "lucide-react";
 import { listPublicTasks, CATEGORIES, type Task } from "@/lib/tasks";
 import TaskCard from "@/components/TaskCard";
 import Button from "@/components/ui/Button";
@@ -49,7 +49,7 @@ export default function TasksPage() {
           <div className="absolute inset-0 noise opacity-50" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><Sparkles className="h-3.5 w-3.5" /> Opportunity feed</span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><BriefcaseBusiness className="h-3.5 w-3.5" /> Opportunity feed</span>
               <h1 className="mt-5 text-4xl font-black tracking-[-0.045em] sm:text-5xl">Find work worth doing.</h1>
               <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/60">Explore approved tasks, send your best offer, and build a reputation that keeps paying back.</p>
             </div>

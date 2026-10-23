@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Award, Check, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
+import { Award, Check, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -196,11 +196,11 @@ export default function SkillsPage() {
           )}
 
           <div className="mt-6 rounded-3xl bg-[#00501F] p-5 text-white shadow-card">
-            <div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-brand-light" /><p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">AI skill assessment</p></div>
+            <div className="flex items-center gap-2"><Award className="h-5 w-5 text-brand-light" /><p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">Skill assessment</p></div>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-4xl font-black tracking-[-0.04em]">{ai.skillScore}</p>
-                <p className="mt-1 text-xs font-medium text-white/55">Skill score from the app's AI assessment</p>
+                <p className="mt-1 text-xs font-medium text-white/55">Skill score from the app's assessment</p>
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold text-white/65">Confidence {ai.confidence}</p>
@@ -218,7 +218,7 @@ export default function SkillsPage() {
                 {ai.learning.map((tip, i) => <li key={i} className="flex items-start gap-2 text-xs leading-5 text-white/55"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-light" /> {tip}</li>)}
               </ul>
             )}
-            <Link href="/interview" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700"><Sparkles className="h-4 w-4" /> Take the skill check</Link>
+            <Link href="/interview" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Take the skill check</Link>
           </div>
         </div>
       </div>

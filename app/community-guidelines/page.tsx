@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, Ban, FileText, HandHeart, ShieldCheck, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, Ban, FileText, HandHeart, ShieldCheck, Wallet } from "lucide-react";
 
 const RULES: { icon: any; title: string; text: string }[] = [
   { icon: HandHeart, title: "Be respectful", text: "Treat every client and freelancer with respect. Harassment, hate speech, threats or discrimination in any form are not allowed on the platform." },
-  { icon: Sparkles, title: "Be honest", text: "Use your real details, deliver what you promised, and represent your skills accurately. Misleading profiles or offers undermine trust for everyone." },
+  { icon: FileText, title: "Be honest", text: "Use your real details, deliver what you promised, and represent your skills accurately. Misleading profiles or offers undermine trust for everyone." },
   { icon: Wallet, title: "Keep payments on the platform", text: "All task payments flow through Parwaz. Paying off-platform to avoid fees or to bypass protection is a violation of the terms and endangers both sides." },
   { icon: ShieldCheck, title: "Stay safe & legal", text: "Only post and accept tasks that are legal. Never trade prohibited goods or services, and never ask another user to do anything unlawful." },
   { icon: Ban, title: "No spam or abuse", text: "Do not spam offers, bulk-message users for unrelated marketing, self-promote outside your profile, or try to manipulate reviews and ratings." },
