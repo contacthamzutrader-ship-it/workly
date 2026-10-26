@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   User,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import BrandLogo from "@/components/BrandLogo";
@@ -205,6 +206,7 @@ export default function Navbar() {
                     ) : (
                       <Link href="/profile" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-brand-50"><User className="h-4 w-4 text-brand" /> Profile</Link>
                     )}
+                    <Link href="/help" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-brand-50"><HelpCircle className="h-4 w-4 text-brand" /> Help &amp; Support</Link>
                     <button onClick={() => { signOut(); close(); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4" /> Sign out</button>
                   </div>
                 )}
@@ -244,8 +246,12 @@ export default function Navbar() {
               <>
                 <Link href="/dashboard" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-ink-50"><LayoutDashboard className="h-4 w-4 text-brand" /> Dashboard</Link>
                 <Link href="/messages" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-ink-50"><MessageSquare className="h-4 w-4 text-brand" /> Messages</Link>
+                <Link href="/help" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-ink-50"><HelpCircle className="h-4 w-4 text-brand" /> Help &amp; Support</Link>
                 {isAdmin && <Link href="/admin" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-ink-50"><ShieldCheck className="h-4 w-4 text-brand" /> Admin control</Link>}
               </>
+            )}
+            {!user && (
+              <Link href="/help" onClick={close} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-ink-600 hover:bg-ink-50"><HelpCircle className="h-4 w-4 text-brand" /> Help &amp; Support</Link>
             )}
           </nav>
           <div className="mt-3 flex flex-col gap-2 border-t border-ink-100 pt-3">

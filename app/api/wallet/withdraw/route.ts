@@ -44,10 +44,11 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+    const firestore = db;
 
-    const userRef = doc(db, "users", userId);
+    const userRef = doc(firestore, "users", userId);
 
-    await runTransaction(db, async (transaction) => {
+    await runTransaction(firestore, async (transaction) => {
       const userSnap = await transaction.get(userRef);
       if (!userSnap.exists()) {
         throw new Error("User account not found.");
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Insert pending withdrawal transaction into ledger
-      const txRef = doc(collection(db, "wallet_txs"));
+      const txRef = doc(collection(firestore, "wallet_txs"));
       transaction.set(txRef, {
         userId,
         amount: numAmount,

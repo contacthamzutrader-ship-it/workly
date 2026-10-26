@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+    const firestore = db;
 
-    const taskRef = doc(db, "tasks", taskId);
+    const taskRef = doc(firestore, "tasks", taskId);
     const taskSnap = await getDoc(taskRef);
 
     if (!taskSnap.exists()) {
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await runTransaction(db, async (transaction) => {
+    await runTransaction(firestore, async (transaction) => {
       const currentTask = await transaction.get(taskRef);
       if (!currentTask.exists()) throw new Error("Task not found.");
       if (currentTask.data().status !== "open") {
@@ -91,10 +92,10 @@ export async function POST(req: NextRequest) {
         paymentGateway: "safepay_sandbox",
       });
 
-      const bidRef = doc(db, "bids", bidId);
+      const bidRef = doc(firestore, "bids", bidId);
       transaction.update(bidRef, { status: "selected" });
 
-      transaction.set(doc(collection(db, "wallet_txs")), {
+      transaction.set(doc(collection(firestore, "wallet_txs")), {
         userId: task.posterId,
         amount: numericAmount,
         type: "hold",

@@ -4,21 +4,22 @@ import BrandLogo from "@/components/BrandLogo";
 
 const columns = {
   Marketplace: [
-    { label: "Browse jobs", href: "/tasks" },
-    { label: "Post a job", href: "/post" },
-    { label: "Find talent", href: "/#talent" },
-    { label: "Categories", href: "/#categories" },
-  ],
-  "Get started": [
+    { label: "Browse tasks", href: "/tasks" },
+    { label: "Post a task", href: "/post" },
     { label: "Skill Check", href: "/interview" },
-    { label: "How it works", href: "/#how-it-works" },
-    { label: "Platform features", href: "/#ai" },
-    { label: "Why Parwaz", href: "/#why" },
+    { label: "How it works", href: "/how-it-works" },
   ],
-  Support: [
-    { label: "Safety & trust", href: "/#trust" },
-    { label: "Parwaz Protect", href: "/#trust" },
-    { label: "Help centre", href: "/messages" },
+  "Trust & Safety": [
+    { label: "Help & Support Desk", href: "/help" },
+    { label: "Community Guidelines", href: "/community-guidelines" },
+    { label: "Parwaz Protection", href: "/insurance" },
+    { label: "Contact Us", href: "/contact" },
+  ],
+  "Legal & Policies": [
+    { label: "Terms and Conditions", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Cancellation Policy", href: "/cancellation-policy" },
+    { label: "Help Centre", href: "/help" },
   ],
 };
 
@@ -26,14 +27,14 @@ export default function Footer() {
   return (
     <footer className="mt-12 bg-[#00501F] text-white">
       <div className="page-shell">
-        <div className="grid grid-cols-2 gap-10 py-14 md:grid-cols-4">
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 gap-10 py-14 md:grid-cols-5">
+          <div className="col-span-2 md:col-span-2">
             <BrandLogo inverted compact />
-            <p className="mt-5 max-w-xs text-sm leading-6 text-white/60">
-              Pakistan&apos;s smarter freelancing marketplace — verified talent, smart matching, and secure payments for every project.
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/70">
+              Pakistan&apos;s smarter freelancing marketplace — verified talent, AI skill checks, Escrow payment protection, and smart matching for every task.
             </p>
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/70">
-              <ShieldCheck className="h-4 w-4 text-brand-300" /> Escrow-protected payments
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80">
+              <ShieldCheck className="h-4 w-4 text-brand-300" /> Escrow-protected &amp; AI Contact Shielded
             </div>
           </div>
 
@@ -43,27 +44,29 @@ export default function Footer() {
               <ul className="mt-4 space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="group inline-flex items-center gap-1 text-sm font-bold text-white/70 transition hover:text-white">
-                      {link.label}<ArrowUpRight className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
+                    <Link
+                      href={link.href}
+                      className="group inline-flex items-center gap-1 text-sm font-bold text-white/70 transition hover:text-white"
+                    >
+                      {link.label}
+                      <ArrowUpRight className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-
-          <div>
-            <h3 className="text-xs font-extrabold uppercase tracking-[0.16em] text-white/40">Built for trust</h3>
-            <p className="mt-4 text-sm leading-6 text-white/60">Smart skill verification, matching, and fraud protection keep every hire fair and safe.</p>
-            <Link href="/interview" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">
-              <ShieldCheck className="h-4 w-4" /> Try the Skill Check
-            </Link>
-          </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>&copy; {new Date().getFullYear()} Parwaz.pk. All rights reserved.</span>
-          <span>Verified talent, smart matching, and secure payments.</span>
+        <div className="flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
+          <span>&copy; {new Date().getFullYear()} Parwaz.pk (Workly). All rights reserved.</span>
+          <div className="flex flex-wrap gap-4 text-white/60">
+            <Link href="/terms" className="hover:text-white transition">Terms</Link>
+            <Link href="/privacy" className="hover:text-white transition">Privacy</Link>
+            <Link href="/cancellation-policy" className="hover:text-white transition">Cancellations</Link>
+            <Link href="/community-guidelines" className="hover:text-white transition">Guidelines</Link>
+            <Link href="/help" className="hover:text-white transition">Support Desk</Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -27,7 +27,9 @@ export type EmojiEmotion =
   | "love"
   | "sparkle"
   | "giggle"
-  | "curious";
+  | "curious"
+  | "speaking"
+  | "apologetic";
 
 export interface ChatResponseResult {
   reply: string;

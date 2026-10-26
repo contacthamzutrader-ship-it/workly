@@ -67,9 +67,10 @@ export async function POST(req: NextRequest) {
 
     // Process payment completion
     if (orderId && db && (event === "payment.completed" || event === "order.paid")) {
-      const taskRef = doc(db, "tasks", orderId);
+      const firestore = db;
+      const taskRef = doc(firestore, "tasks", orderId);
 
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(firestore, async (transaction) => {
         const taskSnap = await transaction.get(taskRef);
         if (!taskSnap.exists()) {
           console.warn(`[Safepay Webhook] Task ${orderId} not found.`);
@@ -99,11 +100,11 @@ export async function POST(req: NextRequest) {
         transaction.update(taskRef, updateData);
 
         if (bidId) {
-          transaction.update(doc(db, "bids", bidId), { status: "selected" });
+          transaction.update(doc(firestore, "bids", bidId), { status: "selected" });
         }
 
         // Write immutable ledger entry
-        transaction.set(doc(collection(db, "wallet_txs")), {
+        transaction.set(doc(collection(firestore, "wallet_txs")), {
           userId: task.posterId,
           amount: amount || task.budget || 0,
           type: "hold",

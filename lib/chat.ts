@@ -27,12 +27,21 @@ export interface Conversation {
   createdAt: any;
 }
 
+export interface ChatAttachment {
+  name: string;
+  url: string;
+  type: "image" | "video" | "pdf" | "document" | "audio" | "file";
+  mimeType?: string;
+  size?: number;
+}
+
 export interface Message {
   id?: string;
   convId: string;
   fromId: string;
   fromName: string;
   text: string;
+  attachments?: ChatAttachment[];
   flagged?: boolean;
   flaggedReasons?: string[];
   createdAt: any;
@@ -69,21 +78,26 @@ export async function sendMessage(
   convId: string,
   fromId: string,
   fromName: string,
-  text: string
+  text: string,
+  attachments?: ChatAttachment[]
 ): Promise<void> {
   const database = needDb();
   const scan = scanMessage(text);
+  const safeAttachments = attachments || [];
+  const previewText = text.trim() || (safeAttachments.length > 0 ? `📎 ${safeAttachments[0].name}` : "Sent attachment");
+
   await addDoc(collection(database, "conversations", convId, "messages"), {
     convId,
     fromId,
     fromName,
     text,
+    attachments: safeAttachments,
     flagged: scan.flagged,
     flaggedReasons: scan.reasons,
     createdAt: serverTimestamp(),
   });
   await updateDoc(doc(database, "conversations", convId), {
-    lastMessage: text,
+    lastMessage: previewText,
     updatedAt: serverTimestamp(),
   });
 

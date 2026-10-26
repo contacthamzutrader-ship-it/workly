@@ -80,6 +80,13 @@ export interface Task {
   shareToken?: string;
 }
 
+export interface BidAttachment {
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+}
+
 export interface Bid {
   id?: string;
   taskId: string;
@@ -87,6 +94,7 @@ export interface Bid {
   bidderName: string;
   amount: number;
   message: string;
+  attachments?: BidAttachment[];
   status: "pending" | "selected" | "withdrawn" | "rejected";
   createdAt: any;
   moderated?: boolean;
@@ -333,6 +341,7 @@ export async function placeBid(input: {
   bidderName: string;
   amount: number;
   message: string;
+  attachments?: BidAttachment[];
 }): Promise<void> {
   const database = needDb();
   if (!Number.isFinite(input.amount) || input.amount < MIN_BID) {
@@ -352,6 +361,7 @@ export async function placeBid(input: {
     if (existing.exists()) throw new Error("You have already submitted an offer for this task.");
     transaction.set(bidRef, {
       ...input,
+      attachments: input.attachments || [],
       status: "pending",
       createdAt: serverTimestamp(),
       ...(isModerated && { moderated: true, moderationReason: moderateReasons.join(", ") }),
