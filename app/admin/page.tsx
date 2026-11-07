@@ -240,7 +240,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-canvas py-8 sm:py-10">
       <div className="page-shell">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><ShieldCheck className="h-7 w-7" /></span>
@@ -258,7 +258,7 @@ export default function AdminPage() {
 
         <div className="mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-ink-100 bg-white p-2 shadow-card">
           {tabs.filter((tab) => tab.show).map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-xs font-extrabold transition ${activeTab === tab.id ? "bg-[#00501F] text-white shadow-sm" : "text-ink-500 hover:bg-ink-50 hover:text-ink"}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-xs font-extrabold transition ${activeTab === tab.id ? "bg-brand text-white shadow-sm" : "text-ink-500 hover:bg-ink-50 hover:text-ink"}`}>
               <tab.icon className="h-4 w-4" /> {tab.label}
               {typeof tab.count === "number" && tab.count > 0 && <span className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] ${activeTab === tab.id ? "bg-brand text-white" : "bg-amber-100 text-amber-700"}`}>{tab.count}</span>}
             </button>
@@ -266,7 +266,7 @@ export default function AdminPage() {
         </div>
 
         {error && <div role="alert" className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div>}
-        {privateInviteLink && <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50 p-4"><p className="text-sm font-black text-brand-dark">Private freelancer link created and copied</p><div className="mt-2 flex gap-2"><Input readOnly value={privateInviteLink} className="bg-white" /><button onClick={() => navigator.clipboard.writeText(privateInviteLink)} className="shrink-0 rounded-xl bg-[#00501F] px-4 text-xs font-extrabold text-white">Copy link</button></div><p className="mt-2 text-xs font-medium text-ink-500">The first signed-in freelancer who opens this exact link can view and bid. It will not appear in the public feed.</p></div>}
+        {privateInviteLink && <div className="mt-5 rounded-2xl border border-brand-200 bg-brand-50 p-4"><p className="text-sm font-black text-brand-dark">Private freelancer link created and copied</p><div className="mt-2 flex gap-2"><Input readOnly value={privateInviteLink} className="bg-white" /><button onClick={() => navigator.clipboard.writeText(privateInviteLink)} className="shrink-0 rounded-xl bg-brand px-4 text-xs font-extrabold text-white">Copy link</button></div><p className="mt-2 text-xs font-medium text-ink-500">The first signed-in freelancer who opens this exact link can view and bid. It will not appear in the public feed.</p></div>}
 
         {busy ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">{[1,2,3,4].map(i => <div key={i} className="h-28 animate-pulse rounded-3xl bg-white" />)}</div>
@@ -349,7 +349,7 @@ export default function AdminPage() {
 
                             <div className="mt-5 rounded-2xl border border-ink-100 bg-ink-50/60 p-4">
                               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                                <div className="flex flex-1 items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#00501F] text-white"><Lock className="h-4 w-4" /></span><div><p className="text-xs font-black text-ink">Managed private route</p><p className="text-[11px] font-medium text-ink-400">Creates exactly one selected internal offer</p></div></div>
+                                <div className="flex flex-1 items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-forest text-white"><Lock className="h-4 w-4" /></span><div><p className="text-xs font-black text-ink">Managed private route</p><p className="text-[11px] font-medium text-ink-400">Creates exactly one selected internal offer</p></div></div>
                                 <select value={selectedProvider || ""} onChange={(e) => setPrivatePick(current => ({ ...current, [task.id!]: e.target.value }))} className="min-h-11 min-w-[210px] rounded-xl border border-ink-200 bg-white px-3 text-xs font-bold text-ink focus:border-brand focus:outline-none">
                                   <option value="">{privateProviders.length ? "Choose private provider" : "No private providers ready"}</option>
                                   {privateProviders.map((provider) => <option key={provider.id} value={provider.id}>{provider.name || provider.email}</option>)}
@@ -365,7 +365,7 @@ export default function AdminPage() {
                 </section>
 
                 <aside className="space-y-4 lg:sticky lg:top-24">
-                  <div className="rounded-3xl bg-[#00501F] p-6 text-white shadow-elevated"><ShieldCheck className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
+                  <div className="rounded-3xl bg-forest p-6 text-white shadow-elevated"><ShieldCheck className="h-5 w-5 text-brand-light" /><h3 className="mt-4 text-lg font-black">Two clear routes</h3><div className="mt-5 space-y-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand"><Eye className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Public</p><p className="mt-1 text-[11px] leading-4 text-white/50">Visible to everyone. Multiple professionals can offer.</p></div></div><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/10"><Lock className="h-3.5 w-3.5" /></span><div><p className="text-xs font-black">Private managed</p><p className="mt-1 text-[11px] leading-4 text-white/50">Hidden from browse. One internal provider auto-assigned.</p></div></div></div></div>
                   <div className="surface p-5"><p className="text-xs font-black text-ink">Private assignments</p><p className="mt-2 text-2xl font-black text-ink">{privateTasks.length}</p><p className="mt-1 text-[11px] font-medium text-ink-400">Total managed tasks</p></div>
                   {privateTasks.some((task) => task.status === "open" && task.shareToken) && <div className="surface p-5"><p className="text-xs font-black text-ink">Active private links</p><div className="mt-3 space-y-2">{privateTasks.filter((task) => task.status === "open" && task.shareToken).slice(0, 8).map((task) => <button key={task.id} onClick={() => { const link = `${window.location.origin}/tasks/${task.id}?invite=${task.shareToken}`; setPrivateInviteLink(link); navigator.clipboard.writeText(link).catch(() => {}); }} className="flex w-full items-center gap-2 rounded-xl bg-ink-50 p-3 text-left text-xs font-bold text-ink-600 hover:bg-brand-50"><Link2 className="h-3.5 w-3.5 shrink-0 text-brand" /><span className="min-w-0 flex-1 truncate">{task.title}</span><span className="text-brand-dark">Copy</span></button>)}</div></div>}
                 </aside>
@@ -419,9 +419,9 @@ export default function AdminPage() {
                 <div className="divide-y divide-ink-100">
                   {allUsers.map((member) => (
                     <div key={member.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                      <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-[#00501F] text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-[#00501F] px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
+                      <div className="flex min-w-0 items-center gap-3"><span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-black ${member.isPrivate ? "bg-forest text-white" : "bg-brand-50 text-brand-dark"}`}>{(member.name || member.email || "U")[0].toUpperCase()}</span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-black text-ink">{member.name || "Unnamed member"}</p>{member.isPrivate && <span className="rounded-full bg-forest px-2 py-0.5 text-[9px] font-black uppercase text-white">Private network</span>}</div><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{member.email}</p></div></div>
                       <div className="flex items-center gap-2">
-                        {member.role === "super_admin" ? <span className="rounded-full bg-[#00501F] px-3 py-1.5 text-[10px] font-black uppercase text-white">Owner</span> : <select value={member.role === "tasker" ? "tasker" : "customer"} onChange={(event) => changeUserRole(member, event.target.value as "customer" | "tasker")} disabled={actionBusy === member.id} className="min-h-9 rounded-xl border border-ink-200 bg-white px-3 text-[11px] font-extrabold text-ink focus:border-brand focus:outline-none"><option value="customer">Client</option><option value="tasker">Freelancer</option></select>}
+                        {member.role === "super_admin" ? <span className="rounded-full bg-forest px-3 py-1.5 text-[10px] font-black uppercase text-white">Owner</span> : <select value={member.role === "tasker" ? "tasker" : "customer"} onChange={(event) => changeUserRole(member, event.target.value as "customer" | "tasker")} disabled={actionBusy === member.id} className="min-h-9 rounded-xl border border-ink-200 bg-white px-3 text-[11px] font-extrabold text-ink focus:border-brand focus:outline-none"><option value="customer">Client</option><option value="tasker">Freelancer</option></select>}
                         {member.role === "tasker" && <button onClick={() => togglePrivateProvider(member)} disabled={actionBusy === member.id} className={`min-h-9 rounded-xl border px-3 text-[11px] font-extrabold transition ${member.isPrivate ? "border-red-100 text-red-600 hover:bg-red-50" : "border-brand-200 text-brand-dark hover:bg-brand-50"}`}>{member.isPrivate ? "Remove private" : "Make private provider"}</button>}
                       </div>
                     </div>
@@ -479,7 +479,7 @@ function AutoApproveControl({ onChanged }: { onChanged: () => void }) {
           ].map(([Icon,title,body]: any) => <div key={title} className="rounded-2xl bg-ink-50 p-4"><Icon className="h-5 w-5 text-brand" /><p className="mt-3 text-xs font-black text-ink">{title}</p><p className="mt-1 text-[11px] font-medium text-ink-400">{body}</p></div>)}
         </div>
       </section>
-      <aside className={`rounded-3xl p-6 text-white ${enabled ? "bg-brand shadow-glow" : "bg-[#00501F] shadow-elevated"}`}>
+      <aside className={`rounded-3xl p-6 text-white ${enabled ? "bg-brand shadow-glow" : "bg-forest shadow-elevated"}`}>
         <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/60">Current mode</p><p className="mt-3 text-2xl font-black">{enabled ? "Smart automation" : "Manual control"}</p><p className="mt-2 text-sm leading-6 text-white/65">{enabled ? "Safe tasks can reach the marketplace without team delay." : "Every new task waits for an admin decision."}</p>
       </aside>
     </div>
@@ -552,7 +552,7 @@ function ManageAdmins({ admins, ownerEmail, onChanged }: { admins: any[]; ownerE
           {admins.map((admin) => (
             <div key={admin.uid} className="p-5 sm:p-6">
               <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#00501F] text-white"><ShieldCheck className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-sm font-black text-ink">{admin.name || admin.email}</p><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{admin.email}</p></div></div>
+                <div className="flex min-w-0 items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-forest text-white"><ShieldCheck className="h-5 w-5" /></span><div className="min-w-0"><p className="truncate text-sm font-black text-ink">{admin.name || admin.email}</p><p className="mt-0.5 truncate text-xs font-medium text-ink-400">{admin.email}</p></div></div>
                 <button onClick={() => remove(admin.uid)} className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 text-red-500 transition hover:bg-red-50" aria-label={`Remove ${admin.name || admin.email}`}><Trash2 className="h-4 w-4" /></button>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">

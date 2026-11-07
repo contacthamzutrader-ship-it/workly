@@ -46,7 +46,7 @@ function HomePageContent() {
       title: 'Backend & APIs',
       desc: 'Node.js, Python, SQL concurrency, rate limiters, token buckets',
       icon: Server,
-      color: 'from-emerald-500/20 to-teal-500/20 border-emerald-500/30 text-emerald-400',
+      color: 'from-brand-500/20 to-forest-700/20 border-brand-500/30 text-brand-400',
     },
     {
       id: 'fullstack',
@@ -88,7 +88,7 @@ function HomePageContent() {
       title: 'Mobile App Dev',
       desc: 'React Native, Flutter, offline mutation queues, deep links',
       icon: Smartphone,
-      color: 'from-teal-500/20 to-emerald-500/20 border-teal-500/30 text-teal-400',
+      color: 'from-forest-700/20 to-brand-500/20 border-forest-700/30 text-brand-300',
     },
   ];
 
@@ -135,8 +135,8 @@ function HomePageContent() {
         {/* Hero Title & CTA */}
         <div className="text-center space-y-6 max-w-3xl mx-auto">
           {searchParams.get('candidate_name') ? (
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-mono backdrop-blur-md shadow-lg shadow-emerald-950/40 animate-in fade-in">
-              <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-brand-500/20 border border-brand-500/40 text-brand-300 text-xs font-mono backdrop-blur-md shadow-lg shadow-brand-900/40 animate-in fade-in">
+              <UserCheck className="w-4 h-4 text-brand-400 shrink-0" />
               <span>
                 Welcome, <strong className="text-white">{incomingName}</strong>! Your <strong className="text-white">{selectedNiche.toUpperCase()}</strong> Skill Assessment is ready.
               </span>
@@ -199,7 +199,7 @@ function HomePageContent() {
           </div>
 
           <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-5 space-y-2.5 hover:border-indigo-500/40 transition">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-brand-600/20 border border-brand-500/30 flex items-center justify-center text-brand-400">
               <Terminal className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-white">Live Code Sandbox</h3>
@@ -247,7 +247,7 @@ function HomePageContent() {
             </div>
 
             <div className="bg-zinc-950/80 border border-zinc-800 p-4 rounded-2xl space-y-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold font-mono flex items-center justify-center text-[11px]">
+              <span className="w-6 h-6 rounded-full bg-brand-600 text-white font-bold font-mono flex items-center justify-center text-[11px]">
                 3
               </span>
               <h5 className="font-bold text-white">Handover &amp; Auto-Redirect</h5>
@@ -296,8 +296,8 @@ function HomePageContent() {
       <footer className="border-t border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md py-6 px-6 text-center text-xs text-zinc-500 font-mono relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 AI Assessment &amp; Anti-Cheating Proctoring Platform for Freelancer Marketplaces.</p>
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <div className="flex items-center gap-2 text-brand-400 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-brand-400 animate-ping" />
             <span>Platform Online</span>
           </div>
         </div>

@@ -71,7 +71,7 @@ const STATUS_TAGS: Record<string, { label: string; color: string }> = {
   open: { label: "Available", color: "bg-brand-50 text-brand-dark border-brand-200" },
   assigned: { label: "Already Assigned", color: "bg-blue-50 text-blue-700 border-blue-200" },
   in_progress: { label: "In Progress", color: "bg-purple-50 text-purple-700 border-purple-200" },
-  completed: { label: "Completed", color: "bg-green-50 text-green-700 border-green-200" },
+  completed: { label: "Completed", color: "bg-brand-50 text-brand-700 border-brand-200" },
   cancelled: { label: "Cancelled", color: "bg-red-50 text-red-700 border-red-200" },
 };
 
@@ -573,7 +573,7 @@ export default function TaskDetailPage() {
           </span>
         )}
         {paymentDone && (
-          <span className="flex items-center gap-1.5 font-semibold text-green-600">
+          <span className="flex items-center gap-1.5 font-semibold text-brand-600">
             <CheckCircle2 className="h-4 w-4" /> Paid
           </span>
         )}
@@ -589,7 +589,7 @@ export default function TaskDetailPage() {
             </Link>
           </span>
           {task.visibility === "private" && (
-            <span className="ml-auto rounded-full bg-[#00501F] px-2.5 py-1 text-[11px] font-black uppercase text-white">
+            <span className="ml-auto rounded-full bg-forest px-2.5 py-1 text-[11px] font-black uppercase text-white">
               Managed private
             </span>
           )}
@@ -691,7 +691,7 @@ export default function TaskDetailPage() {
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
                     isBlockedByShield
                       ? "border border-red-300 bg-red-50 text-red-700 animate-pulse"
-                      : "border border-green-200 bg-green-50 text-green-700"
+                      : "border border-brand-200 bg-brand-50 text-brand-700"
                   }`}
                 >
                   {isBlockedByShield ? (
@@ -700,7 +700,7 @@ export default function TaskDetailPage() {
                     </>
                   ) : (
                     <>
-                      <ShieldCheck className="h-3.5 w-3.5 text-green-600" /> AI Contact Shield: Active &amp; Guarding
+                      <ShieldCheck className="h-3.5 w-3.5 text-brand-600" /> AI Contact Shield: Active &amp; Guarding
                     </>
                   )}
                 </div>
@@ -879,7 +879,7 @@ export default function TaskDetailPage() {
                                 {hasViolation ? (
                                   <span className="font-bold text-red-600">⚠️ Blocked (Contains Contact)</span>
                                 ) : (
-                                  <span className="flex items-center gap-0.5 font-bold text-green-700">
+                                  <span className="flex items-center gap-0.5 font-bold text-brand-700">
                                     <Check className="h-2.5 w-2.5" /> Safe
                                   </span>
                                 )}
@@ -1023,7 +1023,7 @@ export default function TaskDetailPage() {
                           <p className="mt-1 whitespace-pre-wrap text-sm text-ink-600">{b.message}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {b.fresh && (
-                              <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+                              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
                                 <Zap className="mr-1 inline-block h-3 w-3" /> Fresh
                               </span>
                             )}
@@ -1170,14 +1170,14 @@ export default function TaskDetailPage() {
 
           {/* Payment Complete */}
           {paymentDone && (
-            <div className="rounded-2xl border border-green-100 bg-green-50 p-6 shadow-card">
+            <div className="rounded-2xl border border-brand-100 bg-brand-50 p-6 shadow-card">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-green-100 text-green-600">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-100 text-brand-600">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-green-700">Payment Released</h2>
-                  <p className="text-sm text-green-600">
+                  <h2 className="text-lg font-bold text-brand-700">Payment Released</h2>
+                  <p className="text-sm text-brand-600">
                     {formatPKR(task.heldAmount)} has been released. Tasker received{" "}
                     {formatPKR(
                       task.heldAmount ? task.heldAmount - Math.round(task.heldAmount * PLATFORM_FEE) : 0

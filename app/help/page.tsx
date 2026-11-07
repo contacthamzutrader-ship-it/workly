@@ -218,7 +218,7 @@ export default function HelpPage() {
       <div className="bg-canvas py-8 sm:py-10">
         <div className="page-shell max-w-5xl">
           {/* Header Banner */}
-          <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+          <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand">
@@ -290,8 +290,8 @@ export default function HelpPage() {
           {tab === "submit" && (
             <div className="mt-6 space-y-6">
               {successCode ? (
-                <div className="rounded-3xl border-2 border-green-200 bg-green-50/60 p-8 text-center shadow-card">
-                  <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-green-100 text-green-700">
+                <div className="rounded-3xl border-2 border-brand-200 bg-brand-50/60 p-8 text-center shadow-card">
+                  <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand-100 text-brand-700">
                     <CheckCircle2 className="h-8 w-8" />
                   </div>
                   <h2 className="mt-4 text-xl font-black text-ink">Your Issue Has Been Received in Real-Time!</h2>
@@ -581,7 +581,7 @@ export default function HelpPage() {
                           <span
                             className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
                               t.status === "resolved"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-brand-100 text-brand-800"
                                 : t.status === "investigating"
                                 ? "bg-blue-100 text-blue-800 animate-pulse"
                                 : "bg-amber-100 text-amber-800"
@@ -715,7 +715,7 @@ export default function HelpPage() {
           )}
 
           {/* Quick Support Banner Footer */}
-          <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-3xl bg-[#00501F] p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
+          <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-3xl bg-forest p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
             <div className="flex items-center gap-4">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand">
                 <MessageCircle className="h-6 w-6 text-white" />

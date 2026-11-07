@@ -7,7 +7,7 @@ export default function GiftCardsPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-4xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Gift className="h-7 w-7" /></div>
@@ -33,7 +33,7 @@ export default function GiftCardsPage() {
           <p className="mt-3 text-sm leading-6 text-ink-600">A gift-card programme - letting you buy a card for a friend and let them spend its value on tasks with vetted freelancers - is being planned. When it launches, this page will explain exactly how to buy, check a balance and redeem a card. Until then, no part of this page sells gift cards.</p>
         </div>
 
-        <div className="mt-5 rounded-3xl bg-[#00501F] p-6 text-white shadow-card sm:p-8">
+        <div className="mt-5 rounded-3xl bg-forest p-6 text-white shadow-card sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex items-center gap-4">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand"><Gift className="h-6 w-6" /></div>

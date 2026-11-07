@@ -110,12 +110,12 @@ export default function TestResultsModal({
     if (badge === 'Needs Review') {
       return 'bg-rose-500/20 border-rose-500/30 text-rose-300';
     }
-    return 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300';
+    return 'bg-brand-500/20 border-brand-500/30 text-brand-300';
   };
 
   const getIntegrityBadge = (verdict: string) => {
     if (verdict === 'Verified Clean') {
-      return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+      return 'text-brand-400 bg-brand-500/10 border-brand-500/30';
     }
     if (verdict === 'Low Risk') {
       return 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30';
@@ -131,13 +131,13 @@ export default function TestResultsModal({
       <div className="max-w-4xl w-full space-y-8">
         {/* Top Automatic Redirect Banner (Shown if Passed) */}
         {evaluation.isPassed ? (
-          <div className="bg-emerald-950/80 backdrop-blur-md border border-emerald-500/40 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl animate-in fade-in">
+          <div className="bg-brand-900/80 backdrop-blur-md border border-brand-500/40 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl animate-in fade-in">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600/30 flex items-center justify-center text-emerald-400 font-mono font-bold">
+              <div className="w-10 h-10 rounded-xl bg-brand-600/30 flex items-center justify-center text-brand-400 font-mono font-bold">
                 <Timer className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <p className="text-xs text-emerald-300 font-medium">Automatic Handover Ready</p>
+                <p className="text-xs text-brand-300 font-medium">Automatic Handover Ready</p>
                 <p className="text-sm font-bold text-white">
                   Returning verified score to your original Freelancer Platform in{' '}
                   <span className="text-amber-400 font-mono text-base underline">{countdown}s</span>
@@ -148,7 +148,7 @@ export default function TestResultsModal({
             <button
               onClick={handleRedirect}
               disabled={isRedirecting}
-              className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-900/40 transition flex items-center gap-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-forest-700 hover:from-brand-500 hover:to-forest-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-brand-900/40 transition flex items-center gap-2"
             >
               <span>{isRedirecting ? 'Redirecting...' : 'Redirect Now'}</span>
               <ExternalLink className="w-4 h-4" />
@@ -192,10 +192,10 @@ export default function TestResultsModal({
 
         {/* Main Verdict Card */}
         <div className={`bg-zinc-900/85 backdrop-blur-xl border rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center ${
-          evaluation.isPassed ? 'border-emerald-500/40' : 'border-rose-500/40'
+          evaluation.isPassed ? 'border-brand-500/40' : 'border-rose-500/40'
         }`}>
           <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 blur-3xl pointer-events-none ${
-            evaluation.isPassed ? 'bg-emerald-600/20' : 'bg-rose-600/20'
+            evaluation.isPassed ? 'bg-brand-600/20' : 'bg-rose-600/20'
           }`} />
 
           {/* Badge */}
@@ -208,7 +208,7 @@ export default function TestResultsModal({
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-center justify-center gap-2">
             {evaluation.isPassed ? (
               <>
-                <CheckCircle className="w-9 h-9 text-emerald-400 shrink-0" />
+                <CheckCircle className="w-9 h-9 text-brand-400 shrink-0" />
                 <span>Assessment Passed &amp; Verified!</span>
               </>
             ) : (
@@ -239,7 +239,7 @@ export default function TestResultsModal({
             {/* Proctor Integrity Score */}
             <div className="bg-zinc-950/80 border border-zinc-800 rounded-2xl p-5 shadow-xl">
               <p className="text-xs uppercase font-mono tracking-wider text-zinc-400">Proctor Trust Score</p>
-              <div className="text-4xl font-black text-emerald-400 mt-1">
+              <div className="text-4xl font-black text-brand-400 mt-1">
                 {evaluation.integrityScorePercentage}%
               </div>
               <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border font-semibold inline-block mt-1 ${getIntegrityBadge(evaluation.integrityVerdict)}`}>
@@ -252,7 +252,7 @@ export default function TestResultsModal({
               <p className="text-xs uppercase font-mono tracking-wider text-zinc-400">Result Status</p>
               <div className="text-xl font-bold mt-2 flex items-center justify-center gap-1.5">
                 {evaluation.isPassed ? (
-                  <span className="text-emerald-400 flex items-center gap-1">
+                  <span className="text-brand-400 flex items-center gap-1">
                     <CheckCircle className="w-5 h-5" /> PASSED
                   </span>
                 ) : (
@@ -296,7 +296,7 @@ export default function TestResultsModal({
           <div className="bg-zinc-900/70 backdrop-blur-md border border-zinc-800 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-emerald-400" />
+                <Terminal className="w-4 h-4 text-brand-400" />
                 <h4 className="text-sm font-bold text-white">Practical Challenge</h4>
               </div>
               <span className="text-sm font-mono font-bold text-white">
@@ -305,7 +305,7 @@ export default function TestResultsModal({
             </div>
             <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-emerald-500 h-2 rounded-full transition-all duration-1000"
+                className="bg-brand-500 h-2 rounded-full transition-all duration-1000"
                 style={{ width: `${evaluation.sectionScores.practical.percentage}%` }}
               />
             </div>
@@ -346,14 +346,14 @@ export default function TestResultsModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             {/* Strengths */}
-            <div className="bg-emerald-950/30 border border-emerald-900/40 rounded-xl p-4">
-              <h5 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="bg-brand-900/30 border border-brand-900/40 rounded-xl p-4">
+              <h5 className="text-xs font-bold text-brand-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" /> Key Strengths
               </h5>
               <ul className="space-y-1.5 text-xs text-zinc-300">
                 {evaluation.strengths.map((s, i) => (
                   <li key={i} className="flex items-start gap-1.5">
-                    <span className="text-emerald-400">✦</span>
+                    <span className="text-brand-400">✦</span>
                     <span>{s}</span>
                   </li>
                 ))}
@@ -389,7 +389,7 @@ export default function TestResultsModal({
           </div>
 
           {evaluation.violations.length === 0 ? (
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+            <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               <span>
                 100% Clean Session: Zero tab switches, zero paste injections, and uninterrupted full-screen compliance.
@@ -432,7 +432,7 @@ export default function TestResultsModal({
             onClick={handleRedirect}
             className={`py-4 px-6 text-white font-bold rounded-2xl shadow-xl transition flex items-center justify-center gap-2 text-sm sm:text-base group cursor-pointer ${
               evaluation.isPassed 
-                ? 'w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-900/40' 
+                ? 'w-full bg-gradient-to-r from-brand-600 to-forest-700 hover:from-brand-500 hover:to-forest-700 shadow-brand-900/40'
                 : canRetry 
                   ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700' 
                   : 'w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500'

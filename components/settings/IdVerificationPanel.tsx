@@ -105,9 +105,9 @@ export default function IdVerificationPanel({ user }: { user: User }) {
   const statusBanner = () => {
     if (verification?.status === "verified") {
       return (
-        <div className="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 p-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-green-600 text-white"><Fingerprint className="h-5 w-5" /></span>
-          <div><p className="text-sm font-black text-green-700">Identity verified</p><p className="mt-0.5 text-xs leading-5 text-green-600">Your identity has been confirmed. The verified badge stays active on your account.</p></div>
+        <div className="flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-600 text-white"><Fingerprint className="h-5 w-5" /></span>
+          <div><p className="text-sm font-black text-brand-700">Identity verified</p><p className="mt-0.5 text-xs leading-5 text-brand-600">Your identity has been confirmed. The verified badge stays active on your account.</p></div>
         </div>
       );
     }
@@ -170,7 +170,7 @@ export default function IdVerificationPanel({ user }: { user: User }) {
           </div>
 
           {error && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
-          {status && <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600"><ShieldCheck className="h-4 w-4" /> {status}</div>}
+          {status && <div className="mt-3 flex items-center gap-2 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600"><ShieldCheck className="h-4 w-4" /> {status}</div>}
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button type="button" onClick={submit} disabled={busy} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 disabled:opacity-60"><Upload className="h-4 w-4" /> {busy ? "Submitting..." : "Submit for verification"}</button>
@@ -186,7 +186,7 @@ export default function IdVerificationPanel({ user }: { user: User }) {
               <div className="min-w-0">
                 <p className="text-sm font-black text-ink">{ID_TYPES.find((t) => t.value === verification.type)?.label || "ID document"}</p>
                 <p className="truncate text-xs text-ink-500">{verification.idNumber}</p>
-                <p className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold text-green-600"><CheckCircle2 className="h-3.5 w-3.5" /> Status: {verification.status}</p>
+                <p className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold text-brand-600"><CheckCircle2 className="h-3.5 w-3.5" /> Status: {verification.status}</p>
               </div>
             </div>
           </div>

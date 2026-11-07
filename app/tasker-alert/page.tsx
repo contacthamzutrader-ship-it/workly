@@ -93,7 +93,7 @@ export default function TaskerAlertPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-3xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><BellRing className="h-7 w-7" /></div>
             <div>
@@ -158,7 +158,7 @@ export default function TaskerAlertPage() {
               </div>
               <div className="flex items-center justify-between gap-4 rounded-2xl border border-ink-100 p-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-50 text-green-600"><Coins className="h-5 w-5" /></span>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600"><Coins className="h-5 w-5" /></span>
                   <div className="min-w-0"><p className="text-sm font-black text-ink">Payment alerts</p><p className="mt-0.5 text-xs leading-5 text-ink-400">When held payments are released to your wallet.</p></div>
                 </div>
                 <Toggle on={prefs.notifyPayout} onClick={() => { setSaved(false); setStatus(""); setPrefs((p) => ({ ...p, notifyPayout: !p.notifyPayout })); }} />
@@ -167,7 +167,7 @@ export default function TaskerAlertPage() {
           </div>
 
           {!loaded && <p className="mt-4 text-sm font-medium text-ink-400">Loading your alerts...</p>}
-          {saved && <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600"><Check className="h-4 w-4" /> {status}</div>}
+          {saved && <div className="mt-4 flex items-center gap-2 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600"><Check className="h-4 w-4" /> {status}</div>}
           {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
 
           <div className="mt-5 flex items-center gap-3">

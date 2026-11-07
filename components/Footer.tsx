@@ -25,7 +25,7 @@ const columns = {
 
 export default function Footer() {
   return (
-    <footer className="mt-12 bg-[#00501F] text-white">
+    <footer className="mt-12 bg-forest text-white">
       <div className="page-shell">
         <div className="grid grid-cols-2 gap-10 py-14 md:grid-cols-5">
           <div className="col-span-2 md:col-span-2">

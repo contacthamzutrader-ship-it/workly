@@ -7,7 +7,7 @@ export default function InsurancePage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-4xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Umbrella className="h-7 w-7" /></div>
@@ -53,7 +53,7 @@ export default function InsurancePage() {
             <p className="flex items-center gap-2 text-sm font-extrabold text-ink"><CalendarClock className="h-4 w-4 text-brand" /> What we are doing now</p>
             <ul className="mt-2 space-y-1.5">
               {["Reviewing coverage models for common tasker and client risks", "Working with insurance partners on policy design and compliance", "Publishing full policy terms and a claim process before launch"].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-xs leading-5 text-ink-500"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" /> {item}</li>
+                <li key={item} className="flex items-start gap-2 text-xs leading-5 text-ink-500"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-600" /> {item}</li>
               ))}
             </ul>
           </div>

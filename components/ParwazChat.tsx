@@ -335,7 +335,7 @@ export default function ParwazChat() {
       {/* CHAT WINDOW */}
       {isOpen && (
         <div
-          className="mb-4 w-[380px] sm:w-[420px] max-w-[calc(100vw-32px)] h-[580px] max-h-[calc(100vh-100px)] rounded-3xl border border-emerald-100 bg-white/95 backdrop-blur-md shadow-2xl flex flex-col overflow-hidden animate-slide-up transition-all duration-300"
+          className="mb-4 w-[380px] sm:w-[420px] max-w-[calc(100vw-32px)] h-[580px] max-h-[calc(100vh-100px)] rounded-3xl border border-brand-100 bg-white/95 backdrop-blur-md shadow-2xl flex flex-col overflow-hidden animate-slide-up transition-all duration-300"
           style={{
             boxShadow: "0 20px 45px -10px rgba(0, 80, 31, 0.22), 0 0 0 1px rgba(34, 139, 34, 0.12)",
           }}
@@ -347,11 +347,11 @@ export default function ParwazChat() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-sm text-white tracking-wide">WorklyChat</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-emerald-200 border border-white/10">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-brand-200 border border-white/10">
                     Online
                   </span>
                 </div>
-                <p className="text-[11px] text-emerald-100/90 font-medium">
+                <p className="text-[11px] text-brand-100/90 font-medium">
                   Official Workly Guide
                 </p>
               </div>
@@ -365,7 +365,7 @@ export default function ParwazChat() {
                 className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-all active:scale-90"
                 aria-label="Restart conversation"
               >
-                <RotateCcw className={`w-4 h-4 transition-transform duration-500 ${isResetting ? "animate-spin text-emerald-300" : ""}`} />
+                <RotateCcw className={`w-4 h-4 transition-transform duration-500 ${isResetting ? "animate-spin text-brand-300" : ""}`} />
               </button>
               <button
                 onClick={handleToggle}
@@ -379,8 +379,8 @@ export default function ParwazChat() {
           </div>
 
           {/* SCOPE NOTICE BANNER */}
-          <div className="px-3.5 py-1.5 bg-emerald-50 border-b border-emerald-100 flex items-center gap-2 text-[11px] text-emerald-800 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <div className="px-3.5 py-1.5 bg-brand-50 border-b border-brand-100 flex items-center gap-2 text-[11px] text-brand-800 font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-brand-600 shrink-0" />
             <span className="truncate">
               Ask about tasks, hiring, skill tests, badges & payments!
             </span>
@@ -405,7 +405,7 @@ export default function ParwazChat() {
                     <div
                       className={`px-3.5 py-2.5 rounded-2xl shadow-sm text-sm ${
                         isAssistant
-                          ? "bg-white border border-emerald-100/80 text-ink-800 rounded-tl-sm"
+                          ? "bg-white border border-brand-100/80 text-ink-800 rounded-tl-sm"
                           : "bg-gradient-to-r from-deep-600 to-forest-600 text-white rounded-tr-sm"
                       }`}
                     >
@@ -413,10 +413,10 @@ export default function ParwazChat() {
 
                       {/* Quick Action Button if provided */}
                       {msg.quickAction && (
-                        <div className="mt-2.5 pt-2 border-t border-emerald-100">
+                        <div className="mt-2.5 pt-2 border-t border-brand-100">
                           <Link
                             href={msg.quickAction.href}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-transform active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition-transform active:scale-95"
                           >
                             <span>{msg.quickAction.label}</span>
                             <ExternalLink className="w-3 h-3" />
@@ -435,7 +435,7 @@ export default function ParwazChat() {
                             key={idx}
                             onClick={() => handleSend(q)}
                             disabled={isLoading}
-                            className="text-left text-xs bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-950 border border-emerald-200 hover:border-emerald-300 px-2.5 py-1 rounded-full transition-all shadow-2xs hover:shadow-xs active:scale-95 font-medium"
+                            className="text-left text-xs bg-white hover:bg-brand-50 text-brand-800 hover:text-brand-900 border border-brand-200 hover:border-brand-300 px-2.5 py-1 rounded-full transition-all shadow-2xs hover:shadow-xs active:scale-95 font-medium"
                           >
                             {q}
                           </button>
@@ -451,12 +451,12 @@ export default function ParwazChat() {
             {isLoading && (
               <div className="flex items-start gap-2.5">
                 <ParwazEmojiAvatar emotion="thinking" size="xs" />
-                <div className="px-3.5 py-2.5 bg-white border border-emerald-100 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2 text-xs text-ink-500 font-medium">
+                <div className="px-3.5 py-2.5 bg-white border border-brand-100 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2 text-xs text-ink-500 font-medium">
                   <span>WorklyChat is thinking</span>
                   <span className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </span>
                 </div>
               </div>
@@ -467,7 +467,7 @@ export default function ParwazChat() {
 
           {/* INPUT BAR */}
           <div className="p-3 bg-white border-t border-slate-100">
-            <div className="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-emerald-500 focus-within:bg-white rounded-2xl shadow-inner transition-all">
+            <div className="relative flex items-center bg-slate-50 border border-slate-200 focus-within:border-brand-500 focus-within:bg-white rounded-2xl shadow-inner transition-all">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -488,7 +488,7 @@ export default function ParwazChat() {
                 disabled={!input.trim() || isLoading}
                 className={`absolute right-1.5 p-2 rounded-xl transition-all ${
                   input.trim() && !isLoading
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95"
+                    ? "bg-brand-600 hover:bg-brand-700 text-white shadow-sm active:scale-95"
                     : "text-slate-400 hover:text-slate-500 cursor-not-allowed"
                 }`}
                 aria-label="Send message"
@@ -514,7 +514,7 @@ export default function ParwazChat() {
         aria-label={isOpen ? "Close WorklyChat" : "Open WorklyChat"}
       >
         {/* Glow halo */}
-        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 to-forest-600 opacity-60 blur-sm group-hover:opacity-100 transition-opacity animate-pulse-soft" />
+        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-brand-500 to-forest-600 opacity-60 blur-sm group-hover:opacity-100 transition-opacity animate-pulse-soft" />
 
         {/* Inner container */}
         <div className="relative flex items-center gap-2 p-1.5 bg-gradient-to-r from-deep-700 to-forest-600 rounded-full border-2 border-white/90 shadow-elevated">
@@ -524,7 +524,7 @@ export default function ParwazChat() {
           {/* Desktop Text Pill */}
           {!isOpen && (
             <div className="hidden sm:flex flex-col text-left pr-3 select-none">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-300 leading-none">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-300 leading-none">
                 WorklyChat
               </span>
               <span className="text-[12px] font-bold text-white leading-tight">

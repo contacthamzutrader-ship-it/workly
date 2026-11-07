@@ -20,9 +20,9 @@ interface Tx {
 const TYPE_META: Record<string, { label: string; icon: any; cls: string }> = {
   hold: { label: "Funds held", icon: ArrowUpFromLine, cls: "bg-amber-50 text-amber-600" },
   payment: { label: "Payment", icon: Landmark, cls: "bg-blue-50 text-blue-600" },
-  release: { label: "Payment released", icon: ArrowDownToLine, cls: "bg-green-50 text-green-600" },
-  topup: { label: "Wallet top-up", icon: ArrowDownToLine, cls: "bg-green-50 text-green-600" },
-  refund: { label: "Refund", icon: ArrowDownToLine, cls: "bg-green-50 text-green-600" },
+  release: { label: "Payment released", icon: ArrowDownToLine, cls: "bg-brand-50 text-brand-600" },
+  topup: { label: "Wallet top-up", icon: ArrowDownToLine, cls: "bg-brand-50 text-brand-600" },
+  refund: { label: "Refund", icon: ArrowDownToLine, cls: "bg-brand-50 text-brand-600" },
 };
 
 export default function PaymentHistoryPanel({ user }: { user: User }) {
@@ -48,7 +48,7 @@ export default function PaymentHistoryPanel({ user }: { user: User }) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 rounded-2xl bg-[#00501F] p-4 text-white">
+      <div className="flex items-center gap-3 rounded-2xl bg-forest p-4 text-white">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand"><Wallet className="h-5 w-5" /></span>
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">Available wallet balance</p>
@@ -76,7 +76,7 @@ export default function PaymentHistoryPanel({ user }: { user: User }) {
                   <p className="truncate text-sm font-black text-ink">{tx.note || meta.label}</p>
                   <p className="text-xs text-ink-400">{tx.createdAt ? formatDate(tx.createdAt) : "Date unavailable"}</p>
                 </div>
-                <span className={`shrink-0 text-sm font-extrabold ${tx.type === "release" || tx.type === "topup" || tx.type === "refund" ? "text-green-600" : tx.type === "hold" ? "text-amber-600" : "text-ink"}`}>
+                <span className={`shrink-0 text-sm font-extrabold ${tx.type === "release" || tx.type === "topup" || tx.type === "refund" ? "text-brand-600" : tx.type === "hold" ? "text-amber-600" : "text-ink"}`}>
                   {typeof tx.amount === "number" ? `${tx.type === "release" || tx.type === "topup" || tx.type === "refund" ? "+" : "-"}PKR ${tx.amount.toLocaleString("en-PK")}` : ""}
                 </span>
               </div>

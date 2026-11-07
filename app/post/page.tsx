@@ -127,7 +127,7 @@ export default function PostTaskPage() {
           <form onSubmit={submit} className="surface space-y-7 p-5 sm:p-8">
             <section>
               <div className="mb-5 flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#00501F] text-sm font-black text-white">1</span>
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-sm font-black text-white">1</span>
                 <div><h2 className="font-black text-ink">Describe the outcome</h2><p className="text-xs font-medium text-ink-400">Clear details attract better professionals</p></div>
               </div>
               <div>
@@ -160,7 +160,7 @@ export default function PostTaskPage() {
 
             <section>
               <div className="mb-5 flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#00501F] text-sm font-black text-white">2</span>
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-sm font-black text-white">2</span>
                 <div><h2 className="font-black text-ink">Scope and budget</h2><p className="text-xs font-medium text-ink-400">Help the right people find your task</p></div>
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
@@ -194,7 +194,7 @@ export default function PostTaskPage() {
           </form>
 
           <aside className="space-y-4 lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-3xl bg-[#00501F] p-6 text-white shadow-elevated">
+            <div className="overflow-hidden rounded-3xl bg-forest p-6 text-white shadow-elevated">
               <div className="flex items-center justify-between"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand"><ShieldCheck className="h-5 w-5" /></span><span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider">{autoMode ? "Smart mode on" : "Team review"}</span></div>
               <h2 className="mt-5 text-xl font-black">Your approval route</h2>
               <p className="mt-2 text-sm leading-6 text-white/60">{autoMode ? "Automated checks clear safe, complete tasks and can publish them instantly. Anything uncertain goes to the admin team." : "Your task enters the admin approval centre before it becomes visible."}</p>

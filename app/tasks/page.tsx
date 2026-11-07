@@ -45,7 +45,7 @@ export default function TasksPage() {
   return (
     <div className="bg-canvas py-10 sm:py-14">
       <div className="page-shell">
-        <div className="relative overflow-hidden rounded-[32px] bg-[#00501F] p-7 text-white shadow-elevated sm:p-10">
+        <div className="relative overflow-hidden rounded-[32px] bg-forest p-7 text-white shadow-elevated sm:p-10">
           <div className="absolute inset-0 noise opacity-50" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -83,7 +83,7 @@ export default function TasksPage() {
           <aside className="surface hidden p-4 lg:block">
             <p className="px-2 text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Categories</p>
             <div className="mt-3 space-y-1">
-              <button onClick={() => { setCategory("all"); load("all", search); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-bold transition ${category === "all" ? "bg-[#00501F] text-white" : "text-ink-500 hover:bg-ink-50"}`}>All work {category === "all" && <Check className="h-3.5 w-3.5" />}</button>
+              <button onClick={() => { setCategory("all"); load("all", search); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-bold transition ${category === "all" ? "bg-brand text-white" : "text-ink-500 hover:bg-ink-50"}`}>All work {category === "all" && <Check className="h-3.5 w-3.5" />}</button>
               {CATEGORIES.slice(0, 10).map((item) => (
                 <button key={item} onClick={() => { setCategory(item); load(item, search); }} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-bold transition ${category === item ? "bg-brand-50 text-brand-dark" : "text-ink-500 hover:bg-ink-50"}`}>{item}{category === item && <Check className="h-3.5 w-3.5" />}</button>
               ))}

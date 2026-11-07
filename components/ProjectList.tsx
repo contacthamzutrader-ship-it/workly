@@ -12,7 +12,7 @@ function statusInfo(status: string) {
     case "in_progress":
       return { label: "Active", className: "bg-brand-50 text-brand-dark" };
     case "completed":
-      return { label: "Completed", className: "bg-green-50 text-green-700" };
+      return { label: "Completed", className: "bg-brand-50 text-brand-700" };
     case "cancelled":
       return { label: "Cancelled", className: "bg-red-50 text-red-700" };
     case "open":

@@ -121,7 +121,7 @@ export default function AIInterviewerCard({
               <Bot className="w-5 h-5" />
             </div>
             {isAiSpeaking && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-ping" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-400 rounded-full animate-ping" />
             )}
           </div>
           <div>
@@ -253,7 +253,7 @@ export default function AIInterviewerCard({
                 <span className="text-xs text-zinc-400">Response Depth:</span>
                 <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border ${
                   evaluation.scoreOutOf100 >= 80
-                    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                    ? 'text-brand-400 bg-brand-500/10 border-brand-500/30'
                     : evaluation.scoreOutOf100 >= 60
                     ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
                     : 'text-zinc-400 bg-zinc-800 border-zinc-700'
@@ -270,9 +270,9 @@ export default function AIInterviewerCard({
                 {evaluation.matchedKeywords.map((kw, i) => (
                   <span
                     key={i}
-                    className="text-[11px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 font-mono"
+                    className="text-[11px] bg-brand-500/10 text-brand-300 border border-brand-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 font-mono"
                   >
-                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <CheckCircle2 className="w-3 h-3 text-brand-400" />
                     {kw}
                   </span>
                 ))}

@@ -842,7 +842,7 @@ function InterviewRoomContent() {
                   <button
                     onClick={handleNextAiQuestion}
                     disabled={isSubmitting}
-                    className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-2xl shadow-xl shadow-emerald-900/40 transition flex items-center gap-2 disabled:opacity-50"
+                    className="px-6 py-3 bg-gradient-to-r from-brand-600 to-forest-700 hover:from-brand-500 hover:to-forest-700 text-white text-xs font-bold rounded-2xl shadow-xl shadow-brand-900/40 transition flex items-center gap-2 disabled:opacity-50"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>

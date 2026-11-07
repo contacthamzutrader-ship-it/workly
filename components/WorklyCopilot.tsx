@@ -153,7 +153,7 @@ export default function WorklyCopilot() {
           <Link
             key={idx}
             href={linkMatch[2]}
-            className="font-bold text-emerald-700 underline underline-offset-2 hover:text-emerald-900"
+            className="font-bold text-brand-700 underline underline-offset-2 hover:text-brand-900"
           >
             {linkMatch[1]}
           </Link>
@@ -169,17 +169,17 @@ export default function WorklyCopilot() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-3 rounded-full border border-emerald-500/30 bg-slate-950 px-4 py-3 text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:border-emerald-400 hover:shadow-emerald-950/40"
+          className="group relative flex items-center gap-3 rounded-full border border-brand-500/30 bg-slate-950 px-4 py-3 text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:border-brand-400 hover:shadow-brand-900/40"
           aria-label="Open Workly AI Copilot"
         >
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 shadow-md">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-brand-600 to-forest-700 shadow-md">
             <Sparkles className="h-4 w-4 text-white animate-pulse" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 bg-emerald-400" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 bg-brand-400" />
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1.5 text-xs font-black tracking-wide text-white">
               <span>Workly AI</span>
-              <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-extrabold text-emerald-400">
+              <span className="rounded bg-brand-500/20 px-1 py-0.2 text-[9px] font-extrabold text-brand-400">
                 PRO
               </span>
             </div>
@@ -196,14 +196,14 @@ export default function WorklyCopilot() {
           {/* Header */}
           <div className="relative flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-3.5 text-white">
             <div className="flex items-center gap-3">
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 shadow-sm">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 shadow-sm">
                 <Bot className="h-4 w-4 text-white" />
-                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-950 bg-emerald-400" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-950 bg-brand-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-extrabold text-white">Workly AI Copilot</h3>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-brand-500/20 px-1.5 py-0.5 text-[9px] font-bold text-brand-400">
                     <ShieldCheck className="h-2.5 w-2.5" /> Escrow Safe
                   </span>
                 </div>
@@ -233,8 +233,8 @@ export default function WorklyCopilot() {
 
           {/* Telemetry Status Bar */}
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-1.5 text-[10px] font-semibold text-slate-600">
-            <span className="flex items-center gap-1 text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+            <span className="flex items-center gap-1 text-brand-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500 animate-ping" />
               Active Telemetry · Safepay Online
             </span>
             <span>Avg Response: &lt; 1s</span>
@@ -252,7 +252,7 @@ export default function WorklyCopilot() {
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm ${
                     m.sender === "user"
-                      ? "rounded-tr-none bg-emerald-600 text-white"
+                      ? "rounded-tr-none bg-brand-600 text-white"
                       : "rounded-tl-none border border-slate-200/80 bg-slate-50 text-slate-800"
                   }`}
                 >
@@ -263,7 +263,7 @@ export default function WorklyCopilot() {
                       <Link
                         href={m.quickAction.href}
                         onClick={() => setIsOpen(false)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-extrabold text-white transition hover:bg-emerald-700"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 py-1 text-[11px] font-extrabold text-white transition hover:bg-brand-700"
                       >
                         {m.quickAction.label} <ExternalLink className="h-3 w-3" />
                       </Link>
@@ -277,7 +277,7 @@ export default function WorklyCopilot() {
                       <button
                         key={idx}
                         onClick={() => handleSend(q)}
-                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800"
                       >
                         {q}
                       </button>
@@ -292,9 +292,9 @@ export default function WorklyCopilot() {
             {isLoading && (
               <div className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2 text-slate-500">
                 <span className="flex gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-bounce" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:0.2s]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:0.4s]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce [animation-delay:0.2s]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce [animation-delay:0.4s]" />
                 </span>
                 <span className="text-[10px] font-semibold text-slate-500">
                   Workly AI is evaluating answer...
@@ -311,7 +311,7 @@ export default function WorklyCopilot() {
                 e.preventDefault();
                 handleSend();
               }}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-1 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 transition"
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-1 focus-within:border-brand-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-brand-500/20 transition"
             >
               <textarea
                 ref={inputRef}
@@ -330,7 +330,7 @@ export default function WorklyCopilot() {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white transition hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-40 disabled:hover:bg-brand-600"
                 aria-label="Send message"
               >
                 <Send className="h-3.5 w-3.5" />

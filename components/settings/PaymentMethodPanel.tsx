@@ -153,7 +153,7 @@ export default function PaymentMethodPanel({ user }: { user: User }) {
       )}
 
       {(status || error) && !formOpen && (
-        <div className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-sm font-semibold ${error ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}>{error || status}</div>
+        <div className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-sm font-semibold ${error ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-600"}`}>{error || status}</div>
       )}
     </div>
   );

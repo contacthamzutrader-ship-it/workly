@@ -52,7 +52,7 @@ export default function WalletPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-6xl">
-      <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+      <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Wallet className="h-7 w-7" /></div>
@@ -106,12 +106,12 @@ export default function WalletPage() {
             {txs.map(tx => (
               <div key={tx.id} className="flex items-center justify-between rounded-lg border border-ink-100 p-3">
                 <div className="flex items-center gap-3">
-                  <div className={`grid h-8 w-8 place-items-center rounded-lg ${tx.type === "deposit" ? "bg-green-50 text-green-600" : tx.type === "release" ? "bg-brand-50 text-brand" : tx.type === "payment" ? "bg-blue-50 text-blue-600" : "bg-red-50 text-red-600"}`}>
+                  <div className={`grid h-8 w-8 place-items-center rounded-lg ${tx.type === "deposit" ? "bg-brand-50 text-brand-600" : tx.type === "release" ? "bg-brand-50 text-brand" : tx.type === "payment" ? "bg-blue-50 text-blue-600" : "bg-red-50 text-red-600"}`}>
                     {tx.type === "deposit" ? <ArrowDownLeft className="h-4 w-4" /> : tx.type === "release" ? <CheckCircle2 className="h-4 w-4" /> : tx.type === "payment" ? <Banknote className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                   </div>
                   <div><p className="text-sm font-semibold text-ink">{tx.note}</p><p className="text-xs text-ink-400">{new Date(tx.createdAt).toLocaleDateString()}</p></div>
                 </div>
-                <span className={`text-sm font-bold ${tx.type === "deposit" || tx.type === "release" ? "text-green-600" : tx.type === "payment" ? "text-blue-600" : "text-red-600"}`}>{tx.type === "deposit" || tx.type === "release" ? "+" : tx.type === "payment" ? "" : "-"}{formatPKR(tx.amount)}</span>
+                <span className={`text-sm font-bold ${tx.type === "deposit" || tx.type === "release" ? "text-brand-600" : tx.type === "payment" ? "text-blue-600" : "text-red-600"}`}>{tx.type === "deposit" || tx.type === "release" ? "+" : tx.type === "payment" ? "" : "-"}{formatPKR(tx.amount)}</span>
               </div>
             ))}
           </div>}

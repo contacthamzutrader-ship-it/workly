@@ -77,7 +77,7 @@ export default function PrivacyPolicyPage() {
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-4xl">
         {/* Hero Header */}
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand">
               <Lock className="h-7 w-7 text-white" />
@@ -139,7 +139,7 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Support CTA */}
-        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-3xl bg-[#00501F] p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-3xl bg-forest p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
           <div className="flex items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand">
               <ShieldCheck className="h-6 w-6 text-white" />

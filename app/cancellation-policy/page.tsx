@@ -5,7 +5,7 @@ export default function CancellationPolicyPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-4xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><FileX2 className="h-7 w-7" /></div>
             <div>
@@ -56,7 +56,7 @@ export default function CancellationPolicyPage() {
           <p className="mt-6 text-sm leading-6 text-ink-600">Cancellation disputes are resolved through our support team using the evidence recorded on the task - messages, status history and payment records. There is currently no automated refund-to-wallet flow beyond the held-amount handling described above; if a payment needs reversing for a genuine reason, our team will see it through manually and you will be informed before anything changes.</p>
         </div>
 
-        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-3xl bg-[#00501F] p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-3xl bg-forest p-6 text-white shadow-card sm:flex-row sm:items-center sm:p-8">
           <div className="flex items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand"><ShieldCheck className="h-6 w-6" /></span>
             <div>

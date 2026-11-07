@@ -108,7 +108,7 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
       {/* Hero */}
-      <section className="relative bg-white text-ink">
+      <section className="relative bg-canvas text-ink">
         <div className="pointer-events-none absolute -left-32 top-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
 
@@ -118,7 +118,7 @@ export default function Home() {
               <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">
                 ⚡ Zero Reviews? Zero Problem.
               </span>
-              <h1 className="mt-6 max-w-2xl text-balance text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-deep sm:text-[2.25rem] lg:text-[2.5rem] xl:text-[2.75rem]">
+              <h1 className="mt-6 max-w-2xl text-balance text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink sm:text-[2.25rem] lg:text-[2.5rem] xl:text-[2.75rem]">
                 Get Hired on Verified Skill. Skip the 6-Month Review Trap.
               </h1>
               <p className="mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
@@ -164,7 +164,7 @@ export default function Home() {
                         cx="50"
                         cy="50"
                         r="42"
-                        stroke="rgb(34 139 34)"
+                        stroke="rgb(0 179 60)"
                         strokeWidth="10"
                         fill="none"
                         strokeLinecap="round"
@@ -227,10 +227,10 @@ export default function Home() {
       </section>
 
       {/* 3-Tier Talent Engine */}
-      <section className="bg-[#F6FAF7] py-16">
+      <section className="bg-canvas py-16">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Right Talent for Every Budget. Powered by Merit, Not Ratings.</h2>
+            <h2 className="text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Right Talent for Every Budget. Powered by Merit, Not Ratings.</h2>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
@@ -247,10 +247,10 @@ export default function Home() {
               <p className="mt-4 text-sm font-semibold text-ink-600">Best For: Full features, database optimizations, commercial projects.</p>
               <span className="mt-4 inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-ink-600">Market Competitive • Fast Delivery</span>
             </div>
-            <div className="rounded-2xl border-2 border-[#0D5C3A] bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
+            <div className="rounded-2xl border-2 border-forest bg-white p-6 shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-card-hover">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">Elite Level</span>
-                <span className="inline-flex items-center rounded-full bg-[#0D5C3A] px-2 py-1 text-[10px] font-extrabold text-white">Top 5%</span>
+                <span className="inline-flex items-center rounded-full bg-brand px-2 py-1 text-[10px] font-extrabold text-white">Top 5%</span>
               </div>
               <h3 className="mt-4 text-xl font-black text-ink">Elite Tier (Architects & Seniors)</h3>
               <p className="mt-2 text-sm leading-6 text-ink-500">Mission-critical apps, complex architecture, enterprise solutions.</p>
@@ -262,11 +262,11 @@ export default function Home() {
       </section>
 
       {/* Trust / Verification bar */}
-      <section id="trust" className="scroll-mt-24 border-b border-ink-100 bg-[#F7FAF8] py-16">
+      <section id="trust" className="scroll-mt-24 border-b border-ink-100 bg-canvas py-16">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><ShieldCheck className="h-3.5 w-3.5" /> Trust &amp; safety</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Built for Trust. Designed for Talent.</h2>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Built for Trust. Designed for Talent.</h2>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {trustCards.map((card) => (
@@ -281,11 +281,11 @@ export default function Home() {
       </section>
 
       {/* Why Parwaz */}
-      <section id="why" className="scroll-mt-24 bg-[#F7FAF8] py-24">
+      <section id="why" className="scroll-mt-24 bg-canvas py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Parwaz?</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
             <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Parwaz is built to fix what breaks trust online — verification, discovery, and safety.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -305,7 +305,7 @@ export default function Home() {
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Compass className="h-3.5 w-3.5" /> How it works</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Post a job. Get matched. Get it done.</h2>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Post a job. Get matched. Get it done.</h2>
             <p className="mt-4 text-base font-medium leading-7 text-ink-500">For clients — four simple steps, with smart matching doing the heavy lifting.</p>
           </div>
           <div className="mt-14 grid gap-6 lg:grid-cols-4">
@@ -328,7 +328,7 @@ export default function Home() {
           </div>
           <div className="mt-12 flex flex-wrap justify-center gap-3">
             <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Post a job <ArrowRight className="h-4 w-4" /></Link>
-            <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-300 bg-white px-6 text-sm font-extrabold text-deep transition hover:bg-brand-50"><SearchCheck className="h-4 w-4" /> Find freelancers</Link>
+            <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-300 bg-white px-6 text-sm font-extrabold text-ink transition hover:bg-brand-50"><SearchCheck className="h-4 w-4" /> Find freelancers</Link>
           </div>
         </div>
       </section>
@@ -338,7 +338,7 @@ export default function Home() {
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Freelancer journey</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">How It Works: From Zero to Hired in 3 Steps</h2>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">How It Works: From Zero to Hired in 3 Steps</h2>
             <p className="mt-4 text-base font-medium leading-7 text-ink-500">Portfolio ya purane reviews ki zaroorat nahi. Aapka kaam khud bolta hai.</p>
           </div>
           <div className="mt-14">
@@ -377,21 +377,21 @@ export default function Home() {
       </section>
 
       {/* Platform features */}
-      <section id="ai" className="relative scroll-mt-24 bg-[#F7FAF8] py-24 text-ink">
+      <section id="ai" className="relative scroll-mt-24 bg-canvas py-24 text-ink">
         <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
         <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
         <div className="page-shell relative">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Platform features</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Smart Tools That Work for You.</h2>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Smart Tools That Work for You.</h2>
             <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of Parwaz.pk — from the first assessment to the final payment.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {aiCards.map((card) => (
               <div key={card.title} className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-6 w-6" /></span>
-                <h3 className="mt-5 text-lg font-bold text-deep">{card.title}</h3>
+                <h3 className="mt-5 text-lg font-bold text-ink">{card.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-500">{card.body}</p>
               </div>
             ))}
@@ -404,8 +404,8 @@ export default function Home() {
       <section id="categories" className="scroll-mt-24 bg-white py-20">
         <div className="page-shell">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Categories for every kind of work.</h2></div>
-            <Link href="/tasks" className="inline-flex items-center gap-2 text-sm font-extrabold text-deep">Browse all jobs <ArrowRight className="h-4 w-4" /></Link>
+            <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Categories for every kind of work.</h2></div>
+            <Link href="/tasks" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink">Browse all jobs <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
@@ -423,8 +423,8 @@ export default function Home() {
       <section id="talent" className="scroll-mt-24 bg-canvas py-20">
         <div className="page-shell">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div><span className="eyebrow"><Award className="h-3.5 w-3.5" /> Top talent</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-deep sm:text-3xl">Verified freelancers, ready to start.</h2></div>
-            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-extrabold text-deep">Hire talent <ArrowRight className="h-4 w-4" /></Link>
+            <div><span className="eyebrow"><Award className="h-3.5 w-3.5" /> Top talent</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Verified freelancers, ready to start.</h2></div>
+            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink">Hire talent <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {topFreelancers.map((person) => (
@@ -449,14 +449,14 @@ export default function Home() {
       {/* CTA */}
       <section className="bg-white pb-24">
         <div className="page-shell">
-          <div className="relative overflow-hidden rounded-[28px] bg-[#00501F] p-10 text-center text-white shadow-elevated sm:p-16">
+          <div className="relative overflow-hidden rounded-[28px] bg-forest p-10 text-center text-white shadow-elevated sm:p-16">
             <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
             <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
             <div className="relative">
               <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project starts here.</h2>
-              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-[#E0E0E0]">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>
+              <p className="mx-auto mt-5 max-w-xl text-base font-medium text-white/75">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#0B4619] px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-[#0F5132]"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
+                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-forest"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
               </div>
             </div>
           </div>

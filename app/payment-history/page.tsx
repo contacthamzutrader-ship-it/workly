@@ -26,7 +26,7 @@ type PaymentRow = {
 
 const STATUS_META: Record<PaymentStatus, { label: string; chip: string; icon: any }> = {
   pending: { label: "Pending", chip: "bg-amber-50 text-amber-600", icon: Clock3 },
-  completed: { label: "Completed", chip: "bg-green-50 text-green-600", icon: CheckCircle2 },
+  completed: { label: "Completed", chip: "bg-brand-50 text-brand-600", icon: CheckCircle2 },
   cancelled: { label: "Cancelled", chip: "bg-red-50 text-red-600", icon: XCircle },
   refunded: { label: "Refunded", chip: "bg-blue-50 text-blue-600", icon: Undo2 },
 };
@@ -123,7 +123,7 @@ export default function PaymentHistoryPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-6xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Wallet className="h-7 w-7" /></div>
@@ -135,7 +135,7 @@ export default function PaymentHistoryPage() {
 
         <div className="my-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="surface p-6">
-            <div className="flex items-center justify-between"><p className="text-sm font-bold text-ink-500">Total received</p><TrendingUp className="h-5 w-5 text-green-600" /></div>
+            <div className="flex items-center justify-between"><p className="text-sm font-bold text-ink-500">Total received</p><TrendingUp className="h-5 w-5 text-brand-600" /></div>
             <p className="mt-1 text-3xl font-black tracking-[-0.04em] text-ink">{formatPKR(summary.received)}</p>
             <p className="mt-1 text-xs text-ink-400">Net amount from completed payments</p>
           </div>

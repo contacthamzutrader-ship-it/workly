@@ -171,12 +171,12 @@ export default function CandidateVerificationModal({
 
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-300 font-bold">
-                <Briefcase className="w-5 h-5 text-emerald-400" />
+                <Briefcase className="w-5 h-5 text-brand-400" />
               </div>
               <div>
                 <p className="text-xs text-zinc-400">Assigned Niche & Role</p>
                 <p className="font-semibold text-white">{candidate.nicheTitle}</p>
-                <p className="text-xs text-emerald-400 font-medium">
+                <p className="text-xs text-brand-400 font-medium">
                   {candidate.experienceLevel.toUpperCase()} • 30-Minute Calibrated Test
                 </p>
               </div>
@@ -225,7 +225,7 @@ export default function CandidateVerificationModal({
             {/* Camera Check */}
             <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
               cameraGranted 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
+                ? 'bg-brand-500/10 border-brand-500/30 text-brand-300'
                 : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
             }`}>
               <div className="flex items-center gap-2.5">
@@ -233,7 +233,7 @@ export default function CandidateVerificationModal({
                 <span className="text-xs font-medium">Webcam Video</span>
               </div>
               {cameraGranted ? (
-                <div className="flex items-center gap-1 text-[11px] font-mono text-emerald-400 font-bold">
+                <div className="flex items-center gap-1 text-[11px] font-mono text-brand-400 font-bold">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>VERIFIED</span>
                 </div>
@@ -247,7 +247,7 @@ export default function CandidateVerificationModal({
             {/* Microphone Check */}
             <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
               micGranted 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' 
+                ? 'bg-brand-500/10 border-brand-500/30 text-brand-300'
                 : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
             }`}>
               <div className="flex items-center gap-2.5">
@@ -255,7 +255,7 @@ export default function CandidateVerificationModal({
                 <span className="text-xs font-medium">Microphone</span>
               </div>
               {micGranted ? (
-                <div className="flex items-center gap-1 text-[11px] font-mono text-emerald-400 font-bold">
+                <div className="flex items-center gap-1 text-[11px] font-mono text-brand-400 font-bold">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>VERIFIED</span>
                 </div>
@@ -301,9 +301,9 @@ export default function CandidateVerificationModal({
                 <button
                   type="button"
                   onClick={enableVirtualSensors}
-                  className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                  className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-brand-400 border border-brand-500/30 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-brand-400" />
                   <span>Auto-Verify Hardware Sensors</span>
                 </button>
               </div>
@@ -317,7 +317,7 @@ export default function CandidateVerificationModal({
             </div>
           )}
           {cameraGranted && !isVirtualMode && (
-            <div className="p-3 rounded-2xl bg-zinc-950 border border-emerald-500/30 flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-zinc-950 border border-brand-500/30 flex items-center gap-3">
               <div className="w-16 h-12 rounded-lg bg-zinc-900 overflow-hidden border border-zinc-800 shrink-0">
                 <video
                   ref={videoPreviewRef}
@@ -328,7 +328,7 @@ export default function CandidateVerificationModal({
                 />
               </div>
               <div>
-                <p className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                <p className="text-xs font-bold text-brand-400 flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" /> Live Camera Stream Connected
                 </p>
                 <p className="text-[11px] text-zinc-400">Your face will be monitored continuously during the assessment.</p>

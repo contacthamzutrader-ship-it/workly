@@ -3,7 +3,7 @@ import { BadgeCheck, ShieldCheck, Star } from "lucide-react";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-[calc(100vh-72px)] bg-white lg:grid-cols-[0.9fr_1.1fr]">
-      <aside className="relative hidden overflow-hidden bg-[#00501F] p-12 text-white lg:flex lg:flex-col xl:p-16">
+      <aside className="relative hidden overflow-hidden bg-forest p-12 text-white lg:flex lg:flex-col xl:p-16">
         <div className="absolute inset-0 noise opacity-50" />
         <div className="absolute -left-32 bottom-10 h-96 w-96 rounded-full bg-brand/25 blur-3xl" />
         <div className="relative">

@@ -112,7 +112,7 @@ export default function AntiCheatGuard({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+    if (score >= 85) return 'text-brand-400 border-brand-500/30 bg-brand-500/10';
     if (score >= 65) return 'text-amber-400 border-amber-500/30 bg-amber-500/10';
     return 'text-rose-400 border-rose-500/30 bg-rose-500/10';
   };
@@ -170,8 +170,8 @@ export default function AntiCheatGuard({
           )}
 
           {/* Overlay Status */}
-          <div className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-emerald-400 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          <div className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-brand-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-ping" />
             LIVE
           </div>
 

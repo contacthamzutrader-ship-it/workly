@@ -240,7 +240,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
           <button
             onClick={() => executeCode(true)}
             disabled={isRunning}
-            className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold rounded-xl transition shadow-lg shadow-emerald-900/40 flex items-center gap-2 disabled:opacity-50 cursor-pointer group"
+            className="px-5 py-2 bg-gradient-to-r from-brand-600 to-forest-700 hover:from-brand-500 hover:to-forest-700 text-white text-xs font-extrabold rounded-xl transition shadow-lg shadow-brand-900/40 flex items-center gap-2 disabled:opacity-50 cursor-pointer group"
           >
             {isRunning ? (
               <>
@@ -302,7 +302,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                     <span>Case {idx + 1}: {tc.description}</span>
                   </div>
                   <div className="text-indigo-300 truncate">Input: {tc.input}</div>
-                  <div className="text-emerald-300 truncate">Expected: {tc.expectedOutput}</div>
+                  <div className="text-brand-300 truncate">Expected: {tc.expectedOutput}</div>
                 </div>
               ))}
             </div>
@@ -326,7 +326,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                 setCode(e.target.value);
               }}
               spellCheck={false}
-              className="flex-1 p-4 bg-transparent text-emerald-300 font-mono text-xs leading-6 resize-none focus:outline-none selection:bg-indigo-600/40"
+              className="flex-1 p-4 bg-transparent text-brand-300 font-mono text-xs leading-6 resize-none focus:outline-none selection:bg-indigo-600/40"
               placeholder="// Write your code solution here..."
             />
           </div>
@@ -342,7 +342,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                     activeTab === 'testcases' ? 'text-white border-b-2 border-indigo-500 font-bold' : 'text-zinc-400'
                   }`}
                 >
-                  <CheckCircle className={`w-3.5 h-3.5 ${allPassed ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                  <CheckCircle className={`w-3.5 h-3.5 ${allPassed ? 'text-brand-400' : 'text-zinc-400'}`} />
                   <span>Test Cases ({passedCount}/{challenge.testCases.length})</span>
                 </button>
 
@@ -387,7 +387,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                     <div className="flex items-center justify-between p-2 rounded-xl bg-zinc-950 border border-zinc-800 text-[11px]">
                       <div className="flex items-center gap-2">
                         {allPassed ? (
-                          <span className="text-emerald-400 font-bold flex items-center gap-1">
+                          <span className="text-brand-400 font-bold flex items-center gap-1">
                             <CheckCircle2 className="w-4 h-4" /> All {challenge.testCases.length} Test Cases Passed!
                           </span>
                         ) : (
@@ -407,7 +407,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                           key={idx}
                           className={`rounded-xl border overflow-hidden transition ${
                             r.passed
-                              ? 'bg-emerald-950/20 border-emerald-500/30'
+                              ? 'bg-brand-900/20 border-brand-500/30'
                               : 'bg-rose-950/20 border-rose-500/30'
                           }`}
                         >
@@ -417,7 +417,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                           >
                             <div className="flex items-center gap-2.5">
                               {r.passed ? (
-                                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                                <CheckCircle className="w-4 h-4 text-brand-400 shrink-0" />
                               ) : (
                                 <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
                               )}
@@ -425,7 +425,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                                 Case {idx + 1}: {r.testCase.description}
                               </span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                                r.passed ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
+                                r.passed ? 'bg-brand-500/20 text-brand-300' : 'bg-rose-500/20 text-rose-300'
                               }`}>
                                 {r.passed ? 'Passed' : 'Failed'}
                               </span>
@@ -450,7 +450,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                   <span className="text-zinc-500 font-sans block text-[10px] uppercase font-bold">Expected Output</span>
-                                  <code className="text-emerald-400 block bg-zinc-900 p-1.5 rounded border border-zinc-800 break-all">
+                                  <code className="text-brand-400 block bg-zinc-900 p-1.5 rounded border border-zinc-800 break-all">
                                     {r.expectedOutput}
                                   </code>
                                 </div>
@@ -459,7 +459,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
                                   <span className="text-zinc-500 font-sans block text-[10px] uppercase font-bold">Actual Output</span>
                                   <code className={`block p-1.5 rounded border break-all ${
                                     r.passed 
-                                      ? 'text-emerald-300 bg-emerald-950/30 border-emerald-500/30' 
+                                      ? 'text-brand-300 bg-brand-900/30 border-brand-500/30'
                                       : 'text-rose-300 bg-rose-950/30 border-rose-500/30'
                                   }`}>
                                     {r.error ? `Error: ${r.error}` : r.actualOutput}

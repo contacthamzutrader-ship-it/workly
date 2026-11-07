@@ -128,7 +128,7 @@ export default function DashboardPage() {
                     <p className="truncate font-semibold text-ink group-hover:text-brand-dark">{task.title}</p>
                     <p className="mt-0.5 text-xs font-medium text-ink-400">{formatPKR(task.budget)} · {task.bidsCount} offers</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${task.status === "pending" ? "bg-amber-50 text-amber-700" : task.status === "completed" ? "bg-green-50 text-green-700" : "bg-brand-50 text-brand-dark"}`}>{task.status.replace("_", " ")}</span>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${task.status === "pending" ? "bg-amber-50 text-amber-700" : task.status === "completed" ? "bg-brand-50 text-brand-700" : "bg-brand-50 text-brand-dark"}`}>{task.status.replace("_", " ")}</span>
                   <ArrowRight className="hidden h-4 w-4 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-brand sm:block" />
                 </Link>
               ))}

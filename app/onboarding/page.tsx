@@ -707,7 +707,7 @@ export default function OnboardingPage() {
                     {/* Section 1: Basic info */}
                     <div className="pt-2 first:pt-0">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-deep uppercase tracking-wider">Identity Details</h3>
+                        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider">Identity Details</h3>
                         <button
                           type="button"
                           onClick={() => setStep(1)}
@@ -735,7 +735,7 @@ export default function OnboardingPage() {
                     {/* Section 2: Rates */}
                     <div className="pt-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-deep uppercase tracking-wider">Rates & Availability</h3>
+                        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider">Rates & Availability</h3>
                         <button
                           type="button"
                           onClick={() => setStep(2)}
@@ -763,7 +763,7 @@ export default function OnboardingPage() {
                     {/* Section 3: Bio & Languages */}
                     <div className="pt-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-deep uppercase tracking-wider">About & Bio</h3>
+                        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider">About & Bio</h3>
                         <button
                           type="button"
                           onClick={() => setStep(3)}
@@ -822,7 +822,7 @@ export default function OnboardingPage() {
                     {/* Section 4: Skills */}
                     <div className="pt-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-deep uppercase tracking-wider">Expertise & Skills</h3>
+                        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider">Expertise & Skills</h3>
                         <button
                           type="button"
                           onClick={() => setStep(4)}
@@ -875,7 +875,7 @@ export default function OnboardingPage() {
                     {/* Section 5: Extras */}
                     <div className="pt-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-extrabold text-deep uppercase tracking-wider">Portfolio & Certifications</h3>
+                        <h3 className="text-sm font-extrabold text-ink uppercase tracking-wider">Portfolio & Certifications</h3>
                         <button
                           type="button"
                           onClick={() => setStep(5)}

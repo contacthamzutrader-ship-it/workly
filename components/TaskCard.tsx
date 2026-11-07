@@ -8,7 +8,7 @@ const statusRecords: Record<string, { label: string; className: string }> = {
   open: { label: "Available", className: "bg-brand-50 text-brand-dark" },
   assigned: { label: "Assigned", className: "bg-blue-50 text-blue-700" },
   in_progress: { label: "In progress", className: "bg-purple-50 text-purple-700" },
-  completed: { label: "Completed", className: "bg-green-50 text-green-700" },
+  completed: { label: "Completed", className: "bg-brand-50 text-brand-700" },
   cancelled: { label: "Cancelled", className: "bg-red-50 text-red-700" },
 };
 

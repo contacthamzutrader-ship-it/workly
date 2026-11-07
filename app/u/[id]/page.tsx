@@ -214,8 +214,8 @@ export default function PublicProfilePage() {
 
             <div className="mt-5 flex flex-wrap items-center gap-4 text-sm font-semibold text-ink-500">
               <span className="inline-flex items-center gap-1.5">
-                <span className={`h-2.5 w-2.5 rounded-full ${online ? "bg-green-500" : "bg-ink-300"}`} />
-                <span className={online ? "text-green-600" : "text-ink-400"}>{online ? "Online" : "Offline"}</span>
+                <span className={`h-2.5 w-2.5 rounded-full ${online ? "bg-brand-500" : "bg-ink-300"}`} />
+                <span className={online ? "text-brand-600" : "text-ink-400"}>{online ? "Online" : "Offline"}</span>
               </span>
               {data.city && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-brand" />{data.city}</span>}
               {data.availability && isFreelancer && <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-brand" />{data.availability}</span>}
@@ -254,9 +254,9 @@ export default function PublicProfilePage() {
               <h2 className="text-base font-black tracking-[-0.02em] text-ink">Verified Information</h2>
               <div className="mt-4 space-y-3">
                 {verification?.status === "verified" ? (
-                  <div className="flex items-start gap-3 rounded-2xl bg-green-50 p-4">
-                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                    <div><p className="text-sm font-black text-green-700">ID Verified</p><p className="mt-0.5 text-xs leading-5 text-green-600">Identity confirmed by the Parwaz team.</p></div>
+                  <div className="flex items-start gap-3 rounded-2xl bg-brand-50 p-4">
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
+                    <div><p className="text-sm font-black text-brand-700">ID Verified</p><p className="mt-0.5 text-xs leading-5 text-brand-600">Identity confirmed by the Parwaz team.</p></div>
                   </div>
                 ) : verification?.status === "submitted" ? (
                   <div className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4">

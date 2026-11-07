@@ -174,7 +174,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 type="checkbox"
                 checked={filterDraft[opt.key]}
                 onChange={(e) => setFilterDraft({ ...filterDraft, [opt.key]: e.target.checked })}
-                className="h-4 w-4 rounded border-ink-300 accent-[#228B22]"
+                className="h-4 w-4 rounded border-ink-300 accent-brand"
               />
               {opt.label}
             </label>

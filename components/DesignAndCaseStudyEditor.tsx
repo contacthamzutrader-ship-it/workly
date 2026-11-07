@@ -41,7 +41,7 @@ export default function DesignAndCaseStudyEditor({
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               {task.title}
-              <span className="text-[10px] font-mono uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-mono uppercase bg-brand-500/10 border border-brand-500/20 text-brand-400 px-2 py-0.5 rounded-full">
                 Practical Case Study
               </span>
             </h3>
@@ -87,7 +87,7 @@ export default function DesignAndCaseStudyEditor({
 
           <div>
             <h4 className="font-semibold text-white mb-2 flex items-center gap-1.5">
-              <CheckSquare className="w-4 h-4 text-emerald-400" /> Instructions & Requirements
+              <CheckSquare className="w-4 h-4 text-brand-400" /> Instructions & Requirements
             </h4>
             <ul className="space-y-1.5 text-zinc-300">
               {task.instructions.map((ins, idx) => (
@@ -134,7 +134,7 @@ export default function DesignAndCaseStudyEditor({
 
           <div className="mt-2 text-[11px] text-zinc-500 flex items-center justify-between">
             <span>Markdown formatting supported (# Headers, - Bullets, **Bold**)</span>
-            <span className="text-emerald-400 font-mono">Auto-saved to session state</span>
+            <span className="text-brand-400 font-mono">Auto-saved to session state</span>
           </div>
         </div>
       </div>

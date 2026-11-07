@@ -187,7 +187,7 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
 
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
         {success && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600">
+          <div className="flex items-center gap-2 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600">
             <CheckCircle2 className="h-4 w-4" /> {success}
           </div>
         )}

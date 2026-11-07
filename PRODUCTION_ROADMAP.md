@@ -131,7 +131,7 @@ graph TD
 
 - **Single Clear Brand Identity:**
   - Name: **Workly** (ya **Parwaz**) — poori app me har jagah aik hi naam, logo aur footer.
-  - Colors: Primary Green (`#16A34A`), Deep Green (`#00501F`), Canvas Light Gray (`#F9FAFB`), Ink Black (`#0A0A0A`).
+  - Colors: Charcoal (`#111111`), Primary Emerald (`#00B33C`), Deep Forest (`#093A1D`), Light Mint (`#E2F8EC`), White (`#FFFFFF`), Muted Gray (`#6B7280`).
 - **Mobile-First Experience:**
   - Phone pr fast load time (< 1.5 seconds) by eliminating all 70MB video files.
   - Mobile bottom navigation bar: **Browse**, **My Jobs**, **Post (+)**, **Messages**, **Profile**.

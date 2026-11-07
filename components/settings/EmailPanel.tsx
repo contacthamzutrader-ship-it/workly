@@ -64,7 +64,7 @@ export default function EmailPanel({ user }: { user: User }) {
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Mail className="h-5 w-5" /></span>
           <div className="min-w-0"><p className="text-sm font-black text-ink">{user.email}</p><p className="mt-0.5 text-xs leading-5 text-ink-400">The address you use to sign in.</p></div>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${emailVerified ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}><BadgeCheck className="h-3.5 w-3.5" /> {emailVerified ? "Verified" : "Not verified"}</span>
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${emailVerified ? "bg-brand-50 text-brand-600" : "bg-amber-50 text-amber-600"}`}><BadgeCheck className="h-3.5 w-3.5" /> {emailVerified ? "Verified" : "Not verified"}</span>
       </div>
       <div className="mt-4">
         <label className="mb-1.5 block text-sm font-medium text-ink">Email address</label>
@@ -73,7 +73,7 @@ export default function EmailPanel({ user }: { user: User }) {
       <p className="mt-2 text-xs leading-5 text-ink-400">After saving, a verification link is sent to the new address before it becomes active.</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button onClick={changeEmail} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"><Save className="h-4 w-4" /> Save email</button>
-        {emailStatus && <span className="text-sm font-bold text-green-600">{emailStatus}</span>}
+        {emailStatus && <span className="text-sm font-bold text-brand-600">{emailStatus}</span>}
       </div>
       {emailError && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{emailError}</div>}
     </div>

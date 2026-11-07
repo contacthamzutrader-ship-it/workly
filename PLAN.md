@@ -1,6 +1,6 @@
 # Workly — Airtasker-style Task Marketplace (Full Plan)
 
-> Company: **Workly** · Colors: Green `#16A34A` / White `#FFFFFF` / Black `#0A0A0A`
+> Company: **Workly** · Colors: Emerald `#00B33C` / Forest `#093A1D` / Mint `#E2F8EC` / Charcoal `#111111` / White `#FFFFFF` / Gray `#6B7280`
 > Stack: Next.js (Vercel) · Firebase (Auth + Firestore) · Hugging Face (AI) · Tailwind CSS
 
 ## 1. Core Concept
@@ -17,13 +17,16 @@ Lifecycle: `Draft → Pending Approval → Approved (Public/Private) → Open fo
 | Database | Firebase Firestore (real-time) |
 | Auth | Firebase Auth — Google + Email/Password |
 | AI/ML | Hugging Face Inference API (auto-approve, matching, moderation) |
-| Styling | Tailwind CSS (Green/White/Black theme) |
+| Styling | Tailwind CSS (Emerald/Forest/Mint/Charcoal/White theme) |
 | Hosting | Vercel (UI + serverless API), Firebase (data/auth), HF (models) |
 
 ## 3. Color System (main colors only)
-- Primary Green: `#16A34A` (dark `#15803D`, light `#22C55E`)
-- White: `#FFFFFF` (backgrounds)
-- Black/Ink: `#0A0A0A` (text, dark sections)
+- Charcoal: `#111111` (text and main headings)
+- Primary Emerald: `#00B33C` (buttons, highlights, accents)
+- Deep Forest: `#093A1D` (gradient cards and illustrations)
+- Light Mint: `#E2F8EC` (backgrounds and badge gradients)
+- White: `#FFFFFF` (cards, text on dark surfaces, buttons)
+- Muted Gray: `#6B7280` (sub-text and borders)
 - Other colors used only for status (success/error) where necessary.
 
 ## 4. User Roles (Firebase Custom Claims + Firestore `users` doc)

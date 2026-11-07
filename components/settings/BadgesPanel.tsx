@@ -72,10 +72,10 @@ export default function BadgesPanel({ user }: { user: FirebaseUser }) {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {badges.map((b) => (
-            <div key={b.key} className={`rounded-3xl border p-5 shadow-card transition ${b.earned ? "border-green-200 bg-white" : "border-ink-100 bg-ink-50/40"}`}>
+            <div key={b.key} className={`rounded-3xl border p-5 shadow-card transition ${b.earned ? "border-brand-200 bg-white" : "border-ink-100 bg-ink-50/40"}`}>
               <div className="flex items-start justify-between gap-3">
-                <span className={`grid h-12 w-12 place-items-center rounded-2xl ${b.earned ? "bg-green-600 text-white" : "bg-ink-100 text-ink-300"}`}><b.icon className="h-6 w-6" /></span>
-                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold ${b.earned ? "bg-green-50 text-green-700" : "bg-ink-100 text-ink-400"}`}>{b.earned ? "Earned" : "Locked"}</span>
+                <span className={`grid h-12 w-12 place-items-center rounded-2xl ${b.earned ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-300"}`}><b.icon className="h-6 w-6" /></span>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold ${b.earned ? "bg-brand-50 text-brand-700" : "bg-ink-100 text-ink-400"}`}>{b.earned ? "Earned" : "Locked"}</span>
               </div>
               <div className="mt-4">
                 <h3 className="flex items-center gap-1.5 text-sm font-black text-ink">{b.name}</h3>

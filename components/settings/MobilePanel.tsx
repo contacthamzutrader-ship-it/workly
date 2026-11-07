@@ -50,7 +50,7 @@ export default function MobilePanel({ user }: { user: User }) {
       </div>
       <div className="mt-4 flex items-center gap-2">
         <button onClick={saveMobile} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"><Save className="h-4 w-4" /> Save number</button>
-        {phoneSaved && <span className="text-sm font-bold text-green-600">Number saved.</span>}
+        {phoneSaved && <span className="text-sm font-bold text-brand-600">Number saved.</span>}
       </div>
       {phoneError && <div className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{phoneError}</div>}
     </div>

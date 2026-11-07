@@ -92,7 +92,7 @@ export default function NotificationSettingsPanel({ user }: { user: User }) {
       </div>
 
       {!loaded && <p className="mt-4 text-sm font-medium text-ink-400">Loading your preferences...</p>}
-      {saved && <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600"><Check className="h-4 w-4" /> {status}</div>}
+      {saved && <div className="mt-4 flex items-center gap-2 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600"><Check className="h-4 w-4" /> {status}</div>}
       {error && <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
 
       <div className="mt-5 flex items-center gap-3">

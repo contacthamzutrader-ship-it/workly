@@ -141,7 +141,7 @@ export default function PortfolioPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-5xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><FolderOpen className="h-7 w-7" /></div>
@@ -202,7 +202,7 @@ export default function PortfolioPage() {
           </form>
         )}
 
-        {!formOpen && status && <div className="mt-6 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600">{status}</div>}
+        {!formOpen && status && <div className="mt-6 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600">{status}</div>}
         {!formOpen && error && <div className="mt-6 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
 
         {!loaded ? (

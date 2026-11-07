@@ -112,8 +112,8 @@ export default function ChangePasswordPanel({ user }: { user: User }) {
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">Minimum requirements</p>
         <ul className="mt-2 space-y-1.5">
           {checks.map((c) => (
-            <li key={c.label} className={`flex items-center gap-2 text-sm font-semibold ${c.ok ? "text-green-600" : "text-ink-400"}`}>
-              <span className={`grid h-4 w-4 place-items-center rounded-full ${c.ok ? "bg-green-600 text-white" : "bg-ink-100 text-ink-300"}`}>{c.ok ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}</span>
+            <li key={c.label} className={`flex items-center gap-2 text-sm font-semibold ${c.ok ? "text-brand-600" : "text-ink-400"}`}>
+              <span className={`grid h-4 w-4 place-items-center rounded-full ${c.ok ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-300"}`}>{c.ok ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}</span>
               {c.label}
             </li>
           ))}
@@ -121,7 +121,7 @@ export default function ChangePasswordPanel({ user }: { user: User }) {
       </div>
 
       {error && <div className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600">{error}</div>}
-      {status && <div className="rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600">{status}</div>}
+      {status && <div className="rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600">{status}</div>}
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={busy} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">

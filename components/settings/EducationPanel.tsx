@@ -225,7 +225,7 @@ export default function EducationPanel({ user }: { user: User }) {
         </form>
       ) : (
         <>
-          {status && <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-600">{status}</div>}
+          {status && <div className="mt-4 flex items-center gap-2 rounded-lg bg-brand-50 p-3 text-sm font-semibold text-brand-600">{status}</div>}
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-ink-400">{loaded ? `Your education (${entries.length})` : "Your education"}</p>

@@ -123,7 +123,7 @@ function ChatPane({ convId, myName, otherName, onBack }: { convId: string; myNam
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center justify-between bg-[#00501F] px-3 py-3 text-white sm:px-4">
+      <div className="flex shrink-0 items-center justify-between bg-forest px-3 py-3 text-white sm:px-4">
         <div className="flex min-w-0 items-center gap-3">
           <button onClick={onBack} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white transition hover:bg-white/15 lg:hidden" aria-label="Back to conversations">
             <ArrowLeft className="h-4 w-4" />

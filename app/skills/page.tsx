@@ -128,7 +128,7 @@ export default function SkillsPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-3xl">
-        <div className="overflow-hidden rounded-[32px] bg-[#00501F] p-6 text-white shadow-elevated sm:p-8">
+        <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Award className="h-7 w-7" /></div>
             <div>
@@ -190,12 +190,12 @@ export default function SkillsPage() {
           </div>
 
           {(error || status) && (
-            <div className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-sm font-semibold ${error ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}>
+            <div className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-sm font-semibold ${error ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-600"}`}>
               {error || status}
             </div>
           )}
 
-          <div className="mt-6 rounded-3xl bg-[#00501F] p-5 text-white shadow-card">
+          <div className="mt-6 rounded-3xl bg-forest p-5 text-white shadow-card">
             <div className="flex items-center gap-2"><Award className="h-5 w-5 text-brand-light" /><p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50">Skill assessment</p></div>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
               <div>
