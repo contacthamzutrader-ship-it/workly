@@ -12,9 +12,9 @@ export default function GiftCardsPage() {
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Gift className="h-7 w-7" /></div>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Parwaz marketplace</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">AventriqTalent marketplace</p>
                 <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Gift Cards</h1>
-                <p className="mt-1 text-sm text-white/55">How gifting works on Parwaz.</p>
+                <p className="mt-1 text-sm text-white/55">How gifting works on AventriqTalent.</p>
               </div>
             </div>
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-3.5 py-1.5 text-xs font-extrabold text-amber-300"><Clock3 className="h-3.5 w-3.5" /> Coming soon</span>
@@ -29,7 +29,7 @@ export default function GiftCardsPage() {
               <p className="text-xs font-medium text-ink-400">We are being honest: this feature is not live.</p>
             </div>
           </div>
-          <p className="mt-4 text-sm leading-6 text-ink-600">Parwaz does not currently sell gift cards or store gift-card balances. You cannot buy, redeem or top up a gift card on the platform today, and no existing balance can be converted into one.</p>
+          <p className="mt-4 text-sm leading-6 text-ink-600">AventriqTalent does not currently sell gift cards or store gift-card balances. You cannot buy, redeem or top up a gift card on the platform today, and no existing balance can be converted into one.</p>
           <p className="mt-3 text-sm leading-6 text-ink-600">A gift-card programme - letting you buy a card for a friend and let them spend its value on tasks with vetted freelancers - is being planned. When it launches, this page will explain exactly how to buy, check a balance and redeem a card. Until then, no part of this page sells gift cards.</p>
         </div>
 

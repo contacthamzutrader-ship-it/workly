@@ -83,7 +83,7 @@ export default function ContactPage() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">SUPPORT CENTRE</p>
               <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Contact Us</h1>
-              <p className="mt-1 text-sm text-white/55">Send a message to the Parwaz support team and we will reply to your email.</p>
+              <p className="mt-1 text-sm text-white/55">Send a message to the AventriqTalent support team and we will reply to your email.</p>
             </div>
           </div>
         </div>

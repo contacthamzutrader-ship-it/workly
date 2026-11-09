@@ -12,9 +12,9 @@ export default function InsurancePage() {
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Umbrella className="h-7 w-7" /></div>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Parwaz protection</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">AventriqTalent protection</p>
                 <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Insurance</h1>
-                <p className="mt-1 text-sm text-white/55">How protection works on the Parwaz platform.</p>
+                <p className="mt-1 text-sm text-white/55">How protection works on the AventriqTalent platform.</p>
               </div>
             </div>
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-400/15 px-3.5 py-1.5 text-xs font-extrabold text-amber-300"><Clock3 className="h-3.5 w-3.5" /> Coming soon</span>
@@ -58,7 +58,7 @@ export default function InsurancePage() {
             </ul>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
-            <Link href="/how-it-works" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">See how Parwaz works <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/how-it-works" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">See how AventriqTalent works <ArrowRight className="h-4 w-4" /></Link>
             <Link href="/#trust" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink-200 bg-white px-5 text-sm font-extrabold text-ink transition hover:bg-ink-50">Read the trust &amp; safety page</Link>
           </div>
         </div>

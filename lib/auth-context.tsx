@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setInterviewPassed(false);
         }
       } catch (error) {
-        console.error("Could not load the signed-in Parwaz profile", error);
+        console.error("Could not load the signed-in AventriqTalent profile", error);
         setRole(null);
         setAdminSession(null);
         setOnboardingCompleted(false);

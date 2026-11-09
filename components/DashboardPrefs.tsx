@@ -17,7 +17,7 @@ export interface PriceRange {
   max: number;
 }
 
-const STORAGE_KEY = "parwaz.dashboard.prefs.v1";
+const STORAGE_KEY = "aventriq.dashboard.prefs.v1";
 
 const DEFAULT_FILTERS: DashboardFilters = { availableOnly: false, noOffersOnly: false, hideAssigned: false, hideHasOffers: false };
 

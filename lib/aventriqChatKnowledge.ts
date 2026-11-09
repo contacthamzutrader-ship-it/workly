@@ -1,8 +1,8 @@
 /**
- * WorklyChat Knowledge Base, Language Detection & Scope Guardrails Engine
+ * AventriqTalent Assistant Knowledge Base, Language Detection & Scope Guardrails Engine
  * 
  * STRICT PRIVACY & PLATFORM INTEGRITY GUARANTEES:
- * 1. Exclusively answers questions about Workly (Pakistan's smarter freelancing marketplace).
+ * 1. Exclusively answers questions about AventriqTalent (Pakistan's smarter freelancing marketplace).
  * 2. Politely rejects out-of-scope queries (general trivia, recipes, weather, politics, external coding homework).
  * 3. Bilingual Intelligence:
  *    - Automatically detects Roman Urdu queries -> answers in natural, fluent, courteous Roman Urdu.
@@ -41,10 +41,10 @@ export interface ChatResponseResult {
 
 export const DEFAULT_SUGGESTIONS_EN = [
   "Is this platform legit and safe?",
-  "How to get clients fast on Workly?",
+  "How to get clients fast on AventriqTalent?",
   "How does the AI Skill Interview work?",
   "How do payments and withdrawals work?",
-  "How do I post a project on Workly?",
+  "How do I post a project on AventriqTalent?",
 ];
 
 export const DEFAULT_SUGGESTIONS_UR = [
@@ -52,7 +52,7 @@ export const DEFAULT_SUGGESTIONS_UR = [
   "Is platform par jaldi clients kaise milenge?",
   "AI Skill Interview kaise kaam karta hai?",
   "Easypaisa aur JazzCash se payment kaise milegi?",
-  "Workly par task kaise post karein?",
+  "AventriqTalent par task kaise post karein?",
 ];
 
 export const DEFAULT_SUGGESTIONS = DEFAULT_SUGGESTIONS_EN;
@@ -93,7 +93,7 @@ export function isRomanUrdu(text: string): boolean {
 
 /**
  * Strict Out-Of-Scope Regex Patterns
- * Identifies questions totally unrelated to Parwaz.pk platform.
+ * Identifies questions totally unrelated to AventriqTalent platform.
  */
 const OUT_OF_SCOPE_REGEX = [
   /\b(recipe|recipes|cook|cooking|bake|cake|biryani|pulao|pasta|pizza|roti|nihari|ingredient)\b/i,
@@ -108,16 +108,16 @@ const OUT_OF_SCOPE_REGEX = [
 ];
 
 /**
- * Keywords strictly confirming Parwaz platform scope
+ * Keywords strictly confirming AventriqTalent platform scope
  */
 const PLATFORM_OVERRIDE_REGEX = [
-  /\b(workly|parwaz|task|tasks|freelancer|freelancing|client|hire|bidding|bid|bids|proposal|interview|test|badge|badges|trust score|fraud|wallet|payment|payments|easypaisa|jazzcash|safepay|profile|portfolio|education|login|signup|onboarding|dispute|refund|cancel|support|platform|earn|money|paisa|kaam|order|orders)\b/i,
+  /\b(aventriq|aventriq|task|tasks|freelancer|freelancing|client|hire|bidding|bid|bids|proposal|interview|test|badge|badges|trust score|fraud|wallet|payment|payments|easypaisa|jazzcash|safepay|profile|portfolio|education|login|signup|onboarding|dispute|refund|cancel|support|platform|earn|money|paisa|kaam|order|orders)\b/i,
 ];
 
 /**
- * Main AI Engine for ParwazChat
+ * Main AI Engine for AventriqChat
  */
-export function processParwazChatMessage(userQuery: string): ChatResponseResult {
+export function processAventriqChatMessage(userQuery: string): ChatResponseResult {
   const rawText = userQuery.trim();
   const query = rawText.toLowerCase();
   const urdu = isRomanUrdu(rawText);
@@ -128,14 +128,14 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
   if (/^(hi|hello|hey|salam|assalam|aoa|good (morning|afternoon|evening)|hey there|kese ho|kaise ho)[\s!.]*$/i.test(query)) {
     if (urdu) {
       return {
-        reply: "Walaikum Assalam! 😊 Main hoon **WorklyChat**, aapka official Workly assistant!\n\nMain aapko tasks post karne, verified badges hasil karne, jaldi clients dhoondne aur Easypaisa/JazzCash payments ke baray mein mukammal guide kar sakta hoon.\n\nAaj main aapki kya madad kar sakta hoon?",
+        reply: "Walaikum Assalam! 😊 Main hoon **AventriqTalent Assistant**, aapka official AventriqTalent assistant!\n\nMain aapko tasks post karne, verified badges hasil karne, jaldi clients dhoondne aur Easypaisa/JazzCash payments ke baray mein mukammal guide kar sakta hoon.\n\nAaj main aapki kya madad kar sakta hoon?",
         isOutOfScope: false,
         emotion: "happy",
         suggestedQuestions: DEFAULT_SUGGESTIONS_UR.slice(0, 3),
       };
     }
     return {
-      reply: "Hello! 😊 I'm **WorklyChat**, your official Workly assistant!\n\nI can help you with anything regarding our platform: posting tasks, getting verified badges, winning clients fast, and managing milestone payments.\n\nHow can I help you today?",
+      reply: "Hello! 😊 I'm **AventriqTalent Assistant**, your official AventriqTalent assistant!\n\nI can help you with anything regarding our platform: posting tasks, getting verified badges, winning clients fast, and managing milestone payments.\n\nHow can I help you today?",
       isOutOfScope: false,
       emotion: "happy",
       suggestedQuestions: DEFAULT_SUGGESTIONS_EN.slice(0, 3),
@@ -148,13 +148,13 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
   if (/^(thank you|thanks|shukriya|shukria|jazakallah|great|awesome|good job|bohat shukriya)[\s!.]*$/i.test(query)) {
     if (urdu) {
       return {
-        reply: "Aapka bohat shukriya! 😊 Agar Workly ke baray mein koi bhi mazeed sawal ho, to main hamesha yahan aapki rehnumai ke liye tayyar hoon!",
+        reply: "Aapka bohat shukriya! 😊 Agar AventriqTalent ke baray mein koi bhi mazeed sawal ho, to main hamesha yahan aapki rehnumai ke liye tayyar hoon!",
         isOutOfScope: false,
         emotion: "wink",
       };
     }
     return {
-      reply: "You're very welcome! 😊 If you have any other questions about Workly, winning clients, or taking skill tests, I'm always right here to assist you!",
+      reply: "You're very welcome! 😊 If you have any other questions about AventriqTalent, winning clients, or taking skill tests, I'm always right here to assist you!",
       isOutOfScope: false,
       emotion: "wink",
     };
@@ -169,14 +169,14 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
   if (isOutOfScopeQuery && !hasPlatformContext) {
     if (urdu) {
       return {
-        reply: "Maazrat chahta hoon! Main sirf **Workly platform** se mutaliq sawalaat mein aapki madad kar sakta hoon 😊\n\nMain aapko tasks post karne, proposals bhejne, AI skill interview pass karne, verified badges lene aur Easypaisa/JazzCash payments ke baray mein mukammal guide kar sakta hoon.\n\nAap platform ke baray mein kya poochna chahte hain?",
+        reply: "Maazrat chahta hoon! Main sirf **AventriqTalent platform** se mutaliq sawalaat mein aapki madad kar sakta hoon 😊\n\nMain aapko tasks post karne, proposals bhejne, AI skill interview pass karne, verified badges lene aur Easypaisa/JazzCash payments ke baray mein mukammal guide kar sakta hoon.\n\nAap platform ke baray mein kya poochna chahte hain?",
         isOutOfScope: true,
         emotion: "apologetic",
         suggestedQuestions: DEFAULT_SUGGESTIONS_UR.slice(0, 3),
       };
     }
     return {
-      reply: "I'm sorry, but I can only answer questions related to the **Workly platform**! 😊\n\nI am your dedicated Workly guide, here to assist with posting tasks, winning clients, taking AI skill interviews, earning verified badges, and milestone payments.\n\nWhat would you like to know about our platform?",
+      reply: "I'm sorry, but I can only answer questions related to the **AventriqTalent platform**! 😊\n\nI am your dedicated AventriqTalent guide, here to assist with posting tasks, winning clients, taking AI skill interviews, earning verified badges, and milestone payments.\n\nWhat would you like to know about our platform?",
       isOutOfScope: true,
       emotion: "apologetic",
       suggestedQuestions: DEFAULT_SUGGESTIONS_EN.slice(0, 3),
@@ -192,15 +192,15 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
   if (isLegitQuery) {
     if (urdu) {
       return {
-        reply: `### Jee Bilkul, Workly 100% Real aur Mehfooz Platform Hai! 🛡️
+        reply: `### Jee Bilkul, AventriqTalent 100% Real aur Mehfooz Platform Hai! 🛡️
 
-**Workly Pakistan ka smarter freelancing marketplace hai**, jo clients aur freelancers donon ko dhoke aur payment ke nuqsaan se mukammal tahaffuz deta hai:
+**AventriqTalent Pakistan ka smarter freelancing marketplace hai**, jo clients aur freelancers donon ko dhoke aur payment ke nuqsaan se mukammal tahaffuz deta hai:
 
 • **Held Milestone Funds (Safepay Escrow)**: Client kaam shuru honay se pehle funds platform par hold karwata hai. Freelancer ka paisa 100% mehfooz rehta hai aur kaam mukammal honay par hi release hota hai.
 • **Pakistani Local Payments**: Kisi teesray mulk ya PayPal ka jhanjhat nahi—direct **Easypaisa**, **JazzCash**, aur **Pakistani Banks (IBAN)** se payments aur withdrawals hotay hain.
 • **AI Skill Verification**: Freelancers 10 sawalaat ka AI technical test pass kar ke **Verified Badges** hasil kartay hain, jis se clients ko authentic talent milta hai.
 • **Dynamic Trust Score (0–100)**: Har user ka verified reputation score hota hai jo unke pichle kaam aur 5-star reviews par mabni hota hai.
-• **Fair Dispute Resolution**: Agar kisi project mein masla aye to Workly ki support team donon parties ke saboot dekh kar foran insaaf se faisla karti hai.
+• **Fair Dispute Resolution**: Agar kisi project mein masla aye to AventriqTalent ki support team donon parties ke saboot dekh kar foran insaaf se faisla karti hai.
 
 👉 **Platform Explore Karein**: [Kaise Kaam Karta Hai](/how-it-works) • [Live Tasks Dekhein](/browse)`,
         isOutOfScope: false,
@@ -215,9 +215,9 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
     }
 
     return {
-      reply: `### Yes, Workly is 100% Legitimate & Safe! 🛡️
+      reply: `### Yes, AventriqTalent is 100% Legitimate & Safe! 🛡️
 
-**Workly is Pakistan's premier smarter freelancing marketplace**, purposefully built to eliminate freelance payment delays, fraud, and non-delivery:
+**AventriqTalent is Pakistan's premier smarter freelancing marketplace**, purposefully built to eliminate freelance payment delays, fraud, and non-delivery:
 
 • **Milestone Escrow (Safepay Protected)**: Before work begins, the client's budget is locked securely in SBP-regulated escrow custody. Freelancers can work with complete peace of mind knowing the funds are guaranteed upon delivery.
 • **Direct Local Payouts**: Seamless integration with **Easypaisa**, **JazzCash**, and **Local Pakistani Banks (IBAN)**—no PayPal or overseas conversion roadblocks.
@@ -225,12 +225,12 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
 • **Trust Score Engine (0–100)**: Every client and freelancer maintains a transparent reputation score driven by authentic reviews and completion track records.
 • **Dedicated Dispute Protection**: If any disagreement occurs, our moderation team reviews delivery records to ensure fair resolution.
 
-👉 **Quick Links**: [How Workly Works](/how-it-works) • [Browse Opportunities](/browse)`,
+👉 **Quick Links**: [How AventriqTalent Works](/how-it-works) • [Browse Opportunities](/browse)`,
       isOutOfScope: false,
       emotion: "smile",
       quickAction: { label: "Explore Platform Safety", href: "/how-it-works" },
       suggestedQuestions: [
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "How do payments and withdrawals work?",
         "How does the AI Skill Interview work?",
       ],
@@ -247,9 +247,9 @@ export function processParwazChatMessage(userQuery: string): ChatResponseResult 
   if (isFastClientQuery) {
     if (urdu) {
       return {
-        reply: `### Workly Par Jaldi Clients Hasil Karne Ke 5 Behtareen Tareeqay 🚀
+        reply: `### AventriqTalent Par Jaldi Clients Hasil Karne Ke 5 Behtareen Tareeqay 🚀
 
-Agar aap Workly par tezi se orders aur high-paying clients jeetna chahte hain, to yeh 5 zaroori tips follow karein:
+Agar aap AventriqTalent par tezi se orders aur high-paying clients jeetna chahte hain, to yeh 5 zaroori tips follow karein:
 
 1. **AI Skill Interview Pass Karke Badge Lagayein**: Clients verified freelancers par sab se pehle bharosa kartay hain. [/interview](/interview) par 10 sawalaat ka AI test dein aur apne profile par **Verified Badge** unlock karein.
 2. **Pehle 15–30 Minute Mein Offer Submit Karein**: [/browse](/browse) par naye tasks check kartay rahein. Jo freelancer pehle 3 offers mein aata hai, client usay foran interview ke liye consider karta hai.
@@ -270,9 +270,9 @@ Agar aap Workly par tezi se orders aur high-paying clients jeetna chahte hain, t
     }
 
     return {
-      reply: `### Top 5 Proven Strategies to Win Clients Fast on Workly 🚀
+      reply: `### Top 5 Proven Strategies to Win Clients Fast on AventriqTalent 🚀
 
-To stand out on Workly and secure high-value clients quickly, apply these platform-tested tips:
+To stand out on AventriqTalent and secure high-value clients quickly, apply these platform-tested tips:
 
 1. **Pass the AI Skill Interview for Verified Badges**: Clients favor verified candidates. Complete our specialized 10-question evaluation at [/interview](/interview) to display a **Verified Badge** across your profile and all your offers.
 2. **Submit Proposals Within 15–30 Minutes**: Monitor [/browse](/browse) frequently. Clients often select from the first 3 to 5 competitive proposals they receive.
@@ -294,17 +294,17 @@ To stand out on Workly and secure high-value clients quickly, apply these platfo
 
 
   // -------------------------------------------------------------
-  // 6. TOPIC 3: WHAT IS THIS PLATFORM / ABOUT WORKLY
+  // 6. TOPIC 3: WHAT IS THIS PLATFORM / ABOUT AVENTRIQTALENT
   // -------------------------------------------------------------
   const isAboutQuery =
-    /\b(what is this platform|what is workly|what is parwaz|about workly|about parwaz|how does this work|overview|platform kya hai|ye platform kya hai|workly kya hai|parwaz kya hai|batao ye kya hai)\b/i.test(query);
+    /\b(what is this platform|what is aventriq|what is aventriq|about aventriq|about aventriq|how does this work|overview|platform kya hai|ye platform kya hai|aventriq kya hai|aventriq kya hai|batao ye kya hai)\b/i.test(query);
 
   if (isAboutQuery) {
     if (urdu) {
       return {
-        reply: `### Workly Kya Hai? 🌟
+        reply: `### AventriqTalent Kya Hai? 🌟
 
-**Workly Pakistan ka premier AI-powered freelancing aur task marketplace hai.** Yeh Pakistani clients aur verified freelancers ko transparent aur fixed prices par apas mein jorta hai:
+**AventriqTalent Pakistan ka premier AI-powered freelancing aur task marketplace hai.** Yeh Pakistani clients aur verified freelancers ko transparent aur fixed prices par apas mein jorta hai:
 
 • **Clients Ke Liye**: Aap asani se koi bhi project ya task post kar saktay hain ([/post](/post)), verified talent se offers le saktay hain, aur mehfooz tareeqay se kaam karwa saktay hain.
 • **Freelancers Ke Liye**: Hazaron open tasks browse karein ([/browse](/browse)), AI interview pass kar ke verified badges hasil karein ([/badges](/badges)), aur direct Easypaisa/JazzCash mein kamai withdraw karein ([/wallet](/wallet)).
@@ -323,9 +323,9 @@ To stand out on Workly and secure high-value clients quickly, apply these platfo
     }
 
     return {
-      reply: `### About Workly 🌟
+      reply: `### About AventriqTalent 🌟
 
-**Workly is Pakistan's premier AI-powered freelancing and task marketplace.** It unites the simplicity of Airtasker with the contract security and milestone protection of Upwork, specifically tailored for Pakistan's digital economy:
+**AventriqTalent is Pakistan's premier AI-powered freelancing and task marketplace.** It unites the simplicity of Airtasker with the contract security and milestone protection of Upwork, specifically tailored for Pakistan's digital economy:
 
 • **For Clients**: Easily post tasks ([/post](/post)), review proposals from verified Pakistani talent, and release funds only after work is delivered to your satisfaction.
 • **For Freelancers**: Browse live tasks ([/browse](/browse)), take the AI skill interview to earn verified badges ([/interview](/interview)), and withdraw earnings directly to Easypaisa, JazzCash, or your local bank.
@@ -337,7 +337,7 @@ To stand out on Workly and secure high-value clients quickly, apply these platfo
       quickAction: { label: "Explore Platform", href: "/how-it-works" },
       suggestedQuestions: [
         "Is this platform legit and safe?",
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "How do payments and withdrawals work?",
       ],
     };
@@ -353,7 +353,7 @@ To stand out on Workly and secure high-value clients quickly, apply these platfo
   if (isPostTaskQuery) {
     if (urdu) {
       return {
-        reply: `### Workly Par Task Kaise Post Karein? 📝
+        reply: `### AventriqTalent Par Task Kaise Post Karein? 📝
 
 Clients sirf 2 minute mein apna task post kar ke verified freelancers se offers hasil kar saktay hain:
 
@@ -376,7 +376,7 @@ Clients sirf 2 minute mein apna task post kar ke verified freelancers se offers 
     }
 
     return {
-      reply: `### How to Post a Task on Workly 📝
+      reply: `### How to Post a Task on AventriqTalent 📝
 
 Clients can easily hire verified talent in a few simple steps:
 
@@ -393,7 +393,7 @@ Clients can easily hire verified talent in a few simple steps:
       suggestedQuestions: [
         "How do payments and withdrawals work?",
         "What is the Trust Score and how do I raise it?",
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
       ],
     };
   }
@@ -446,7 +446,7 @@ Freelancers can explore hundreds of open opportunities across Pakistan:
       emotion: "speaking",
       quickAction: { label: "Browse Tasks", href: "/browse" },
       suggestedQuestions: [
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "How does the AI Skill Interview work?",
         "How do payments and withdrawals work?",
       ],
@@ -464,7 +464,7 @@ Freelancers can explore hundreds of open opportunities across Pakistan:
       return {
         reply: `### AI Skill Interview Aur Verified Badges 🏆
 
-Workly ka AI interview engine freelancers ki maharat ko test kar ke unhein verified badges deta hai:
+AventriqTalent ka AI interview engine freelancers ki maharat ko test kar ke unhein verified badges deta hai:
 
 • **10 Sawalaat Ka Evaluation**: Aapke chune huway shobay (React, Python, Design, Writing waghera) par 10 technical sawalaat pooche jatay hain.
 • **AI Voice & Text Interviewer**: Interactive audio aur text format mein testing hoti hai.
@@ -486,7 +486,7 @@ Workly ka AI interview engine freelancers ki maharat ko test kar ke unhein verif
     return {
       reply: `### AI Skill Interview & Verified Badges 🏆
 
-Workly features an automated AI testing engine that verifies freelancer skills and awards badges:
+AventriqTalent features an automated AI testing engine that verifies freelancer skills and awards badges:
 
 • **10 Specialized Questions**: Evaluates your chosen domain (Full-Stack, React, Python, UI/UX Design, Content Writing, etc.).
 • **AI Voice & Text Interaction**: Features realistic AI question delivery and smart scoring out of 100.
@@ -498,7 +498,7 @@ Workly features an automated AI testing engine that verifies freelancer skills a
       emotion: "happy",
       quickAction: { label: "Take Skill Interview", href: "/interview" },
       suggestedQuestions: [
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "What is the Trust Score and how do I raise it?",
         "How do payments and withdrawals work?",
       ],
@@ -516,7 +516,7 @@ Workly features an automated AI testing engine that verifies freelancer skills a
       return {
         reply: `### Wallet, Payments Aur Withdrawals 💳
 
-Workly par payments ka nizam 100% mehfooz aur Pakistani financial channels par mushtamil hai:
+AventriqTalent par payments ka nizam 100% mehfooz aur Pakistani financial channels par mushtamil hai:
 
 • **Milestone Escrow (Held Funds)**: Task award hotay hi client ki payment platform custody mein mehfooz ho jati hai.
 • **Payment Release**: Kaam complete honay aur client ki approval ke baad funds foran aapke available wallet balance mein credit ho jatay hain.
@@ -538,7 +538,7 @@ Workly par payments ka nizam 100% mehfooz aur Pakistani financial channels par m
     return {
       reply: `### Wallet, Milestone Escrow & Local Payouts 💳
 
-Payments on Workly operate on a safe, held milestone architecture built for Pakistan:
+Payments on AventriqTalent operate on a safe, held milestone architecture built for Pakistan:
 
 • **Milestone Custody**: When a client accepts an offer, task funds are locked safely in escrow before work begins.
 • **Instant Release**: Once work is delivered and approved by the client, funds move immediately into your available wallet balance.
@@ -551,7 +551,7 @@ Payments on Workly operate on a safe, held milestone architecture built for Paki
       quickAction: { label: "Open Your Wallet", href: "/wallet" },
       suggestedQuestions: [
         "Is this platform legit and safe?",
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "What is the Trust Score and how do I raise it?",
       ],
     };
@@ -568,7 +568,7 @@ Payments on Workly operate on a safe, held milestone architecture built for Paki
       return {
         reply: `### Trust Score Engine (0–100) 🌟
 
-Workly har account ka dynamic Trust Score calculate karta hai taake genuine users ko highlight kiya ja sakay:
+AventriqTalent har account ka dynamic Trust Score calculate karta hai taake genuine users ko highlight kiya ja sakay:
 
 • **Baseline Score**: Naye accounts ka initial score **70 points** se start hota hai.
 • **+2 Points**: Har **5-star review** par aapka score 2 points barhta hai.
@@ -591,7 +591,7 @@ Workly har account ka dynamic Trust Score calculate karta hai taake genuine user
     return {
       reply: `### Trust Score Engine (0–100) 🌟
 
-Workly dynamically computes an authentic Trust Score for each user to promote reliability:
+AventriqTalent dynamically computes an authentic Trust Score for each user to promote reliability:
 
 • **Baseline**: All active accounts start with a default Trust Score of **70 points**.
 • **Positive Boost**: Every **5-star review** earned increases your score by **+2 points**.
@@ -604,7 +604,7 @@ Workly dynamically computes an authentic Trust Score for each user to promote re
       emotion: "smile",
       quickAction: { label: "Open Dashboard", href: "/dashboard" },
       suggestedQuestions: [
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "How does the AI Skill Interview work?",
         "How do payments and withdrawals work?",
       ],
@@ -622,7 +622,7 @@ Workly dynamically computes an authentic Trust Score for each user to promote re
       return {
         reply: `### Safety Rules Aur Contact Sharing Policy 🚫
 
-Donon parties ki hifazat ke liye Workly par sakht safety rules nafiz hain:
+Donon parties ki hifazat ke liye AventriqTalent par sakht safety rules nafiz hain:
 
 • **Off-Platform Contacts Mamnoo Hain**: Task assign hone se pehle personal WhatsApp, phone number, ya email share karna mana hai.
 • **Automated Scanners**: Chat aur proposals mein links, phone numbers aur emails ko system foran detect kar ke flag kar deta hai.
@@ -644,12 +644,12 @@ Donon parties ki hifazat ke liye Workly par sakht safety rules nafiz hain:
     return {
       reply: `### Platform Safety Rules & Anti-Fraud Policies 🚫
 
-To protect clients and freelancers from scam attempts, Workly enforces strict communication rules:
+To protect clients and freelancers from scam attempts, AventriqTalent enforces strict communication rules:
 
 • **No Pre-Contract Contact Sharing**: Exchanging personal WhatsApp numbers, personal emails, or social handles before a contract is awarded is strictly prohibited.
 • **Real-Time Content Detection**: Our automated scanner flags sensitive links, phone digits, and emails to prevent fraud.
-• **Payment Protection Loss**: Conducting payments outside Workly removes all held escrow protection and results in an immediate **-20 Trust Score penalty** or account suspension.
-• **Secure In-App Chat**: Once an offer is awarded, full private real-time chat unlocks within Workly!
+• **Payment Protection Loss**: Conducting payments outside AventriqTalent removes all held escrow protection and results in an immediate **-20 Trust Score penalty** or account suspension.
+• **Secure In-App Chat**: Once an offer is awarded, full private real-time chat unlocks within AventriqTalent!
 
 👉 **Read More**: [Community Guidelines](/community-guidelines)`,
       isOutOfScope: false,
@@ -674,7 +674,7 @@ To protect clients and freelancers from scam attempts, Workly enforces strict co
       return {
         reply: `### Profile Aur Portfolio Setup 🎨
 
-Aapka Workly profile aapka digital identity card hai:
+Aapka AventriqTalent profile aapka digital identity card hai:
 
 • **Settings Mein Jayein**: [/settings](/settings) par ja kar apna avatar, professional title, bio aur hourly rate set karein.
 • **Education Verification**: Apni degree aur educational documents upload karein.
@@ -696,7 +696,7 @@ Aapka Workly profile aapka digital identity card hai:
     return {
       reply: `### Profile, Portfolio & Education Setup 🎨
 
-Your Workly profile establishes your professional presence:
+Your AventriqTalent profile establishes your professional presence:
 
 • **Update Details**: In [/settings](/settings), set your profile photo, professional title, bio, hourly rate, and core skills.
 • **Verified Education**: Upload degree and certificate documents to verify your educational background.
@@ -708,7 +708,7 @@ Your Workly profile establishes your professional presence:
       emotion: "smile",
       quickAction: { label: "Account Settings", href: "/settings" },
       suggestedQuestions: [
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
         "How does the AI Skill Interview work?",
         "What is the Trust Score and how do I raise it?",
       ],
@@ -726,10 +726,10 @@ Your Workly profile establishes your professional presence:
       return {
         reply: `### Disputes, Refunds Aur Support 🤝
 
-Workly par har project mein fair support aur dispute resolution mojood hai:
+AventriqTalent par har project mein fair support aur dispute resolution mojood hai:
 
 • **Dispute Raise Karein**: Agar kaam standard ke mutabiq na ho ya koi disagreement ho, to structured dispute open kiya ja sakta hai.
-• **Moderation Review**: Workly ki support team task details aur delivery files ka jaiza leti hai.
+• **Moderation Review**: AventriqTalent ki support team task details aur delivery files ka jaiza leti hai.
 • **Refunds**: Agar kaam deliver na ho, to client ke held funds unke wallet balance mein wapas kar diye jatay hain.
 • **Contact Us**: Kisi bhi madad ke liye aap [/help](/help) ya [/contact](/contact) par contact kar saktay hain.
 
@@ -748,7 +748,7 @@ Workly par har project mein fair support aur dispute resolution mojood hai:
     return {
       reply: `### Disputes, Cancellations & Customer Support 🤝
 
-Workly provides dedicated dispute resolution to safeguard both clients and freelancers:
+AventriqTalent provides dedicated dispute resolution to safeguard both clients and freelancers:
 
 • **Open a Dispute**: If a deliverable does not match specifications or a conflict arises, either party can file a dispute with evidence.
 • **Moderator Review**: Our support team reviews all submitted work and contract milestones.
@@ -762,7 +762,7 @@ Workly provides dedicated dispute resolution to safeguard both clients and freel
       suggestedQuestions: [
         "Is this platform legit and safe?",
         "How do payments and withdrawals work?",
-        "How to get clients fast on Workly?",
+        "How to get clients fast on AventriqTalent?",
       ],
     };
   }
@@ -772,7 +772,7 @@ Workly provides dedicated dispute resolution to safeguard both clients and freel
   // -------------------------------------------------------------
   if (urdu) {
     return {
-      reply: `Main Workly par aapki mukammal madad karne ke liye hazir hoon! 🌟
+      reply: `Main AventriqTalent par aapki mukammal madad karne ke liye hazir hoon! 🌟
 
 Aap mujh se platform ke baray mein yeh sab pooch saktay hain:
 
@@ -788,7 +788,7 @@ Aap platform ke baray mein mazeed kya janna chahte hain?`,
   }
 
   return {
-    reply: `I can certainly help you with that on Workly! 🌟
+    reply: `I can certainly help you with that on AventriqTalent! 🌟
 
 Here are the key areas I specialize in:
 

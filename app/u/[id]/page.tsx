@@ -256,7 +256,7 @@ export default function PublicProfilePage() {
                 {verification?.status === "verified" ? (
                   <div className="flex items-start gap-3 rounded-2xl bg-brand-50 p-4">
                     <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
-                    <div><p className="text-sm font-black text-brand-700">ID Verified</p><p className="mt-0.5 text-xs leading-5 text-brand-600">Identity confirmed by the Parwaz team.</p></div>
+                    <div><p className="text-sm font-black text-brand-700">ID Verified</p><p className="mt-0.5 text-xs leading-5 text-brand-600">Identity confirmed by the AventriqTalent team.</p></div>
                   </div>
                 ) : verification?.status === "submitted" ? (
                   <div className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4">
@@ -278,7 +278,7 @@ export default function PublicProfilePage() {
                 )}
                 <div className="flex items-center justify-between rounded-xl border border-ink-100 p-3.5">
                   <span className="flex items-center gap-2 text-sm font-bold text-ink-500"><CheckCircle2 className="h-4 w-4 text-brand" /> Member since</span>
-                  <span className="text-sm font-black text-ink">{data.createdAt ? formatDate(data.createdAt) : "Parwaz"}</span>
+                  <span className="text-sm font-black text-ink">{data.createdAt ? formatDate(data.createdAt) : "AventriqTalent"}</span>
                 </div>
               </div>
             </section>

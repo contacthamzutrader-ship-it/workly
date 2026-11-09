@@ -1,4 +1,4 @@
-# Workly / Parwaz — Industrial-Grade Production Audit & Roadmap
+# AventriqTalent / AventriqTalent — Industrial-Grade Production Audit & Roadmap
 
 **Tarikh:** October 2026  
 **Hadaf:** Platform ko prototype se nikaal kar Pakistan ka #1 secure, fast, scalable aur user-friendly industrial-level task & freelancing marketplace banana.
@@ -10,9 +10,9 @@
 Mojooda codebase me bohot saari achi neeyat aur advanced ideas mojood hain, lekin **teen baray maslay** hain jo isay production pr launch hone se roktay hain:
 
 1. **Branding ki Khichdi:** Codebase me 3 mukhtalif naam aik sath chal rahe hain:
-   - `Workly` (Folder name, logo `/workly-mark.png`, `PLAN.md`, `MARKETPLACE_AUDIT.md`, Firebase Project `workly-c7458`).
-   - `Parwaz.pk` (`package.json`, navbar, dashboard sidebar, terms, chat).
-   - `TQRA AI` (`app/page.tsx` pr landing page copy, hero text).
+   - `AventriqTalent` (Folder name, brand mark `app/icon.svg`, `PLAN.md`, `MARKETPLACE_AUDIT.md`, Firebase Project `workly-c7458`).
+   - `AventriqTalent` (`package.json`, navbar, dashboard sidebar, terms, chat).
+   - `AventriqTalent AI` (`app/page.tsx` pr landing page copy, hero text).
    *Production pr user trust ke liye sirf aik unique, crystal-clear brand naam hona lazmi hai.*
 2. **Do Mukhtalif Platforms ka Talaap (Severe Architectural Bloat):**
    - Aik taraf ye **Airtasker/Upwork style local + remote tasks marketplace** hai (Cleaning, Handyman, Web Dev, Content).
@@ -130,7 +130,7 @@ graph TD
 ## 6. UI/UX & Mobile/Desktop Optimization
 
 - **Single Clear Brand Identity:**
-  - Name: **Workly** (ya **Parwaz**) — poori app me har jagah aik hi naam, logo aur footer.
+  - Name: **AventriqTalent** (ya **AventriqTalent**) — poori app me har jagah aik hi naam, logo aur footer.
   - Colors: Charcoal (`#111111`), Primary Emerald (`#00B33C`), Deep Forest (`#093A1D`), Light Mint (`#E2F8EC`), White (`#FFFFFF`), Muted Gray (`#6B7280`).
 - **Mobile-First Experience:**
   - Phone pr fast load time (< 1.5 seconds) by eliminating all 70MB video files.
@@ -145,7 +145,7 @@ graph TD
 ## 7. Implementation Status & Progress Tracker
 
 ### ✅ Phase 1: Clean-Up & Housekeeping (COMPLETED)
-1. **Brand Unified to Workly**: Codebase, Logo, Navbar, Footer, Landing Page copy, and `package.json` successfully unified under **Workly** and **Workly AI**.
+1. **Brand Unified to AventriqTalent**: Codebase, Logo, Navbar, Footer, Landing Page copy, and `package.json` successfully unified under **AventriqTalent** and **AventriqTalent AI**.
 2. **70 MB Video Bloat Eliminated**: `components/BackgroundVideoPlaylist.tsx` converted to lightweight CSS ambient gradient; `components/DashboardVideoSlider.tsx` removed from Tasker & Customer dashboards. Zero video bandwidth consumed.
 3. **Dead / Stub Links Cleaned**: Links to coming soon stubs (e.g., `/insurance`) redirected to active guidelines pages.
 4. **Syntax & Compilation Fixed**: `lib/sessionStore.ts` TypeScript syntax error resolved.
@@ -178,14 +178,14 @@ graph TD
 2. **Escrow Refund Engine**: `cancelTask` in `lib/tasks.ts` atomically credits held escrow funds back to client's wallet (`wallet_txs: "refund"`) and notifies both parties.
 3. **Formal Dispute Desk**: Added `raiseDispute` in `lib/tasks.ts` and interactive dispute modal on task detail view.
 4. **Interactive Admin Resolution Desk**: Admins can resolve disputes in `/admin` with one click ("Refund Client", "Release Freelancer", or "Dismiss").
-5. **100% Brand Cleansing**: Zero occurrences of "Parwaz" or "TQRA" across Dashboard, Admin, Chat knowledge base, Auth layouts, and Guidelines.
+5. **100% Brand Cleansing**: Zero occurrences of "AventriqTalent" or "AventriqTalent" across Dashboard, Admin, Chat knowledge base, Auth layouts, and Guidelines.
 
 ### ✅ Phase 6: Industrial-Grade UI/UX Redesign & Enterprise Polishing (COMPLETED)
-1. **Childish Cartoon Mascot Eliminated**: Replaced `ParwazChat` and the dancing cartoon emoji antics with **Workly AI Copilot** (`components/WorklyCopilot.tsx`) featuring real-time telemetry, marketplace quick prompts, glassmorphism drawer, and instant scoping.
+1. **Childish Cartoon Mascot Eliminated**: Replaced `AventriqChat` and the dancing cartoon emoji antics with **AventriqTalent Assistant** (`components/AventriqCopilot.tsx`) featuring real-time telemetry, marketplace quick prompts, glassmorphism drawer, and instant scoping.
 2. **Design Tokens & Modern Styling**: Upgraded `app/globals.css` with `.glass-card`, `.glass-dark`, `.gradient-mesh`, `.badge-escrow`, and smooth micro-interactions.
 3. **High-Converting Landing Page**: Elevated `app/page.tsx` hero section, telemetry beacons, CTA buttons, and high-trust financial safeguards.
 4. **Industrial Task Cards**: Upgraded `components/TaskCard.tsx` with fixed-price badges, verified escrow indicators, and Pakistani remote work tags.
-5. **Brand Cleansing Finalization**: Removed lingering "Parwaz" references from dispute banners, escrow modals, and wallet prompts in `app/tasks/[id]/page.tsx`.
+5. **Brand Cleansing Finalization**: Removed lingering "AventriqTalent" references from dispute banners, escrow modals, and wallet prompts in `app/tasks/[id]/page.tsx`.
 6. **Enterprise Footer Overhaul**: Modern dark slate/emerald palette with compliance seals (Safepay, Raast, SBP-compliant gateway, Double-Blind reviews).
 7. **Automated Test Suite Verified**: All 16 automated tests in `tests/platform.test.mjs` pass cleanly (100% pass rate).
 
@@ -194,5 +194,5 @@ graph TD
 ## 8. Next Operational Steps for Live Launch
 1. **Safepay Merchant Credentials**: Add live `SAFEPAY_API_KEY`, `SAFEPAY_SECRET_KEY`, and `SAFEPAY_WEBHOOK_SECRET` into `.env.local` or hosting provider settings.
 2. **Firebase Admin SDK Service Account**: Ensure production deployment has `FIREBASE_SERVICE_ACCOUNT` for automated backend worker jobs.
-3. **Domain & SSL**: Point custom domain (e.g. `workly.pk`) to Vercel and verify DNS records.
+3. **Domain & SSL**: Point the AventriqTalent production domain to Vercel and verify DNS records.
 

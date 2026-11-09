@@ -95,7 +95,7 @@ export default function WalletPage() {
       )}
 
       <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 p-6">
-        <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" /><div><h2 className="text-sm font-black text-ink">Live payment onboarding required</h2><p className="mt-1 text-sm leading-6 text-ink-600">Demo balance creation has been removed. Before accepting customer money, Parwaz must complete merchant and marketplace/escrow approval with a State Bank of Pakistan-regulated provider. The production flow is checkout â†’ verified webhook â†’ held funds â†’ completion approval â†’ provider payout; balances must never be editable in the browser.</p></div></div>
+        <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" /><div><h2 className="text-sm font-black text-ink">Live payment onboarding required</h2><p className="mt-1 text-sm leading-6 text-ink-600">Demo balance creation has been removed. Before accepting customer money, AventriqTalent must complete merchant and marketplace/escrow approval with a State Bank of Pakistan-regulated provider. The production flow is checkout â†’ verified webhook â†’ held funds â†’ completion approval â†’ provider payout; balances must never be editable in the browser.</p></div></div>
       </div>
 
       <div className="surface p-6">

@@ -151,7 +151,7 @@ export default function AdminPage() {
     setActionBusy(taskId);
     setError("");
     try {
-      await approveTask(taskId, "public", user.email || "Parwaz admin");
+      await approveTask(taskId, "public", user.email || "AventriqTalent admin");
       await load();
     } catch (err: any) {
       setError(err?.message || "Could not approve this task.");
@@ -173,8 +173,8 @@ export default function AdminPage() {
       await approvePrivateTask({
         taskId: task.id!,
         providerId: provider.id,
-        providerName: provider.name || provider.email || "Parwaz managed provider",
-        approvedBy: user.email || "Parwaz admin",
+        providerName: provider.name || provider.email || "AventriqTalent managed provider",
+        approvedBy: user.email || "AventriqTalent admin",
       });
       await load();
     } catch (err: any) {
@@ -188,7 +188,7 @@ export default function AdminPage() {
     setActionBusy(task.id!);
     setError("");
     try {
-      const token = await approveTask(task.id!, "private", user.email || "Parwaz admin");
+      const token = await approveTask(task.id!, "private", user.email || "AventriqTalent admin");
       if (!token) throw new Error("Private token could not be generated.");
       const link = `${window.location.origin}/tasks/${task.id}?invite=${token}`;
       setPrivateInviteLink(link);
@@ -245,7 +245,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-4">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><ShieldCheck className="h-7 w-7" /></span>
               <div>
-                <div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">Parwaz Control</h1><span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-brand-300">{session.isOwner ? "Owner" : "Admin"}</span></div>
+                <div className="flex items-center gap-2"><h1 className="text-2xl font-black tracking-[-0.03em]">AventriqTalent Control</h1><span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-brand-300">{session.isOwner ? "Owner" : "Admin"}</span></div>
                 <p className="mt-1 text-sm font-medium text-white/50">Approvals, people, revenue and platform health.</p>
               </div>
             </div>
@@ -468,7 +468,7 @@ function AutoApproveControl({ onChanged }: { onChanged: () => void }) {
     <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="surface p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes Parwaz&apos;s quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
+          <div className="flex gap-4"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand"><Zap className="h-5 w-5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark">Publishing policy</p><h2 className="mt-1 text-xl font-black text-ink">Smart auto-approval</h2><p className="mt-2 max-w-xl text-sm leading-6 text-ink-500">When enabled, every new task passes AventriqTalent&apos;s quality and safety screen. High-confidence tasks go public instantly; uncertain or risky content still enters the manual queue.</p></div></div>
           <button type="button" onClick={toggle} disabled={busy} aria-pressed={enabled} className={`relative h-8 w-14 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-ink-200"}`}><span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-sm transition ${enabled ? "left-7" : "left-1"}`} /></button>
         </div>
         <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -528,7 +528,7 @@ function ManageAdmins({ admins, ownerEmail, onChanged }: { admins: any[]; ownerE
   };
 
   const remove = async (uid: string) => {
-    if (!confirm("Remove this admin from Parwaz Control?")) return;
+    if (!confirm("Remove this admin from AventriqTalent Control?")) return;
     await removeAdmin(uid);
     onChanged();
   };

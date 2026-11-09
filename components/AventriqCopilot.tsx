@@ -10,11 +10,10 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
-  Sparkles,
   X,
   Zap,
 } from "lucide-react";
-import { DEFAULT_SUGGESTIONS } from "@/lib/parwazChatKnowledge";
+import { DEFAULT_SUGGESTIONS } from "@/lib/aventriqChatKnowledge";
 
 interface CopilotMessage {
   id: string;
@@ -25,12 +24,12 @@ interface CopilotMessage {
   suggestedQuestions?: string[];
 }
 
-const STORAGE_KEY = "workly_copilot_session_v2";
+const STORAGE_KEY = "aventriq_copilot_session_v2";
 
 const INITIAL_MESSAGE: CopilotMessage = {
   id: "msg_welcome",
   sender: "assistant",
-  text: "Hello! I am **Workly AI Copilot**, your enterprise marketplace intelligence assistant.\n\nI can assist you with:\n- **Posting projects** and estimating fair budgets in PKR\n- **Safepay Escrow protection** & milestone payments\n- **Submitting deliverables** and double-blind reviews\n- **Withdrawing earnings** via Raast, Bank IBAN, or JazzCash\n\nHow can I help you today?",
+  text: "Hello! I am **AventriqTalent Assistant**, your enterprise marketplace intelligence assistant.\n\nI can assist you with:\n- **Posting projects** and estimating fair budgets in PKR\n- **Safepay Escrow protection** & milestone payments\n- **Submitting deliverables** and double-blind reviews\n- **Withdrawing earnings** via Raast, Bank IBAN, or JazzCash\n\nHow can I help you today?",
   timestamp: "Just now",
   suggestedQuestions: [
     "How does Safepay Escrow protect my funds?",
@@ -40,7 +39,7 @@ const INITIAL_MESSAGE: CopilotMessage = {
   ],
 };
 
-export default function WorklyCopilot() {
+export default function AventriqCopilot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [input, setInput] = useState("");
@@ -97,7 +96,7 @@ export default function WorklyCopilot() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/parwaz-chat", {
+      const res = await fetch("/api/aventriq-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userText }),
@@ -170,15 +169,14 @@ export default function WorklyCopilot() {
         <button
           onClick={() => setIsOpen(true)}
           className="group relative flex items-center gap-3 rounded-full border border-brand-500/30 bg-slate-950 px-4 py-3 text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:border-brand-400 hover:shadow-brand-900/40"
-          aria-label="Open Workly AI Copilot"
+          aria-label="Open AventriqTalent Assistant"
         >
           <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-brand-600 to-forest-700 shadow-md">
-            <Sparkles className="h-4 w-4 text-white animate-pulse" />
             <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-950 bg-brand-400" />
           </div>
           <div className="text-left">
             <div className="flex items-center gap-1.5 text-xs font-black tracking-wide text-white">
-              <span>Workly AI</span>
+              <span>AventriqTalent AI</span>
               <span className="rounded bg-brand-500/20 px-1 py-0.2 text-[9px] font-extrabold text-brand-400">
                 PRO
               </span>
@@ -202,7 +200,7 @@ export default function WorklyCopilot() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-extrabold text-white">Workly AI Copilot</h3>
+                  <h3 className="text-sm font-extrabold text-white">AventriqTalent Assistant</h3>
                   <span className="inline-flex items-center gap-1 rounded-full bg-brand-500/20 px-1.5 py-0.5 text-[9px] font-bold text-brand-400">
                     <ShieldCheck className="h-2.5 w-2.5" /> Escrow Safe
                   </span>
@@ -297,7 +295,7 @@ export default function WorklyCopilot() {
                   <span className="h-1.5 w-1.5 rounded-full bg-brand-600 animate-bounce [animation-delay:0.4s]" />
                 </span>
                 <span className="text-[10px] font-semibold text-slate-500">
-                  Workly AI is evaluating answer...
+                  AventriqTalent AI is evaluating answer...
                 </span>
               </div>
             )}

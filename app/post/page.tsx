@@ -115,7 +115,7 @@ export default function PostTaskPage() {
           <div>
             <span className="eyebrow"><Tag className="h-3.5 w-3.5" /> New task</span>
             <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] text-ink sm:text-5xl">What do you need done?</h1>
-            <p className="mt-3 max-w-xl text-base font-medium text-ink-500">Share the outcome, budget and timing. Parwaz handles the safest route from there.</p>
+            <p className="mt-3 max-w-xl text-base font-medium text-ink-500">Share the outcome, budget and timing. AventriqTalent handles the safest route from there.</p>
           </div>
           <div className="w-full max-w-xs">
             <div className="mb-2 flex items-center justify-between text-xs font-bold"><span className="text-ink-400">Task completeness</span><span className="text-brand-dark">{completion}%</span></div>
@@ -142,7 +142,7 @@ export default function PostTaskPage() {
 
               {title.trim() && description.trim().length >= 20 && !suggestion && (
                 <button type="button" onClick={handleAiSuggest} disabled={aiLoading} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 text-sm font-extrabold text-brand-dark transition hover:bg-brand-100 disabled:opacity-50">
-                  <Zap className="h-4 w-4" /> {aiLoading ? "Parwaz is improving your task..." : "Improve with Parwaz"}
+                  <Zap className="h-4 w-4" /> {aiLoading ? "AventriqTalent is improving your task..." : "Improve with AventriqTalent"}
                 </button>
               )}
 
@@ -188,7 +188,7 @@ export default function PostTaskPage() {
             {error && <div role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
 
             <div className="flex flex-col gap-3 border-t border-ink-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-2 text-xs font-medium text-ink-500"><Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span>By posting, you agree to keep communication and payment on Parwaz.</span></div>
+              <div className="flex items-start gap-2 text-xs font-medium text-ink-500"><Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span>By posting, you agree to keep communication and payment on AventriqTalent.</span></div>
               <Button type="submit" disabled={busy} className="shrink-0 gap-2 px-7">{busy ? "Checking & posting..." : "Post task"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
             </div>
           </form>

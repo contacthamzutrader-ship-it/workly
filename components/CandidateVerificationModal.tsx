@@ -16,7 +16,6 @@ import {
   Lock,
   RefreshCw,
   Video,
-  Sparkles,
   Check
 } from 'lucide-react';
 
@@ -303,7 +302,6 @@ export default function CandidateVerificationModal({
                   onClick={enableVirtualSensors}
                   className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-brand-400 border border-brand-500/30 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-brand-400" />
                   <span>Auto-Verify Hardware Sensors</span>
                 </button>
               </div>

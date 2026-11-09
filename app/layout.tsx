@@ -16,32 +16,26 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch {
     metadataBase = new URL("http://localhost:3000");
   }
-  const description = "Pakistan's smarter freelancing marketplace. Connect with verified talent, discover the right opportunities, and build your freelance career with skill-based matching.";
+  const description =
+    "Pakistan's smarter freelancing marketplace, powered by AI. Connect with verified talent, discover the right opportunities, and build your freelance career with skill-based matching.";
 
   return {
     metadataBase,
     title: {
-      default: "Parwaz.pk - Pakistan's smarter freelancing marketplace",
-      template: "%s | Parwaz.pk",
+      default: "AventriqTalent - Pakistan's Smarter Freelancing Marketplace",
+      template: "%s | AventriqTalent",
     },
     description,
-      icons: {
-        icon: "/img/Parwaz.png",
-        shortcut: "/img/Parwaz.png",
-        apple: "/img/Parwaz.png",
-      },
     openGraph: {
       type: "website",
-      siteName: "Parwaz.pk",
-      title: "Pakistan's Smarter Freelancing Marketplace.",
+      siteName: "AventriqTalent",
+      title: "Pakistan's Smarter Freelancing Marketplace, Powered by AI.",
       description,
-      images: [{ url: `${origin}/og.png`, width: 1731, height: 909, alt: "Parwaz.pk - Pakistan's smarter freelancing marketplace" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Pakistan's Smarter Freelancing Marketplace.",
+      title: "Pakistan's Smarter Freelancing Marketplace, Powered by AI.",
       description,
-      images: [`${origin}/og.png`],
     },
   };
 }

@@ -6,7 +6,7 @@ const SECTIONS = [
     icon: Database,
     title: "1. Information We Collect",
     body: [
-      "When you create an account, post a task, or submit an offer on Parwaz, we collect information necessary to operate a trusted marketplace: your name, verified email address, phone number for authentication, location (city/work area), and profile photo.",
+      "When you create an account, post a task, or submit an offer on AventriqTalent, we collect information necessary to operate a trusted marketplace: your name, verified email address, phone number for authentication, location (city/work area), and profile photo.",
       "For freelancers participating in the AI Skill Check or seeking Verified Talent status, we process assessment transcripts, verified skill scores, portfolio attachments, and identity verification records (CNIC/Government ID where required for financial compliance).",
       "We record transaction details, including task budgets, escrow holds, platform deduction records, wallet transactions, and withdrawal account titles (Easypaisa, JazzCash, or bank IBAN numbers).",
     ],
@@ -25,7 +25,7 @@ const SECTIONS = [
     icon: Lock,
     title: "3. AI Contact Shield & Message Moderation",
     body: [
-      "To safeguard our community and prevent payment fraud, Parwaz employs automated safety filters and an AI Contact Shield. Messages, proposals, and attached files are scanned for phone numbers, WhatsApp links, personal emails, and off-platform dealing attempts.",
+      "To safeguard our community and prevent payment fraud, AventriqTalent employs automated safety filters and an AI Contact Shield. Messages, proposals, and attached files are scanned for phone numbers, WhatsApp links, personal emails, and off-platform dealing attempts.",
       "Communications that violate these safety rules are blocked or flagged for moderation before they reach the other party. We do not sell your message logs to advertisers or third parties.",
     ],
   },
@@ -33,7 +33,7 @@ const SECTIONS = [
     icon: ShieldCheck,
     title: "4. Information Sharing & Third Parties",
     body: [
-      "We do not sell, rent, or trade your personal data. We only share information with trusted third-party service providers essential to running Parwaz:",
+      "We do not sell, rent, or trade your personal data. We only share information with trusted third-party service providers essential to running AventriqTalent:",
       "Payment partners and licensed payment gateways in Pakistan (such as Safepay, Raast, local banking switches, Easypaisa, and JazzCash) for payment processing and withdrawal disbursement.",
       "Cloud infrastructure providers (Google Cloud Platform and Firebase) for encrypted database hosting, authentication, and secure file storage.",
       "Law enforcement or regulatory authorities only when required by applicable laws of Pakistan or court orders.",
@@ -67,7 +67,7 @@ const SECTIONS = [
     icon: ShieldCheck,
     title: "8. Changes to This Policy",
     body: [
-      "We may update this Privacy Policy periodically to reflect technological improvements or regulatory updates. We will notify members of material updates on the platform or by email. Continued use of Parwaz after changes become effective signifies your acceptance.",
+      "We may update this Privacy Policy periodically to reflect technological improvements or regulatory updates. We will notify members of material updates on the platform or by email. Continued use of AventriqTalent after changes become effective signifies your acceptance.",
     ],
   },
 ];
@@ -83,10 +83,10 @@ export default function PrivacyPolicyPage() {
               <Lock className="h-7 w-7 text-white" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">PARWAZ POLICIES</p>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">AVENTRIQTALENT POLICIES</p>
               <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Privacy Policy</h1>
               <p className="mt-1 text-sm text-white/60">
-                How we protect, collect, and handle your data on Parwaz. Last updated October 2026.
+                How we protect, collect, and handle your data on AventriqTalent. Last updated October 2026.
               </p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function PrivacyPolicyPage() {
         {/* Content Body */}
         <div className="surface mt-6 p-6 sm:p-8">
           <p className="text-sm leading-6 text-ink-600">
-            At Parwaz (&ldquo;Workly&rdquo;), we take your privacy and financial security seriously. This policy explains what information we collect when you use our marketplace, how it is safeguarded, and how you can manage your preferences.
+            At AventriqTalent (&ldquo;AventriqTalent&rdquo;), we take your privacy and financial security seriously. This policy explains what information we collect when you use our marketplace, how it is safeguarded, and how you can manage your preferences.
           </p>
 
           <div className="mt-6 divide-y divide-ink-100">

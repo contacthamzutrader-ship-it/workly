@@ -4,7 +4,6 @@ import React, { useState, Suspense } from 'react';
 import BackgroundVideoPlaylist from '@/components/BackgroundVideoPlaylist';
 import { 
   ShieldCheck, 
-  Sparkles, 
   Cpu, 
   Terminal, 
   Radio, 
@@ -143,7 +142,6 @@ function HomePageContent() {
             </div>
           ) : (
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-xs font-mono text-indigo-300 backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>AI Proctoring • 30-Minute Calibrated Test • Verified Badges</span>
             </div>
           )}

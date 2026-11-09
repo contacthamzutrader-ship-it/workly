@@ -38,6 +38,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
+import AventriqMark from "@/components/AventriqMark";
 import { formatPKR } from "@/lib/format";
 
 const stats = [
@@ -118,7 +119,11 @@ export default function Home() {
               <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">
                 ⚡ Zero Reviews? Zero Problem.
               </span>
-              <h1 className="mt-6 max-w-2xl text-balance text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink sm:text-[2.25rem] lg:text-[2.5rem] xl:text-[2.75rem]">
+              <p className="mt-6 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-700">
+                <AventriqMark className="h-5 w-5" />
+                <span>Pakistan&apos;s Smarter Freelancing Marketplace, Powered by AI.</span>
+              </p>
+              <h1 className="mt-3 max-w-2xl text-balance text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink sm:text-[2.25rem] lg:text-[2.5rem] xl:text-[2.75rem]">
                 Get Hired on Verified Skill. Skip the 6-Month Review Trap.
               </h1>
               <p className="mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
@@ -208,6 +213,11 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">
+                  <AventriqMark className="h-4 w-4" />
+                  Skill verified by AventriqTalent
+                </div>
               </div>
             </div>
           </div>
@@ -221,7 +231,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-center text-[10px] text-ink-300">Target figures at launch — live statistics update automatically once Parwaz.pk goes live.</p>
+            <p className="mt-6 text-center text-[10px] text-ink-300">Target figures at launch — live statistics update automatically once AventriqTalent goes live.</p>
           </div>
         </div>
       </section>
@@ -280,13 +290,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Parwaz */}
+      {/* Why AventriqTalent */}
       <section id="why" className="scroll-mt-24 bg-canvas py-24">
         <div className="page-shell">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why Parwaz?</span>
+            <span className="eyebrow"><BrainCircuit className="h-3.5 w-3.5" /> Why AventriqTalent?</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Freelancing, Reimagined for Pakistan.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. Parwaz is built to fix what breaks trust online — verification, discovery, and safety.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Not another marketplace clone. AventriqTalent is built to fix what breaks trust online — verification, discovery, and safety.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {whyCards.map((card) => (
@@ -385,7 +395,7 @@ export default function Home() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Platform features</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Smart Tools That Work for You.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of Parwaz.pk — from the first assessment to the final payment.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of AventriqTalent — from the first assessment to the final payment.</p>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {aiCards.map((card) => (

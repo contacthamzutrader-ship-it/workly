@@ -49,7 +49,7 @@ export async function createSupportTicket(
 
   // Local storage persistence fallback
   if (typeof window !== "undefined") {
-    const existing = JSON.parse(localStorage.getItem("parwaz_support_tickets") || "[]");
+    const existing = JSON.parse(localStorage.getItem("aventriq_support_tickets") || "[]");
     existing.unshift({
       ...ticket,
       id: code,
@@ -57,7 +57,7 @@ export async function createSupportTicket(
       status: "open",
       createdAt: new Date().toISOString(),
     });
-    localStorage.setItem("parwaz_support_tickets", JSON.stringify(existing));
+    localStorage.setItem("aventriq_support_tickets", JSON.stringify(existing));
   }
 
   return code;
@@ -100,7 +100,7 @@ export function subscribeUserTickets(
 function getLocalTickets(userId: string): SupportTicket[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = JSON.parse(localStorage.getItem("parwaz_support_tickets") || "[]");
+    const raw = JSON.parse(localStorage.getItem("aventriq_support_tickets") || "[]");
     return raw.filter((t: any) => t.userId === userId || !t.userId);
   } catch {
     return [];

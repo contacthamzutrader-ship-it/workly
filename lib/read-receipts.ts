@@ -1,4 +1,4 @@
-const KEY = "parwaz.read-receipts.v1";
+const KEY = "aventriq.read-receipts.v1";
 
 type Receipts = Record<string, number>;
 

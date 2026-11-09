@@ -9,9 +9,9 @@ export default function BlogPage() {
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Newspaper className="h-7 w-7" /></div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">PARWAZ BLOG</p>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">AVENTRIQTALENT BLOG</p>
               <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Blog</h1>
-              <p className="mt-1 text-sm text-white/55">Guides, stories and updates from the Parwaz team.</p>
+              <p className="mt-1 text-sm text-white/55">Guides, stories and updates from the AventriqTalent team.</p>
             </div>
           </div>
         </div>

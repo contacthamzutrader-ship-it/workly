@@ -9,7 +9,7 @@ export default function CancellationPolicyPage() {
           <div className="flex items-center gap-4">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><FileX2 className="h-7 w-7" /></div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">PARWAZ POLICIES</p>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">AVENTRIQTALENT POLICIES</p>
               <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Cancellation Policy</h1>
               <p className="mt-1 text-sm text-white/55">What happens when a task or project is cancelled. Last updated September 2026.</p>
             </div>
@@ -17,7 +17,7 @@ export default function CancellationPolicyPage() {
         </div>
 
         <div className="surface mt-6 p-6 sm:p-8">
-          <p className="text-sm leading-6 text-ink-600">This page describes how cancellation currently works on Parwaz, based on how tasks and payments are actually handled in the app. A cancelled task is one that has been moved to the <span className="font-bold text-ink">cancelled</span> status and closed for work.</p>
+          <p className="text-sm leading-6 text-ink-600">This page describes how cancellation currently works on AventriqTalent, based on how tasks and payments are actually handled in the app. A cancelled task is one that has been moved to the <span className="font-bold text-ink">cancelled</span> status and closed for work.</p>
 
           <div className="mt-6 space-y-5">
             <div className="flex items-start gap-4 rounded-2xl border border-ink-100 p-4">

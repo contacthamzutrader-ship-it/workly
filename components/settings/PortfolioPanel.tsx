@@ -137,7 +137,7 @@ export default function PortfolioPanel({ user }: { user: User }) {
           <div className="flex items-center justify-between gap-3 border-b border-ink-100 pb-4">
             <div>
               <h2 className="text-base font-black tracking-[-0.03em] text-ink">{editingId ? "Edit project" : "New project"}</h2>
-              <p className="mt-0.5 text-xs font-medium text-ink-400">Saved to your private portfolio on Parwaz.</p>
+              <p className="mt-0.5 text-xs font-medium text-ink-400">Saved to your private portfolio on AventriqTalent.</p>
             </div>
             <button type="button" onClick={resetForm} className="grid h-9 w-9 place-items-center rounded-xl border border-ink-100 text-ink-400 transition hover:bg-ink-50"><X className="h-4 w-4" /></button>
           </div>

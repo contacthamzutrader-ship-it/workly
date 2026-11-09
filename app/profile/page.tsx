@@ -257,7 +257,7 @@ export default function ProfilePage() {
               <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
             )}
           </div>
-          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-[28px] font-extrabold tracking-[-0.025em] text-ink sm:text-[32px]">{name || "Your Parwaz profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
+          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-[28px] font-extrabold tracking-[-0.025em] text-ink sm:text-[32px]">{name || "Your AventriqTalent profile"}</h1><BadgeCheck className="h-5 w-5 text-brand" /></div><p className="mt-1 text-sm font-medium text-ink-500">{isTasker ? "Available for work - " : ""}{role || "member"}</p></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => setEditing(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-forest transition hover:bg-brand-700"><Pencil className="h-4 w-4" /> Edit Profile</button>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                 <span className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-black text-white">{(name || user.email || "U")[0].toUpperCase()}</span>
               )}
               <div>
-                <h2 className="text-xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your Parwaz profile"}</h2>
+                <h2 className="text-xl font-extrabold tracking-[-0.025em] text-ink">{name || "Your AventriqTalent profile"}</h2>
                 <p className="mt-0.5 text-sm font-semibold text-ink-500">{professionalTitle || (isTasker ? "Freelancer" : "Member")}{city ? ` \u00b7 ${city}` : ""}</p>
                 <p className="mt-0.5 text-xs font-medium text-ink-400">{isTasker ? (availability || "Available now") : "Look what our clients need"}</p>
               </div>

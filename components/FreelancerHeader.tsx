@@ -186,7 +186,7 @@ export default function FreelancerHeader() {
                 <div className="mt-1.5 space-y-0.5 border-t border-ink-100 pt-1.5">
                   {confirmLogout ? (
                     <div className="rounded-xl bg-red-50 p-3">
-                      <p className="text-sm font-bold text-ink">Log out of Parwaz?</p>
+                      <p className="text-sm font-bold text-ink">Log out of AventriqTalent?</p>
                       <p className="mt-0.5 text-[12px] font-medium leading-5 text-ink-500">Your session will be ended securely.</p>
                       <div className="mt-3 flex gap-2">
                         <button onClick={() => setConfirmLogout(false)} className="flex-1 min-h-10 rounded-xl border border-ink-200 bg-white px-3 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>
@@ -252,7 +252,7 @@ export default function FreelancerHeader() {
             <div className="border-t border-ink-100 pt-2">
               {confirmLogout ? (
                 <div className="rounded-xl bg-red-50 p-3">
-                  <p className="text-sm font-bold text-ink">Log out of Parwaz?</p>
+                  <p className="text-sm font-bold text-ink">Log out of AventriqTalent?</p>
                   <p className="mt-0.5 text-[12px] font-medium leading-5 text-ink-500">Your session will be ended securely.</p>
                   <div className="mt-3 flex gap-2">
                     <button onClick={() => setConfirmLogout(false)} className="flex-1 min-h-10 rounded-xl border border-ink-200 bg-white px-3 text-[14px] font-semibold text-ink-600 transition hover:bg-ink-50">Cancel</button>

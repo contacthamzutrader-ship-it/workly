@@ -9,7 +9,6 @@ import {
   XCircle, 
   Terminal, 
   Code2, 
-  Sparkles, 
   HelpCircle, 
   Clock,
   CheckCircle2,
@@ -262,7 +261,7 @@ export default function CodeEditor({ challenge, onCodeChange, initialCode }: Cod
         <div className="bg-amber-950/30 border-b border-amber-900/40 p-4 text-xs text-amber-200 animate-in slide-in-from-top-2">
           <div className="flex items-center justify-between mb-1.5">
             <span className="font-bold flex items-center gap-1.5 text-amber-400">
-              <Sparkles className="w-3.5 h-3.5" /> Hint {activeHintIndex + 1} of {challenge.hints.length}
+              Hint {activeHintIndex + 1} of {challenge.hints.length}
             </span>
             <div className="space-x-1">
               {challenge.hints.map((_, i) => (

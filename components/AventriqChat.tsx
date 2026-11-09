@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { MessageSquare, X, RotateCcw, Send, Sparkles, ChevronDown, ExternalLink } from "lucide-react";
-import ParwazEmojiAvatar, { EmojiEmotion } from "@/components/ParwazEmojiAvatar";
-import { DEFAULT_SUGGESTIONS } from "@/lib/parwazChatKnowledge";
+import { MessageSquare, X, RotateCcw, Send, ChevronDown, ExternalLink } from "lucide-react";
+import AventriqEmojiAvatar, { EmojiEmotion } from "@/components/AventriqEmojiAvatar";
+import { DEFAULT_SUGGESTIONS } from "@/lib/aventriqChatKnowledge";
 
 interface ChatMessage {
   id: string;
@@ -17,12 +17,12 @@ interface ChatMessage {
   isOutOfScope?: boolean;
 }
 
-const SESSION_STORAGE_KEY = "workly_client_session_chat";
+const SESSION_STORAGE_KEY = "aventriq_client_session_chat";
 
 const INITIAL_MESSAGE: ChatMessage = {
   id: "msg_welcome",
   sender: "assistant",
-  text: "Hello! 😊 I'm **WorklyChat**, your official Workly assistant!\n\nI can help you with anything regarding our platform: posting tasks, taking the AI skill interview, getting verified badges, checking trust scores, and managing milestone payments.\n\nHow can I help you today?",
+  text: "Hello! 😊 I'm **AventriqTalent Assistant**, your official AventriqTalent assistant!\n\nI can help you with anything regarding our platform: posting tasks, taking the AI skill interview, getting verified badges, checking trust scores, and managing milestone payments.\n\nHow can I help you today?",
   timestamp: "Just now",
   emotion: "laugh",
   suggestedQuestions: DEFAULT_SUGGESTIONS,
@@ -41,7 +41,7 @@ const MOOD_ANTICS: { emotion: EmojiEmotion; particle: string }[] = [
   { emotion: "wink", particle: "💫" },
 ];
 
-export default function ParwazChat() {
+export default function AventriqChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -55,10 +55,10 @@ export default function ParwazChat() {
   useEffect(() => {
     // Purge any old global localStorage so past chats from other clients never show up
     try {
-      localStorage.removeItem("workly_chat_history");
-      localStorage.removeItem("parwaz_chat_history");
-      localStorage.removeItem("parwaz_chat_history_v1");
-      localStorage.removeItem("parwaz_chat_history_v2");
+      localStorage.removeItem("aventriq_chat_history");
+      localStorage.removeItem("aventriq_chat_history");
+      localStorage.removeItem("aventriq_chat_history_v1");
+      localStorage.removeItem("aventriq_chat_history_v2");
     } catch {
       // Ignore storage errors
     }
@@ -192,7 +192,7 @@ export default function ParwazChat() {
     const startTime = Date.now();
 
     try {
-      const res = await fetch("/api/parwaz-chat", {
+      const res = await fetch("/api/aventriq-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -231,11 +231,11 @@ export default function ParwazChat() {
 
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
-      console.error("ParwazChat query error:", err);
+      console.error("AventriqChat query error:", err);
       const fallbackMsg: ChatMessage = {
         id: `bot_${Date.now()}`,
         sender: "assistant",
-        text: "I am **WorklyChat**, your dedicated Workly assistant. You can ask me how to post a task, take the AI skill interview, or win clients on Workly!",
+        text: "I am **AventriqTalent Assistant**, your dedicated AventriqTalent assistant. You can ask me how to post a task, take the AI skill interview, or win clients on AventriqTalent!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         emotion: "smile",
         suggestedQuestions: DEFAULT_SUGGESTIONS,
@@ -343,16 +343,16 @@ export default function ParwazChat() {
           {/* HEADER */}
           <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-deep-700 via-deep-600 to-forest-600 text-white select-none">
             <div className="flex items-center gap-2.5">
-              <ParwazEmojiAvatar emotion={currentEmotion} size="sm" />
+              <AventriqEmojiAvatar emotion={currentEmotion} size="sm" />
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-white tracking-wide">WorklyChat</h3>
+                  <h3 className="font-bold text-sm text-white tracking-wide">AventriqTalent Assistant</h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-brand-200 border border-white/10">
                     Online
                   </span>
                 </div>
                 <p className="text-[11px] text-brand-100/90 font-medium">
-                  Official Workly Guide
+                  Official AventriqTalent Guide
                 </p>
               </div>
             </div>
@@ -371,7 +371,7 @@ export default function ParwazChat() {
                 onClick={handleToggle}
                 title="Minimize chat"
                 className="p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-colors"
-                aria-label="Close WorklyChat"
+                aria-label="Close AventriqTalent Assistant"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -380,7 +380,6 @@ export default function ParwazChat() {
 
           {/* SCOPE NOTICE BANNER */}
           <div className="px-3.5 py-1.5 bg-brand-50 border-b border-brand-100 flex items-center gap-2 text-[11px] text-brand-800 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-brand-600 shrink-0" />
             <span className="truncate">
               Ask about tasks, hiring, skill tests, badges & payments!
             </span>
@@ -397,7 +396,7 @@ export default function ParwazChat() {
                 >
                   {isAssistant && (
                     <div className="shrink-0 mt-0.5">
-                      <ParwazEmojiAvatar emotion={msg.emotion || currentEmotion} size="xs" />
+                      <AventriqEmojiAvatar emotion={msg.emotion || currentEmotion} size="xs" />
                     </div>
                   )}
 
@@ -450,9 +449,9 @@ export default function ParwazChat() {
             {/* THINKING INDICATOR */}
             {isLoading && (
               <div className="flex items-start gap-2.5">
-                <ParwazEmojiAvatar emotion="thinking" size="xs" />
+                <AventriqEmojiAvatar emotion="thinking" size="xs" />
                 <div className="px-3.5 py-2.5 bg-white border border-brand-100 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2 text-xs text-ink-500 font-medium">
-                  <span>WorklyChat is thinking</span>
+                  <span>AventriqTalent Assistant is thinking</span>
                   <span className="flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: "0ms" }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -478,7 +477,7 @@ export default function ParwazChat() {
                   }
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask anything about Workly..."
+                placeholder="Ask anything about AventriqTalent..."
                 rows={1}
                 disabled={isLoading}
                 className="w-full resize-none bg-transparent py-2.5 pl-3.5 pr-10 text-xs sm:text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none max-h-24"
@@ -498,7 +497,7 @@ export default function ParwazChat() {
             </div>
 
             <p className="text-[10px] text-center text-ink-400 mt-1.5 font-medium">
-              🔒 WorklyChat assists exclusively with Workly platform features & guides.
+              🔒 AventriqTalent Assistant assists exclusively with AventriqTalent platform features & guides.
             </p>
           </div>
         </div>
@@ -511,7 +510,7 @@ export default function ParwazChat() {
           setCurrentEmotion("cheeky");
         }}
         className="group relative flex items-center justify-center rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none"
-        aria-label={isOpen ? "Close WorklyChat" : "Open WorklyChat"}
+        aria-label={isOpen ? "Close AventriqTalent Assistant" : "Open AventriqTalent Assistant"}
       >
         {/* Glow halo */}
         <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-brand-500 to-forest-600 opacity-60 blur-sm group-hover:opacity-100 transition-opacity animate-pulse-soft" />
@@ -519,13 +518,13 @@ export default function ParwazChat() {
         {/* Inner container */}
         <div className="relative flex items-center gap-2 p-1.5 bg-gradient-to-r from-deep-700 to-forest-600 rounded-full border-2 border-white/90 shadow-elevated">
           {/* Animated Avatar - cycles every 10s */}
-          <ParwazEmojiAvatar emotion={isOpen ? "happy" : currentEmotion} size="md" />
+          <AventriqEmojiAvatar emotion={isOpen ? "happy" : currentEmotion} size="md" />
 
           {/* Desktop Text Pill */}
           {!isOpen && (
             <div className="hidden sm:flex flex-col text-left pr-3 select-none">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-brand-300 leading-none">
-                WorklyChat
+                AventriqTalent Assistant
               </span>
               <span className="text-[12px] font-bold text-white leading-tight">
                 Ask Me Anything!

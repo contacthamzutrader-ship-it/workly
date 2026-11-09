@@ -100,13 +100,14 @@ test("owner account is locked to the complete admin command centre", async () =>
   assert.match(admin, /Every platform task/);
 });
 
-test("premium brand mark replaces the old tagline", async () => {
+test("AventriqTalent brand mark replaces the old tagline", async () => {
   const layout = await read("app/layout.tsx");
   const navbar = await read("components/Navbar.tsx");
   const footer = await read("components/Footer.tsx");
   const brand = await read("components/BrandLogo.tsx");
-  assert.match(layout, /workly-mark\.png/);
-  assert.match(brand, /src="\/workly-mark\.png"/);
+  assert.match(layout, /AventriqTalent/);
+  assert.match(brand, /AventriqTalent\.jpeg/);
+  assert.match(brand, /Aventriq/);
   assert.doesNotMatch(`${navbar}\n${footer}`, /Kaam\. Kamal/i);
 });
 

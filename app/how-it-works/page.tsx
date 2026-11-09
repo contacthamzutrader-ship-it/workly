@@ -71,7 +71,7 @@ export default function HowItWorksPage() {
             <div className="flex items-center gap-4">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Rocket className="h-7 w-7" /></div>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">YOUR JOURNEY ON PARWAZ</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">YOUR JOURNEY ON AVENTRIQTALENT</p>
                 <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">How it works</h1>
                 <p className="mt-1 text-sm text-white/55">The freelancer journey, end to end - from your first profile to a proven reputation.</p>
               </div>

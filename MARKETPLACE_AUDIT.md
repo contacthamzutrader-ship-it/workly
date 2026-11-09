@@ -1,10 +1,10 @@
-# Workly marketplace product and launch audit
+# AventriqTalent marketplace product and launch audit
 
 Updated: 22 July 2026
 
 ## Product decision
 
-Workly is a Pakistan-first, fixed-price task and freelance marketplace. It combines Airtasker's simple local-task offer flow with Upwork's stronger contract, milestone, identity, and payment controls. It must not describe an internal Firestore balance as escrow. Customer money can go live only after a regulated payment provider approves Workly's marketplace/held-funds model and signed server-side webhooks are deployed.
+AventriqTalent is a Pakistan-first, fixed-price task and freelance marketplace. It combines Airtasker's simple local-task offer flow with Upwork's stronger contract, milestone, identity, and payment controls. It must not describe an internal Firestore balance as escrow. Customer money can go live only after a regulated payment provider approves AventriqTalent's marketplace/held-funds model and signed server-side webhooks are deployed.
 
 ## Research findings
 
@@ -52,7 +52,7 @@ Primary references:
 - Airtasker's supported-country list does not include Pakistan.
 - Stripe's direct global availability list does not include Pakistan.
 - Pakistan-facing checkout candidates include SBP-regulated/approved providers such as Safepay and PayFast, plus Easypaisa/JazzCash merchant gateways. Ordinary ecommerce checkout does not automatically provide legal escrow, marketplace sub-merchant onboarding, split settlement, or provider payouts.
-- Workly must obtain written provider approval for: marketplace activity, delayed settlement/held funds, refunds, chargebacks, split payouts or bulk disbursement, provider KYC, webhook signing, and reconciliation exports.
+- AventriqTalent must obtain written provider approval for: marketplace activity, delayed settlement/held funds, refunds, chargebacks, split payouts or bulk disbursement, provider KYC, webhook signing, and reconciliation exports.
 
 Primary references:
 
@@ -126,8 +126,8 @@ For an accepted offer `A`, customer fee rate `C`, freelancer fee rate `F`, and p
 - Freelancer gross = `A`.
 - Freelancer fee = `round(A × F)`.
 - Freelancer payout = `A − freelancer fee − applicable withholding`.
-- Workly gross revenue = customer fee + freelancer fee.
-- Workly net before tax = gross revenue − provider cost − refunds/chargebacks.
+- AventriqTalent gross revenue = customer fee + freelancer fee.
+- AventriqTalent net before tax = gross revenue − provider cost − refunds/chargebacks.
 
 Never calculate wallet balance by summing arbitrary client-created documents. Use an append-only, server-written double-entry ledger and provider reconciliation.
 

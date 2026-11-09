@@ -313,7 +313,7 @@ export default function DashboardSidebar() {
           <div className="absolute inset-0 bg-ink-900/40" onClick={() => setDrawerOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-[290px] max-w-[85vw] overflow-y-auto bg-brand p-4 text-white shadow-xl">
             <div className="mb-5 flex items-center justify-between">
-              <p className="text-sm font-bold text-white">Parwaz menu</p>
+              <p className="text-sm font-bold text-white">AventriqTalent menu</p>
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Close menu"

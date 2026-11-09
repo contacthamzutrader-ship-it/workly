@@ -18,7 +18,7 @@ export type EmojiEmotion =
   | "speaking"
   | "apologetic";
 
-interface ParwazEmojiAvatarProps {
+interface AventriqEmojiAvatarProps {
   emotion?: EmojiEmotion;
   size?: "xs" | "sm" | "md" | "lg" | "launcher";
   className?: string;
@@ -32,17 +32,17 @@ const sizeMap = {
   launcher: "w-14 h-14",
 };
 
-export default function ParwazEmojiAvatar({
+export default function AventriqEmojiAvatar({
   emotion = "smile",
   size = "md",
   className = "",
-}: ParwazEmojiAvatarProps) {
+}: AventriqEmojiAvatarProps) {
   const sizeClasses = sizeMap[size] || sizeMap.md;
 
   return (
     <div
       className={`relative inline-flex items-center justify-center select-none ${sizeClasses} ${className}`}
-      aria-label={`WorklyChat Emoji (${emotion})`}
+      aria-label={`AventriqTalent Assistant Emoji (${emotion})`}
     >
       <svg
         viewBox="0 0 100 100"
@@ -284,7 +284,7 @@ export default function ParwazEmojiAvatar({
                 <path d="M35 59 Q50 65 65 59" stroke="#FFFFFF" strokeWidth="3.2" strokeLinecap="round" />
               </g>
 
-              {/* Joy Laughing Sparkles */}
+              {/* Joyful star accents */}
               <g className="anim-sparkle">
                 <circle cx="21" cy="42" r="2.5" fill="#60A5FA" opacity="0.8" />
                 <circle cx="79" cy="42" r="2.5" fill="#60A5FA" opacity="0.8" />

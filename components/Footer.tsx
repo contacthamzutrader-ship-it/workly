@@ -12,7 +12,7 @@ const columns = {
   "Trust & Safety": [
     { label: "Help & Support Desk", href: "/help" },
     { label: "Community Guidelines", href: "/community-guidelines" },
-    { label: "Parwaz Protection", href: "/insurance" },
+    { label: "AventriqTalent Protection", href: "/insurance" },
     { label: "Contact Us", href: "/contact" },
   ],
   "Legal & Policies": [
@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>&copy; {new Date().getFullYear()} Parwaz.pk (Workly). All rights reserved.</span>
+          <span>&copy; {new Date().getFullYear()} AventriqTalent. All rights reserved.</span>
           <div className="flex flex-wrap gap-4 text-white/60">
             <Link href="/terms" className="hover:text-white transition">Terms</Link>
             <Link href="/privacy" className="hover:text-white transition">Privacy</Link>

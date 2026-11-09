@@ -14,7 +14,6 @@ import {
   Volume2, 
   VolumeX, 
   Bot, 
-  Sparkles, 
   CheckCircle2, 
   Radio 
 } from 'lucide-react';
@@ -244,7 +243,6 @@ export default function AIInterviewerCard({
           <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3 animate-in fade-in">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
                 <span className="text-xs font-bold text-white uppercase tracking-wider">
                   AI Real-Time Evaluation
                 </span>

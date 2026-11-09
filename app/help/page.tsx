@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
-  Sparkles,
   Paperclip,
   X,
   CreditCard,
@@ -84,7 +83,7 @@ const FAQS = [
   },
   {
     q: "How does Escrow payment protection work?",
-    a: "When a client selects a freelancer's offer, the agreed task budget is secured in Parwaz Escrow. The funds are held safely and only released to the freelancer once the client approves the completed work.",
+    a: "When a client selects a freelancer's offer, the agreed task budget is secured in AventriqTalent Escrow. The funds are held safely and only released to the freelancer once the client approves the completed work.",
     href: "/how-it-works",
     cta: "See how it works",
   },
@@ -532,7 +531,7 @@ export default function HelpPage() {
 
                   <div className="mt-6 flex items-center justify-between">
                     <p className="text-xs text-ink-400 flex items-center gap-1">
-                      <ShieldCheck className="h-4 w-4 text-brand" /> Logged securely to Parwaz Support Desk
+                      <ShieldCheck className="h-4 w-4 text-brand" /> Logged securely to AventriqTalent Support Desk
                     </p>
                     <Button type="submit" disabled={submitting} className="rounded-xl px-6">
                       {submitting ? "Sending to support..." : "Send Problem to Support"}
@@ -670,7 +669,7 @@ export default function HelpPage() {
                 >
                   <ShieldCheck className="h-5 w-5 text-brand" />
                   <div>
-                    <p className="text-sm font-bold text-ink">Parwaz Protect</p>
+                    <p className="text-sm font-bold text-ink">AventriqTalent Protect</p>
                     <p className="text-[11px] text-ink-400">Task guarantee &amp; escrow coverage</p>
                   </div>
                 </Link>

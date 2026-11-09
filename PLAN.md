@@ -1,6 +1,6 @@
-# Workly — Airtasker-style Task Marketplace (Full Plan)
+# AventriqTalent — Airtasker-style Task Marketplace (Full Plan)
 
-> Company: **Workly** · Colors: Emerald `#00B33C` / Forest `#093A1D` / Mint `#E2F8EC` / Charcoal `#111111` / White `#FFFFFF` / Gray `#6B7280`
+> Company: **AventriqTalent** · Colors: Emerald `#00B33C` / Forest `#093A1D` / Mint `#E2F8EC` / Charcoal `#111111` / White `#FFFFFF` / Gray `#6B7280`
 > Stack: Next.js (Vercel) · Firebase (Auth + Firestore) · Hugging Face (AI) · Tailwind CSS
 
 ## 1. Core Concept

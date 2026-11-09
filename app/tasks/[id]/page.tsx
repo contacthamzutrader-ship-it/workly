@@ -809,7 +809,7 @@ export default function TaskDetailPage() {
                         ))}
                       </div>
                       <p className="mt-3 text-[11px] font-semibold text-red-700">
-                        🔒 All communication must stay within Parwaz chat to keep your payments Escrow-protected.
+                        🔒 All communication must stay within AventriqTalent chat to keep your payments Escrow-protected.
                       </p>
                     </div>
                   </div>

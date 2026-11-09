@@ -51,7 +51,7 @@ export default function SignupPage() {
     <div className="w-full max-w-md">
       <div className="mb-7">
         <BrandLogo />
-        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Choose how you use Parwaz.</h1>
+        <h1 className="mt-6 text-3xl font-black tracking-[-0.04em] text-ink">Choose how you use AventriqTalent.</h1>
         <p className="mt-2 text-sm font-medium text-ink-500">Your workspace and permissions will match this account type.</p>
       </div>
 

@@ -36,7 +36,7 @@ export default function EarnMoneyPage() {
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Coins className="h-7 w-7" /></div>
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">FOR FREELANCERS</p>
-                <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Earn money on Parwaz</h1>
+                <h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Earn money on AventriqTalent</h1>
                 <p className="mt-1 text-sm text-white/55">Turn your skills into income with real, local tasks.</p>
               </div>
             </div>

@@ -6,7 +6,7 @@ export type AiResult = {
   takenAt: string;
 };
 
-const KEY = "workly-ai-result";
+const KEY = "aventriq-ai-result";
 
 export function getAiResult(): AiResult | null {
   if (typeof window === "undefined") return null;

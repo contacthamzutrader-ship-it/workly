@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { processParwazChatMessage, isRomanUrdu } from "@/lib/parwazChatKnowledge";
+import { processAventriqChatMessage, isRomanUrdu } from "@/lib/aventriqChatKnowledge";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -12,13 +12,13 @@ async function callGeminiIfAvailable(userText: string): Promise<string | null> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4500);
 
-    const systemPrompt = `You are WorklyChat, the official AI assistant of Workly (Pakistan's smarter freelancing marketplace).
+    const systemPrompt = `You are AventriqTalent Assistant, the official AI assistant of AventriqTalent (Pakistan's smarter freelancing marketplace).
 Guidelines:
 1. Always be polite, courteous, encouraging, and professional.
 2. If the user writes in Roman Urdu, reply in natural, friendly Roman Urdu. If in English, reply in crisp English.
 3. Keep answers concise (2-3 short paragraphs max).
-4. Strictly focus on Workly marketplace topics: posting tasks, bidding, AI skill verification interviews, trust scores, and Safepay payments (held escrow, Easypaisa, JazzCash, bank payouts).
-5. If the user asks out-of-scope questions (general trivia, homework, recipes), politely redirect them to Workly topics.`;
+4. Strictly focus on AventriqTalent marketplace topics: posting tasks, bidding, AI skill verification interviews, trust scores, and Safepay payments (held escrow, Easypaisa, JazzCash, bank payouts).
+5. If the user asks out-of-scope questions (general trivia, homework, recipes), politely redirect them to AventriqTalent topics.`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
 
     if (!lastUserMessage || !lastUserMessage.content) {
       return NextResponse.json({
-        reply: "How can I assist you with Workly today? Feel free to ask about posting tasks, taking AI interviews, or managing your wallet!",
+        reply: "How can I assist you with AventriqTalent today? Feel free to ask about posting tasks, taking AI interviews, or managing your wallet!",
         emotion: "idle",
         isOutOfScope: false,
       });
@@ -88,8 +88,8 @@ export async function POST(req: Request) {
     // Enforce max text length of 2000 chars
     const userText = String(lastUserMessage.content).trim().slice(0, 2000);
 
-    // Process through the Workly knowledge and scope guardrails engine
-    const result = processParwazChatMessage(userText);
+    // Process through the AventriqTalent knowledge and scope guardrails engine
+    const result = processAventriqChatMessage(userText);
 
     // If an LLM is available and query is valid, provide dynamic GenAI response
     let finalReply = result.reply;
@@ -108,9 +108,9 @@ export async function POST(req: Request) {
       suggestedQuestions: result.suggestedQuestions,
     });
   } catch (error) {
-    console.error("WorklyChat API Error:", error);
+    console.error("AventriqTalent Assistant API Error:", error);
     return NextResponse.json({
-      reply: "I am WorklyChat, your dedicated Workly assistant. How can I help you navigate tasks, verify your skills, or hire talent today?",
+      reply: "I am AventriqTalent Assistant, your dedicated AventriqTalent assistant. How can I help you navigate tasks, verify your skills, or hire talent today?",
       emotion: "idle",
       isOutOfScope: false,
     });

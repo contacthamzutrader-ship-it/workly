@@ -29,7 +29,6 @@ import {
   ArrowLeft, 
   ShieldCheck, 
   AlertTriangle, 
-  Sparkles
 } from 'lucide-react';
 
 function InterviewRoomContent() {
@@ -388,7 +387,7 @@ function InterviewRoomContent() {
       learning: evaluation.areasOfImprovement || [],
       takenAt: evaluation.completedAt,
     };
-    localStorage.setItem("parwaz_ai_score", JSON.stringify(aiResult));
+    localStorage.setItem("aventriq_ai_score", JSON.stringify(aiResult));
 
     // 2. Save to Firestore under current logged-in user
     try {
@@ -844,7 +843,6 @@ function InterviewRoomContent() {
                     disabled={isSubmitting}
                     className="px-6 py-3 bg-gradient-to-r from-brand-600 to-forest-700 hover:from-brand-500 hover:to-forest-700 text-white text-xs font-bold rounded-2xl shadow-xl shadow-brand-900/40 transition flex items-center gap-2 disabled:opacity-50"
                   >
-                    <Sparkles className="w-4 h-4" />
                     <span>
                       {currentAiIndex === session.aiInterviewQuestions.length - 1
                         ? isSubmitting

@@ -1,5 +1,5 @@
 /**
- * Parwaz AI Contact Shield & Anti-Circumvention Guardrail Engine
+ * AventriqTalent AI Contact Shield & Anti-Circumvention Guardrail Engine
  * 
  * Strict detection for off-platform contact sharing (Phone numbers, WhatsApp,
  * emails, social handles, external payment requests, and hidden contacts in files).
@@ -61,7 +61,7 @@ const LINK_PATTERNS = [
 const DIRECT_CONTACT_PATTERNS = [
   /\b(direct\s*(?:deal|payment|transfer|pay|rabta|call|baat))\b/i,
   /\b(bahir\s*(?:baat|deal|milte|payment|rabta))\b/i,
-  /\b(outside\s*(?:platform|workly|parwaz))\b/i,
+  /\b(outside\s*(?:platform|aventriq|aventriq))\b/i,
   /\b(call\s*me\s*on|contact\s*me\s*at|mera\s*number|rabta\s*karein)\b/i,
   /\b(easypaisa\s*direct|jazzcash\s*direct|bank\s*transfer\s*direct)\b/i,
   /\b(western\s*union|paypal)\b/i,
