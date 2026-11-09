@@ -522,9 +522,6 @@ function InterviewRoomContent() {
             <h2 className="text-2xl font-black text-white">Assessment Locked</h2>
             <p className="text-sm font-semibold text-red-400">Maximum Attempts Reached</p>
             <p className="text-xs text-zinc-400 leading-relaxed pt-2">
-              Aap ne 3 bar test attempt kiya aur fail ho gaye hain. Policy ke mutabiq, aap agla test 6 months baad hi de saktay hain taaki aap mazeed seekh kar dubara try karain.
-            </p>
-            <p className="text-xs text-zinc-400 leading-relaxed">
               You have failed 3 test attempts. As per platform policy, you must wait 6 months to retake the skill check.
             </p>
           </div>

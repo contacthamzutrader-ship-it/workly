@@ -127,7 +127,7 @@ export default function Home() {
                 Get Hired on Verified Skill. Skip the 6-Month Review Trap.
               </h1>
               <p className="mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
-                Pehli baar freelancing kar rahe hain ya fresh graduate hain? 15-minute ka skill test dein, verified skill score hasil karein aur bina fake reviews ke pehle din se clients win karein.
+                New to freelancing or just graduated? Prove your skills with a quick 15-minute test, earn a verified skill score, and start winning clients from day one — no fake reviews, no prior experience, just real skills!
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -153,8 +153,8 @@ export default function Home() {
               <div className="relative rounded-[28px] border border-white/60 bg-white/70 p-6 shadow-elevated backdrop-blur-lg sm:p-8">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-extrabold text-ink">Bilal K.</p>
-                    <p className="mt-0.5 text-xs font-semibold text-ink-500">Full Stack Developer</p>
+                    <p className="text-sm font-extrabold text-ink">Ayesha R.</p>
+                    <p className="mt-0.5 text-xs font-semibold text-ink-500">Social Media Designer</p>
                   </div>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white">
                     Elite Tier • Top 5%
@@ -290,6 +290,49 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Platform features */}
+      <section id="ai" className="relative scroll-mt-24 bg-canvas py-24 text-ink">
+        <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
+        <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+        <div className="page-shell relative">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Platform features</span>
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Smart Tools That Work for You.</h2>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of AventriqTalent — from the first assessment to the final payment.</p>
+          </div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {aiCards.map((card) => (
+              <div key={card.title} className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-6 w-6" /></span>
+                <h3 className="mt-5 text-lg font-bold text-ink">{card.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink-500">{card.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every project is backed by verified skills, fair ranking, and secure payments.</p>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section id="categories" className="scroll-mt-24 bg-white py-20">
+        <div className="page-shell">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Categories for every kind of work.</h2></div>
+            <Link href="/tasks" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink">Browse all jobs <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category) => (
+              <Link key={category.name} href={`/tasks?category=${encodeURIComponent(category.name)}`} className="group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><category.icon className="h-6 w-6" /></span>
+                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p></div>
+                <ArrowRight className="h-5 w-5 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-600" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Why AventriqTalent */}
       <section id="why" className="scroll-mt-24 bg-canvas py-24">
         <div className="page-shell">
@@ -349,19 +392,19 @@ export default function Home() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Freelancer journey</span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">How It Works: From Zero to Hired in 3 Steps</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Portfolio ya purane reviews ki zaroorat nahi. Aapka kaam khud bolta hai.</p>
+            <p className="mt-4 text-base font-medium leading-7 text-ink-500">No portfolio or old reviews required. Your work speaks for itself.</p>
           </div>
           <div className="mt-14">
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 01</span>
                 <h3 className="mt-4 text-lg font-black text-ink">Pick Domain & Run the Assessment</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">Apni domain choose karein (Web, UI/UX, Python etc.). Real practical test solve karein, na ke boring multiple-choice questions.</p>
+                <p className="mt-2 text-sm leading-6 text-ink-500">Choose your domain (Web, UI/UX, Python, etc.) and solve a real practical test instead of boring multiple-choice questions.</p>
               </div>
               <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 02</span>
                 <h3 className="mt-4 text-lg font-black text-ink">Get Your Instant Benchmark & Tier</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">Code quality, logic aur speed analyse karke aapko instant verified score aur tier assign karta hai.</p>
+                <p className="mt-2 text-sm leading-6 text-ink-500">It analyses code quality, logic, and speed to instantly assign your verified score and tier.</p>
                 <div className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
                   <svg width="60" height="2" className="stroke-brand-300" strokeDasharray="6 6">
                     <line x1="0" y1="1" x2="60" y2="1" />
@@ -371,7 +414,7 @@ export default function Home() {
               <div className="relative rounded-2xl border border-ink-100 bg-canvas p-7 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover">
                 <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">Step 03</span>
                 <h3 className="mt-4 text-lg font-black text-ink">Direct Client Visibility</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">Clients direct aapke test score aur tier ke mutabiq contact karte hain. Bid wars aur review begging ka chapter close.</p>
+                <p className="mt-2 text-sm leading-6 text-ink-500">Clients contact you directly based on your test score and tier. No more bid wars or review begging.</p>
                 <div className="absolute left-0 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
                   <svg width="60" height="2" className="stroke-brand-300" strokeDasharray="6 6">
                     <line x1="0" y1="1" x2="60" y2="1" />
@@ -382,49 +425,6 @@ export default function Home() {
             <div className="mt-10 flex justify-center">
               <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Platform features */}
-      <section id="ai" className="relative scroll-mt-24 bg-canvas py-24 text-ink">
-        <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
-        <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
-        <div className="pointer-events-none absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
-        <div className="page-shell relative">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="eyebrow"><Target className="h-3.5 w-3.5" /> Platform features</span>
-            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Smart Tools That Work for You.</h2>
-            <p className="mt-4 text-base font-medium leading-7 text-ink-500">Smart tools are built into every part of AventriqTalent — from the first assessment to the final payment.</p>
-          </div>
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {aiCards.map((card) => (
-              <div key={card.title} className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><card.icon className="h-6 w-6" /></span>
-                <h3 className="mt-5 text-lg font-bold text-ink">{card.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-500">{card.body}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-12 text-center text-xs font-bold uppercase tracking-[0.14em] text-brand-700">Every project is backed by verified skills, fair ranking, and secure payments.</p>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section id="categories" className="scroll-mt-24 bg-white py-20">
-        <div className="page-shell">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div><span className="eyebrow"><Laptop2 className="h-3.5 w-3.5" /> Explore marketplaces</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Categories for every kind of work.</h2></div>
-            <Link href="/tasks" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink">Browse all jobs <ArrowRight className="h-4 w-4" /></Link>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.map((category) => (
-              <Link key={category.name} href={`/tasks?category=${encodeURIComponent(category.name)}`} className="group flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><category.icon className="h-6 w-6" /></span>
-                <div className="flex-1"><h3 className="font-black text-ink">{category.name}</h3><p className="mt-1 text-xs font-semibold text-ink-400">{category.count}</p></div>
-                <ArrowRight className="h-5 w-5 text-ink-300 transition group-hover:translate-x-1 group-hover:text-brand-600" />
-              </Link>
-            ))}
           </div>
         </div>
       </section>

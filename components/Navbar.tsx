@@ -23,11 +23,11 @@ import { db } from "@/lib/firebase";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Find Talent", href: "/#talent" },
-  { label: "How It Works", href: "/#how-it-works" },
   { label: "Features", href: "/#ai" },
   { label: "Categories", href: "/#categories" },
   { label: "About Us", href: "/#why" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Find Talent", href: "/#talent" },
 ];
 
 const HEADER_OFFSET = 88;
