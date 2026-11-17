@@ -17,7 +17,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
   return (
     <Link
       href={href ?? `/tasks/${task.id}`}
-      className="card group relative flex flex-col p-5 transition-all duration-200 hover:-translate-y-1 hover:border-brand-300 hover:shadow-elevated hover:ring-2 hover:ring-brand-500/10"
+      className="card group relative flex flex-col p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover"
     >
       <div className="flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 rounded-lg bg-ink-50 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.08em] text-ink-600">
@@ -29,7 +29,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
         </span>
       </div>
 
-      <h3 className="mt-3 text-[17px] font-bold leading-snug text-ink transition-colors group-hover:text-brand-dark">
+      <h3 className="mt-3 text-base font-bold leading-snug text-ink transition-colors group-hover:text-brand-dark">
         {task.title}
       </h3>
       <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink-500">
@@ -41,7 +41,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
         <span className="font-bold text-ink">{task.posterName}</span>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] font-medium text-ink-500">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-medium text-ink-500">
         <span className="inline-flex items-center gap-1.5">
           <MapPin className="h-3.5 w-3.5 flex-none text-brand" />
           {task.location}
@@ -61,7 +61,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
           <span className="block text-[11px] font-bold uppercase tracking-wider text-ink-400">Budget</span>
           <p className="text-xl font-black tracking-tight text-ink">{formatPKR(task.budget)}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white shadow-forest transition-all group-hover:bg-brand-700 group-hover:shadow-md">
+        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand-50 px-3.5 text-xs font-bold text-brand-700 transition-colors duration-200 group-hover:bg-brand group-hover:text-white group-hover:shadow-forest">
           View Task <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>

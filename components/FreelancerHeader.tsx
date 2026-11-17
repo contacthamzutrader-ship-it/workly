@@ -99,9 +99,9 @@ export default function FreelancerHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/95 backdrop-blur-sm">
-      <div className="page-shell flex items-center gap-4 py-4 sm:py-5">
-        <BrandLogo size="lg" href="/dashboard" />
+    <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/95 backdrop-blur-md shadow-xs">
+      <div className="page-shell flex h-[72px] items-center gap-4">
+        <BrandLogo compact href="/dashboard" />
 
         <nav className="hidden flex-1 justify-center gap-1 lg:flex">
           {NAV_ITEMS.map(({ href, label }) => navLink(href, label))}
@@ -111,9 +111,9 @@ export default function FreelancerHeader() {
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="relative grid h-9 w-9 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-50 hover:text-ink"
+            className="relative grid h-10 w-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-600 transition hover:bg-ink-50 hover:text-ink"
           >
-            <Bell className="h-[18px] w-[18px]" />
+            <Bell className="h-4 w-4" />
           </Link>
 
           <div className="relative" ref={dropdownRef}>
@@ -122,16 +122,16 @@ export default function FreelancerHeader() {
                 setDropdownOpen(!dropdownOpen);
                 setConfirmLogout(false);
               }}
-              className={`flex items-center gap-1.5 rounded-lg border p-0.5 pr-1.5 transition hover:bg-ink-50 ${
-                dropdownOpen ? "border-brand-200 bg-brand-50/50" : "border-transparent"
+              className={`flex h-10 items-center gap-2 rounded-xl border border-ink-200 bg-white px-2 pr-3 text-left transition hover:bg-ink-50 ${
+                dropdownOpen ? "border-brand-200 bg-brand-50/50" : ""
               }`}
               aria-label="Open profile menu"
             >
               <span
                 className={
                   avatarUrl
-                    ? "h-8 w-8 shrink-0 overflow-hidden rounded-lg"
-                    : "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand text-xs font-black text-white"
+                    ? "h-7 w-7 shrink-0 overflow-hidden rounded-lg"
+                    : "grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand text-xs font-black text-white"
                 }
               >
                 {avatarUrl ? (
@@ -141,7 +141,7 @@ export default function FreelancerHeader() {
                 )}
               </span>
               <ChevronDown
-                className={`h-3.5 w-3.5 text-ink-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3.5 w-3.5 text-ink-300 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </button>
 

@@ -171,21 +171,21 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 lg:flex">
+        <div className="ml-auto hidden items-center gap-2.5 lg:flex">
           {user ? (
             <>
               {canPost && (
-                <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700">
+                <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700">
                   <Plus className="h-4 w-4" /> Post a Job
                 </Link>
               )}
-              <Link href="/notifications" aria-label="Notifications" className="relative grid h-11 w-11 place-items-center rounded-xl border border-ink-200 bg-ink-50 text-ink-600 transition hover:bg-ink-100 hover:text-ink">
+              <Link href="/notifications" aria-label="Notifications" className="relative grid h-10 w-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-600 transition hover:bg-ink-50 hover:text-ink">
                 <Bell className="h-4 w-4" />
-                <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-white bg-brand" />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-brand" />
               </Link>
               <div className="relative">
-                <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-11 items-center gap-2 rounded-xl border border-ink-200 bg-white px-2 pr-3 text-left transition hover:bg-ink-50">
-                  <span className={avatarUrl ? "h-8 w-8 overflow-hidden rounded-lg" : "grid h-8 w-8 place-items-center rounded-lg bg-brand text-xs font-black text-white"}>
+                <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-10 items-center gap-2 rounded-xl border border-ink-200 bg-white px-2 pr-3 text-left transition hover:bg-ink-50">
+                  <span className={avatarUrl ? "h-7 w-7 overflow-hidden rounded-lg" : "grid h-7 w-7 place-items-center rounded-lg bg-brand text-xs font-black text-white"}>
                     {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : (user.displayName || user.email || "U")[0].toUpperCase()}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-ink-300" />
@@ -215,14 +215,14 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" onClick={close} className="inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold text-ink-600 transition hover:bg-ink-50 hover:text-ink">Log In</Link>
-              <Link href="/signup" onClick={close} className="inline-flex min-h-10 items-center rounded-xl border border-brand bg-white px-4 text-sm font-bold text-brand transition hover:bg-brand-50">Sign Up</Link>
-              <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700"><Plus className="h-4 w-4" /> Post a Job</Link>
+              <Link href="/login" onClick={close} className="inline-flex min-h-10 items-center rounded-xl px-3.5 text-sm font-bold text-ink-600 transition hover:bg-ink-100/70 hover:text-ink">Log In</Link>
+              <Link href="/signup" onClick={close} className="inline-flex min-h-10 items-center rounded-xl border border-ink-200 bg-white px-4 text-sm font-bold text-ink transition hover:bg-ink-50 hover:border-ink-300">Sign Up</Link>
+              <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700"><Plus className="h-4 w-4" /> Post a Job</Link>
             </>
           )}
         </div>
 
-        <button className="grid h-11 w-11 place-items-center rounded-xl text-ink transition hover:bg-ink-50 lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
+        <button className="grid h-10 w-10 place-items-center rounded-xl text-ink transition hover:bg-ink-50 lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
@@ -277,7 +277,7 @@ export default function Navbar() {
             ) : (
               <>
                 <Link href="/login" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-ink-200 px-5 text-sm font-bold text-ink-600">Log In</Link>
-                <Link href="/signup" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-brand bg-brand-50/50 px-5 text-sm font-bold text-brand">Sign Up</Link>
+                <Link href="/signup" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-ink-200 bg-white px-5 text-sm font-bold text-ink">Sign Up</Link>
                 <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest"><Plus className="h-4 w-4" /> Post a Job</Link>
               </>
             )}

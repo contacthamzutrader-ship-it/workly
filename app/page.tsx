@@ -176,7 +176,7 @@ export default function Home() {
                 <Link href="/ai-interview" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 sm:min-h-14 sm:px-7">
                   Take the Skill Test →
                 </Link>
-                <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-600 bg-white px-6 text-sm font-extrabold text-brand-700 transition hover:bg-brand-50 sm:min-h-14 sm:px-7">
+                <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-ink-200 bg-white px-6 text-sm font-bold text-ink transition hover:bg-ink-50 hover:border-ink-300 sm:min-h-14 sm:px-7">
                   Browse Talent by Tier
                 </Link>
               </div>
@@ -192,7 +192,7 @@ export default function Home() {
               <div className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-brand-100 blur-3xl" />
               <div className="absolute -bottom-8 -left-8 h-48 w-48 rounded-full bg-brand-50 blur-3xl" />
 
-              <div className="relative rounded-[28px] border border-white/60 bg-white/80 p-6 shadow-elevated backdrop-blur-lg sm:p-7">
+              <div className="relative rounded-3xl border border-white/60 bg-white/80 p-6 shadow-elevated backdrop-blur-lg sm:p-7">
                 {/* Domain Selector Tabs */}
                 <div className="mb-5 flex rounded-xl border border-ink-100 bg-ink-50/80 p-1">
                   {sampleTalents.map((t, idx) => (
@@ -506,7 +506,7 @@ export default function Home() {
       {/* CTA */}
       <section className="bg-white pb-24">
         <div className="page-shell">
-          <div className="relative overflow-hidden rounded-[28px] bg-forest p-10 text-center text-white shadow-elevated sm:p-16">
+          <div className="relative overflow-hidden rounded-3xl bg-forest p-10 text-center text-white shadow-elevated sm:p-16">
             <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
             <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
             <div className="relative">

@@ -43,17 +43,17 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="bg-canvas py-10 sm:py-14">
+    <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell">
-        <div className="relative overflow-hidden rounded-[32px] bg-forest p-7 text-white shadow-elevated sm:p-10">
+        <div className="relative overflow-hidden rounded-3xl bg-forest p-6 text-white shadow-elevated sm:p-8">
           <div className="absolute inset-0 noise opacity-50" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-300"><BriefcaseBusiness className="h-3.5 w-3.5" /> Opportunity feed</span>
-              <h1 className="mt-5 text-4xl font-black tracking-[-0.045em] sm:text-5xl">Find work worth doing.</h1>
-              <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/60">Explore approved tasks, send your best offer, and build a reputation that keeps paying back.</p>
+              <h1 className="mt-4 text-3xl font-black tracking-[-0.03em] sm:text-4xl">Find work worth doing.</h1>
+              <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-white/70">Explore approved tasks, send your best offer, and build a reputation that keeps paying back.</p>
             </div>
-            {canPost && <Link href="/post"><Button className="gap-2 bg-white text-ink shadow-none hover:bg-brand-100 hover:text-ink"><Plus className="h-4 w-4" /> Post your own task</Button></Link>}
+            {canPost && <Link href="/post"><Button size="md" className="gap-2 bg-white font-extrabold text-forest shadow-sm hover:bg-white/90 hover:shadow-md"><Plus className="h-4 w-4 text-brand" /> Post your own task</Button></Link>}
           </div>
         </div>
 
@@ -65,18 +65,18 @@ export default function TasksPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && load()}
-              className="min-h-12 w-full rounded-xl bg-ink-50 py-3 pl-11 pr-4 text-sm font-semibold text-ink placeholder:font-normal placeholder:text-ink-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/10"
+              className="min-h-11 w-full rounded-xl bg-ink-50 py-2.5 pl-11 pr-4 text-sm font-semibold text-ink placeholder:font-normal placeholder:text-ink-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/10"
             />
           </div>
           <select
             value={category}
             onChange={(e) => { setCategory(e.target.value); load(e.target.value, search); }}
-            className="min-h-12 rounded-xl border border-ink-100 bg-white px-4 text-sm font-bold text-ink focus:border-brand focus:outline-none"
+            className="min-h-11 rounded-xl border border-ink-200 bg-white px-4 text-sm font-bold text-ink focus:border-brand focus:outline-none"
           >
             <option value="all">All categories</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <Button onClick={() => load()} className="gap-2 shadow-none"><SlidersHorizontal className="h-4 w-4" /> Search</Button>
+          <Button size="md" onClick={() => load()} className="gap-2"><SlidersHorizontal className="h-4 w-4" /> Search</Button>
         </div>
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
@@ -103,7 +103,7 @@ export default function TasksPage() {
 
             {loading ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {[1,2,3,4,5,6].map(i => <div key={i} className="h-72 animate-pulse rounded-3xl border border-ink-100 bg-white" />)}
+                {[1,2,3,4,5,6].map(i => <div key={i} className="h-64 animate-pulse rounded-2xl border border-ink-100 bg-white" />)}
               </div>
             ) : tasks.length === 0 ? (
               <div className="surface py-20 text-center">

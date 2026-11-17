@@ -109,13 +109,13 @@ export default function PostTaskPage() {
   const textareaClass = "w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-medium text-ink placeholder:font-normal placeholder:text-ink-400 transition focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10";
 
   return (
-    <div className="bg-canvas py-10 sm:py-14">
+    <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell">
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <span className="eyebrow"><Tag className="h-3.5 w-3.5" /> New task</span>
-            <h1 className="mt-4 text-4xl font-black tracking-[-0.045em] text-ink sm:text-5xl">What do you need done?</h1>
-            <p className="mt-3 max-w-xl text-base font-medium text-ink-500">Share the outcome, budget and timing. AventriqTalent handles the safest route from there.</p>
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.03em] text-ink sm:text-4xl">What do you need done?</h1>
+            <p className="mt-2 max-w-xl text-base font-medium text-ink-500">Share the outcome, budget and timing. AventriqTalent handles the safest route from there.</p>
           </div>
           <div className="w-full max-w-xs">
             <div className="mb-2 flex items-center justify-between text-xs font-bold"><span className="text-ink-400">Task completeness</span><span className="text-brand-dark">{completion}%</span></div>
@@ -141,7 +141,7 @@ export default function PostTaskPage() {
               </div>
 
               {title.trim() && description.trim().length >= 20 && !suggestion && (
-                <button type="button" onClick={handleAiSuggest} disabled={aiLoading} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3.5 text-sm font-extrabold text-brand-dark transition hover:bg-brand-100 disabled:opacity-50">
+                <button type="button" onClick={handleAiSuggest} disabled={aiLoading} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-bold text-brand-dark transition hover:bg-brand-100 disabled:opacity-50">
                   <Zap className="h-4 w-4" /> {aiLoading ? "AventriqTalent is improving your task..." : "Improve with AventriqTalent"}
                 </button>
               )}
@@ -151,7 +151,7 @@ export default function PostTaskPage() {
                   <div className="flex items-center justify-between gap-3"><p className="flex items-center gap-2 text-sm font-black text-ink"><Tag className="h-4 w-4 text-brand" /> Smart suggestion</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${suggestion.moderation === "approved" ? "bg-white text-brand-dark" : "bg-amber-100 text-amber-700"}`}>{suggestion.moderation === "approved" ? "Looks safe" : "Manual review"}</span></div>
                   <p className="mt-3 text-sm leading-6 text-ink-600">{suggestion.improvedDescription}</p>
                   <div className="mt-3 flex flex-wrap gap-2">{suggestion.tags.map(tag => <span key={tag} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-ink-500">#{tag}</span>)}</div>
-                  <div className="mt-4 flex gap-2"><Button type="button" onClick={applySuggestion} className="min-h-9 px-4 py-1.5 text-xs">Apply suggestion</Button><button type="button" onClick={() => setSuggestion(null)} className="px-3 text-xs font-bold text-ink-400">Dismiss</button></div>
+                  <div className="mt-4 flex gap-2"><Button type="button" size="sm" onClick={applySuggestion}>Apply suggestion</Button><button type="button" onClick={() => setSuggestion(null)} className="px-3 text-xs font-bold text-ink-400">Dismiss</button></div>
                 </div>
               )}
             </section>
@@ -166,7 +166,7 @@ export default function PostTaskPage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label className={labelClass}><Tag className="h-4 w-4 text-brand" /> Category</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="min-h-12 w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10">
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-bold text-ink focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10">
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
@@ -189,7 +189,7 @@ export default function PostTaskPage() {
 
             <div className="flex flex-col gap-3 border-t border-ink-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-2 text-xs font-medium text-ink-500"><Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span>By posting, you agree to keep communication and payment on AventriqTalent.</span></div>
-              <Button type="submit" disabled={busy} className="shrink-0 gap-2 px-7">{busy ? "Checking & posting..." : "Post task"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
+              <Button type="submit" size="lg" disabled={busy} className="shrink-0 gap-2">{busy ? "Checking & posting..." : "Post task"} {!busy && <ArrowRight className="h-4 w-4" />}</Button>
             </div>
           </form>
 

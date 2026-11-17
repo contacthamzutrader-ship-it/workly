@@ -83,10 +83,10 @@ export default function DashboardPage() {
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {isAdmin && (
-            <Link href="/admin"><Button variant="ghost" className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20"><ShieldCheck className="h-4 w-4" /> Admin control</Button></Link>
+            <Link href="/admin"><Button variant="ghost" size="md" className="gap-2 border border-white/20 bg-white/10 text-white hover:bg-white/20"><ShieldCheck className="h-4 w-4" /> Admin control</Button></Link>
           )}
           {canPost && (
-            <Link href="/post"><Button className="gap-2 bg-white font-extrabold text-forest shadow-sm hover:bg-white/90"><Plus className="h-4 w-4 text-brand" /> Post a job</Button></Link>
+            <Link href="/post"><Button size="md" className="gap-2 bg-white font-extrabold text-forest shadow-sm hover:bg-white/90 hover:shadow-md"><Plus className="h-4 w-4 text-brand" /> Post a job</Button></Link>
           )}
         </div>
       </section>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                     <p className="truncate font-semibold text-ink group-hover:text-brand-dark">{task.title}</p>
                     <p className="mt-0.5 text-xs font-medium text-ink-400">{formatPKR(task.budget)} · {task.bidsCount} offers</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${task.status === "pending" ? "bg-amber-50 text-amber-700" : task.status === "completed" ? "bg-brand-50 text-brand-700" : "bg-brand-50 text-brand-dark"}`}>{task.status.replace("_", " ")}</span>
+                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-extrabold ${task.status === "pending" ? "bg-amber-50 text-amber-700 border-amber-200/60" : task.status === "completed" ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-brand-50 text-brand-700 border-brand-200/80"}`}>{task.status.replace("_", " ")}</span>
                   <ArrowRight className="hidden h-4 w-4 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-brand sm:block" />
                 </Link>
               ))}
