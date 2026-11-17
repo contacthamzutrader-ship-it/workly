@@ -43,10 +43,19 @@ export default function TaskerDashboard() {
   return (
     <div className="font-ui space-y-8">
       {/* Welcome band */}
-      <section>
-        <p className="page-eyebrow">Freelancer workspace</p>
-        <h1 className="page-title">Welcome back, {firstName}.</h1>
-        <p className="page-sub">Find your next opportunity and manage your projects.</p>
+      <section className="flex flex-col gap-4 rounded-3xl bg-gradient-to-r from-forest via-[#074b24] to-brand p-6 text-white shadow-elevated sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs">
+            Freelancer Workspace
+          </span>
+          <h1 className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">Welcome back, {firstName}.</h1>
+          <p className="mt-1 text-sm text-white/85">Find verified high-paying opportunities and grow your career.</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/browse" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-extrabold text-forest shadow-sm transition hover:bg-white/90 hover:shadow-md">
+            Explore Jobs <ArrowRight className="h-3.5 w-3.5 text-brand" />
+          </Link>
+        </div>
       </section>
 
       {/* Recommended tasks */}

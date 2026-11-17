@@ -73,28 +73,30 @@ export default function DashboardPage() {
   return (
     <div className="font-ui space-y-8">
       {/* Welcome band */}
-      <section className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="flex flex-col gap-5 rounded-3xl bg-gradient-to-r from-forest via-[#074b24] to-brand p-6 text-white shadow-elevated sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
-          <p className="page-eyebrow">{isAdmin ? "Operations workspace" : "Client workspace"}</p>
-          <h1 className="page-title">Welcome back, {firstName}.</h1>
-          <p className="page-sub">Hire confidently - every freelancer carries a verified skill score, so you can trust the talent you bring on.</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs">
+            {isAdmin ? "Operations workspace" : "Client workspace"}
+          </span>
+          <h1 className="mt-2 text-2xl font-extrabold text-white sm:text-3xl">Welcome back, {firstName}.</h1>
+          <p className="mt-1 max-w-2xl text-sm text-white/85">Hire confidently — every freelancer carries a verified skill score, so you can trust the talent you bring on.</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {isAdmin && (
-            <Link href="/admin"><Button variant="ghost" className="gap-2"><ShieldCheck className="h-4 w-4" /> Admin control</Button></Link>
+            <Link href="/admin"><Button variant="ghost" className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20"><ShieldCheck className="h-4 w-4" /> Admin control</Button></Link>
           )}
           {canPost && (
-            <Link href="/post"><Button className="gap-2"><Plus className="h-4 w-4" /> Post a job</Button></Link>
+            <Link href="/post"><Button className="gap-2 bg-white font-extrabold text-forest shadow-sm hover:bg-white/90"><Plus className="h-4 w-4 text-brand" /> Post a job</Button></Link>
           )}
         </div>
       </section>
 
       {/* Stats */}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className="card px-5 py-4">
-            <p className="text-2xl font-extrabold tracking-[-0.02em] text-ink">{stat.value}</p>
-            <p className="mt-1 text-sm font-medium text-ink-500">{stat.label}</p>
+          <div key={stat.label} className="card border-l-4 border-l-brand p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
+            <span className="text-xs font-bold uppercase tracking-wider text-ink-400">{stat.label}</span>
+            <p className="mt-1 text-2xl font-black tracking-tight text-ink">{stat.value}</p>
           </div>
         ))}
       </section>

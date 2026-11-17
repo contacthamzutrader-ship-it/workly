@@ -97,13 +97,17 @@ export default function WalletPage() {
   return (
     <div className="bg-canvas py-8 sm:py-10">
       <div className="page-shell max-w-6xl">
-      <div className="overflow-hidden rounded-[32px] bg-forest p-6 text-white shadow-elevated sm:p-8">
+      <div className="overflow-hidden rounded-[32px] bg-gradient-to-br from-forest via-[#074b24] to-[#042813] p-6 text-white shadow-elevated sm:p-8 border border-white/10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand"><Wallet className="h-7 w-7" /></div>
-            <div><p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Protected wallet</p><h1 className="mt-1 text-2xl font-black tracking-[-0.03em]">Payments, holds and releases</h1><p className="mt-1 text-sm text-white/55">Money is reserved when an offer is selected, then released after completion.</p></div>
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand shadow-forest"><Wallet className="h-7 w-7 text-white" /></div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-300">Protected wallet</p>
+              <h1 className="mt-1 text-2xl font-black tracking-[-0.03em] text-white">Payments, holds and releases</h1>
+              <p className="mt-1 text-sm text-white/70">Money is reserved when an offer is selected, then released after completion.</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setWithdrawOpen(true)}
               disabled={balance < 500}
@@ -111,13 +115,13 @@ export default function WalletPage() {
             >
               <Banknote className="h-4 w-4" /> Withdraw Funds
             </button>
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-ink transition hover:bg-brand-100">Back to dashboard <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 text-sm font-extrabold text-white transition hover:bg-white/20">Back to dashboard <ArrowUpRight className="h-4 w-4" /></Link>
           </div>
         </div>
       </div>
 
       <div className="my-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="surface p-6">
+        <div className="surface border-l-4 border-l-brand p-6 shadow-sm transition hover:shadow-card-hover">
           <div className="flex items-center justify-between"><p className="text-sm font-bold text-ink-500">Available Balance</p><Landmark className="h-5 w-5 text-brand" /></div>
           <p className="mt-1 text-4xl font-black tracking-[-0.04em] text-ink">{formatPKR(balance)}</p>
           <div className="mt-2 flex items-center justify-between">
@@ -129,12 +133,12 @@ export default function WalletPage() {
             )}
           </div>
         </div>
-        <div className="surface bg-brand-50 p-6">
+        <div className="surface border-l-4 border-l-forest bg-gradient-to-br from-brand-50 to-white p-6 shadow-sm transition hover:shadow-card-hover">
           <div className="flex items-center justify-between"><p className="text-sm font-bold text-brand-dark">Held in escrow</p><ShieldCheck className="h-5 w-5 text-brand" /></div>
           <p className="mt-1 text-4xl font-black tracking-[-0.04em] text-brand-dark">{formatPKR(heldBalance)}</p>
           <p className="mt-1 text-xs text-brand-600">Held for active tasks</p>
         </div>
-        <div className="surface p-6">
+        <div className="surface border-l-4 border-l-blue-500 p-6 shadow-sm transition hover:shadow-card-hover">
           <div className="flex items-center justify-between"><p className="text-sm font-bold text-ink-500">Release requests</p><Send className="h-5 w-5 text-blue-600" /></div>
           <p className="mt-1 text-4xl font-black tracking-[-0.04em] text-ink">{pendingRelease.length}</p>
           <p className="mt-1 text-xs text-ink-400">Waiting for your decision</p>

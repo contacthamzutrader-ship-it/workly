@@ -153,7 +153,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink-100 bg-white shadow-soft">
+    <header className="sticky top-0 z-50 border-b border-ink-100/80 bg-white/90 backdrop-blur-md shadow-xs transition-colors">
       <div className="page-shell flex h-[72px] items-center gap-4">
         <BrandLogo compact />
 

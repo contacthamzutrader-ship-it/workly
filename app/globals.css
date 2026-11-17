@@ -21,6 +21,22 @@ body {
   overflow-x: clip;
 }
 
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00B33C;
+}
+
 body {
   @apply bg-canvas text-ink antialiased;
   font-feature-settings: "ss01" 1, "cv02" 1, "cv03" 1;

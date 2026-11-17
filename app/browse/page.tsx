@@ -164,8 +164,18 @@ export default function BrowsePage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") commitSearch(); }}
-                className="min-h-12 w-full rounded-xl border border-ink-100 bg-white py-3 pl-11 pr-4 text-sm font-medium text-ink placeholder:text-ink-400 focus:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand/10"
+                className="min-h-12 w-full rounded-xl border border-ink-100 bg-white py-3 pl-11 pr-10 text-sm font-medium text-ink placeholder:text-ink-400 transition-shadow focus:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand/10"
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(""); setSearch(""); }}
+                  aria-label="Clear search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink-400 transition-colors hover:bg-ink-50 hover:text-ink"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <button
               onClick={commitSearch}
