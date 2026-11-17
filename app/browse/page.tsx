@@ -38,7 +38,6 @@ export default function BrowsePage() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
     (async () => {
       try {
@@ -51,7 +50,7 @@ export default function BrowsePage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     if (!catPanelOpen) return;

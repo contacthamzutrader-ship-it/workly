@@ -73,7 +73,8 @@ service cloud.firestore {
       allow create: if hasRole(['customer']) && request.resource.data.posterId == request.auth.uid
         || (isAdmin() && request.resource.data.posterId == request.auth.uid);
       allow update: if isAdmin()
-        || (signedIn() && resource.data.posterId == request.auth.uid)
+        || (signedIn() && resource.data.posterId == request.auth.uid
+          && request.resource.data.posterId == resource.data.posterId)
         || (signedIn() && resource.data.assignedTo == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['status', 'paymentRequested', 'workSubmittedAt', 'workSubmission']))
@@ -145,7 +146,7 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || hasPermission('managePayments'));
       allow create: if isAdmin()
         || (signedIn() && request.resource.data.userId == request.auth.uid
-          && request.resource.data.type in ['hold', 'payment'])
+          && request.resource.data.type in ['hold', 'payment', 'deposit'])
         || (signedIn() && request.resource.data.type == 'release'
           && task(request.resource.data.taskId).posterId == request.auth.uid
           && task(request.resource.data.taskId).assignedTo == request.resource.data.userId);
@@ -181,6 +182,23 @@ service cloud.firestore {
     match /settings/{documentId} {
       allow read: if signedIn();
       allow write: if isAdmin();
+    }
+
+    match /contact_messages/{msgId} {
+      allow read: if isModerator();
+      allow create: if true;
+      allow update, delete: if hasPermission('manageContent');
+    }
+
+    match /support_tickets/{ticketId} {
+      allow read: if isModerator() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow create: if true;
+      allow update: if isModerator() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /webhook_logs/{logId} {
+      allow read, write: if isAdmin();
     }
   }
 }

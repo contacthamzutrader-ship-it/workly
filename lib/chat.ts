@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { scanMessage } from "./fraud";
+import { applyFraudPenalty } from "./trust";
 import { notify } from "./notifications";
 
 export interface Conversation {
@@ -100,6 +101,15 @@ export async function sendMessage(
     lastMessage: previewText,
     updatedAt: serverTimestamp(),
   });
+
+  // If message contains prohibited off-platform contact sharing, penalize trust score (-20)
+  if (scan.flagged && fromId) {
+    try {
+      await applyFraudPenalty(fromId);
+    } catch {
+      // Ignore if user permission boundary applies
+    }
+  }
 
   // Notify the other participant.
   const conv = await getDoc(doc(database, "conversations", convId));

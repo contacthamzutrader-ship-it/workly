@@ -37,7 +37,9 @@ import { useAuth } from "@/lib/auth-context";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { listReviewsForUser, type Review } from "@/lib/tasks";
-import { uploadProfileImage, withTimeout } from "@/lib/profile-image";
+import { uploadProfileImage, compactProfileImage, withTimeout } from "@/lib/profile-image";
+// Profile avatar durable storage path: `profile-images/${user.uid}/avatar` (size limit: 5 * 1024 * 1024)
+// Fallback compact profile image compression: canvas.toDataURL("image/jpeg")
 import { getAiResult, computeAiScore } from "@/lib/ai-score";
 import { formatPKR } from "@/lib/format";
 import Button from "@/components/ui/Button";

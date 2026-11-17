@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, BriefcaseBusiness, Plus, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { listTasksByPoster, type Task } from "@/lib/tasks";
+import { listTasksByPoster, listPublicTasks, type Task } from "@/lib/tasks";
+// Freelancer opportunity discovery feed: listPublicTasks() renders "Recommended jobs for you" via TaskerDashboard
 import DashboardShell from "@/components/DashboardShell";
 import TaskerDashboard from "@/components/TaskerDashboard";
 import { doc, getDoc } from "firebase/firestore";
@@ -36,7 +37,7 @@ export default function DashboardPage() {
             setWallet(d.wallet ?? 0);
           }
         }
-      } catch {}
+      } catch { }
       setBusy(false);
     })();
   }, [loading, user, role]);

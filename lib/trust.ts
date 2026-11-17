@@ -26,3 +26,14 @@ export async function recalcTrust(uid: string): Promise<void> {
   const score = clamp((await computeTrustScore(uid)) + penalty);
   await updateDoc(ref, { trustScore: score });
 }
+
+// Applies fraud penalty for off-platform contact sharing (-20 trust)
+export async function applyFraudPenalty(uid: string): Promise<void> {
+  if (!db) return;
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  const currentPenalty = snap.exists() ? (snap.data().trustPenalty ?? 0) : 0;
+  const nextPenalty = currentPenalty - 20;
+  await updateDoc(ref, { trustPenalty: nextPenalty });
+  await recalcTrust(uid);
+}

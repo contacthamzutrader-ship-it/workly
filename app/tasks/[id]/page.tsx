@@ -154,6 +154,7 @@ export default function TaskDetailPage() {
                 trust: d.trustScore ?? 70,
                 success: d.successRate ?? 80,
                 skills: d.skills ?? [],
+                createdAt: d.createdAt,
               });
               fresh = isFreshTalent(d.createdAt);
             }

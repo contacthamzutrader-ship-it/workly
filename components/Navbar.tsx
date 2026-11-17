@@ -41,6 +41,7 @@ export default function Navbar() {
   const router = useRouter();
   const isAdmin = role === "moderator" || role === "company_admin" || role === "super_admin";
   const canPost = role === "customer" || role === "company_admin" || role === "super_admin";
+  const canFindWork = !user || role === "tasker";
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("");

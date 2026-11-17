@@ -16,6 +16,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
+    if (ownerMode && pathname !== "/admin") {
+      router.replace("/admin");
+      return;
+    }
+
     if (user && role === "tasker") {
       if (!onboardingCompleted) {
         const publicRoutes = ["/login", "/signup", "/"];
