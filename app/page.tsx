@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -99,13 +99,55 @@ const categories = [
 ];
 
 const topFreelancers = [
-  { name: "Ayesha R.", title: "Social Media Designer", city: "Lahore", jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
-  { name: "Bilal K.", title: "Web Developer", city: "Islamabad", jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
-  { name: "Mahnoor S.", title: "Virtual Assistant", city: "Karachi", jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
-  { name: "Usman T.", title: "Content Writer", city: "Faisalabad", jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
+  { name: "Ayesha R.", title: "UI/UX & Product Designer", city: "Lahore", jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
+  { name: "Bilal K.", title: "Full Stack Web Developer", city: "Islamabad", jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
+  { name: "Mahnoor S.", title: "Virtual Assistant & Operations", city: "Karachi", jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
+  { name: "Usman T.", title: "AI & Python Developer", city: "Faisalabad", jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
+];
+
+const sampleTalents = [
+  {
+    name: "Bilal K.",
+    domain: "Web & Software",
+    role: "Full Stack Engineer",
+    tier: "Elite Tier • Top 5%",
+    score: 96,
+    skills: [
+      { name: "React & Next.js", pct: 96 },
+      { name: "Node.js & TypeScript", pct: 94 },
+      { name: "Database & System APIs", pct: 92 },
+    ],
+  },
+  {
+    name: "Ayesha R.",
+    domain: "UI/UX Design",
+    role: "UI/UX & Product Designer",
+    tier: "Elite Tier • Top 5%",
+    score: 95,
+    skills: [
+      { name: "Figma & Design Systems", pct: 97 },
+      { name: "User Research & Flows", pct: 94 },
+      { name: "Interactive Prototyping", pct: 95 },
+    ],
+  },
+  {
+    name: "Usman T.",
+    domain: "AI & Data",
+    role: "AI & Automation Specialist",
+    tier: "Professional Tier • Top 10%",
+    score: 93,
+    skills: [
+      { name: "Python & LLMs", pct: 95 },
+      { name: "Data Scraping & ETL", pct: 92 },
+      { name: "Workflow Automation", pct: 94 },
+    ],
+  },
 ];
 
 export default function Home() {
+  const [selectedTalent, setSelectedTalent] = useState(0);
+  const currentTalent = sampleTalents[selectedTalent];
+
   return (
     <div className="overflow-hidden">
       {/* Hero */}
@@ -150,20 +192,38 @@ export default function Home() {
               <div className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-brand-100 blur-3xl" />
               <div className="absolute -bottom-8 -left-8 h-48 w-48 rounded-full bg-brand-50 blur-3xl" />
 
-              <div className="relative rounded-[28px] border border-white/60 bg-white/70 p-6 shadow-elevated backdrop-blur-lg sm:p-8">
+              <div className="relative rounded-[28px] border border-white/60 bg-white/80 p-6 shadow-elevated backdrop-blur-lg sm:p-7">
+                {/* Domain Selector Tabs */}
+                <div className="mb-5 flex rounded-xl border border-ink-100 bg-ink-50/80 p-1">
+                  {sampleTalents.map((t, idx) => (
+                    <button
+                      key={t.domain}
+                      type="button"
+                      onClick={() => setSelectedTalent(idx)}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+                        selectedTalent === idx
+                          ? "bg-white text-ink shadow-sm"
+                          : "text-ink-500 hover:text-ink"
+                      }`}
+                    >
+                      {t.domain}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-extrabold text-ink">Ayesha R.</p>
-                    <p className="mt-0.5 text-xs font-semibold text-ink-500">Social Media Designer</p>
+                    <p className="text-base font-extrabold text-ink">{currentTalent.name}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-ink-500">{currentTalent.role}</p>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white">
-                    Elite Tier • Top 5%
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white shadow-forest">
+                    {currentTalent.tier}
                   </span>
                 </div>
 
-                <div className="mt-6 flex flex-col items-center">
-                  <div className="relative h-32 w-32">
-                    <svg className="h-32 w-32 -rotate-90" viewBox="0 0 100 100">
+                <div className="mt-5 flex flex-col items-center">
+                  <div className="relative h-28 w-28">
+                    <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="42" stroke="rgb(229 231 235)" strokeWidth="10" fill="none" />
                       <circle
                         cx="50"
@@ -173,45 +233,32 @@ export default function Home() {
                         strokeWidth="10"
                         fill="none"
                         strokeLinecap="round"
-                        strokeDasharray={`${(2 * Math.PI * 42 * 94) / 100}, ${2 * Math.PI * 42}`}
+                        strokeDasharray={`${(2 * Math.PI * 42 * currentTalent.score) / 100}, ${2 * Math.PI * 42}`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-ink-500">Verified</p>
-                      <p className="mt-1 text-2xl font-black text-ink">94/100</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-500">Verified</p>
+                      <p className="mt-0.5 text-2xl font-black text-ink">{currentTalent.score}/100</p>
                     </div>
                   </div>
-                  <p className="mt-4 text-xs font-bold text-ink-500">Status: 0 client reviews needed to rank here</p>
+                  <p className="mt-3 text-xs font-bold text-ink-500">Status: 0 client reviews needed to rank here</p>
                 </div>
 
-                <div className="mt-6 space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-extrabold text-ink">
-                      <span>React</span>
-                      <span>95%</span>
+                <div className="mt-5 space-y-3">
+                  {currentTalent.skills.map((s) => (
+                    <div key={s.name}>
+                      <div className="flex items-center justify-between text-xs font-extrabold text-ink">
+                        <span>{s.name}</span>
+                        <span>{s.pct}%</span>
+                      </div>
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
+                        <div
+                          className="h-full rounded-full bg-brand transition-all duration-300"
+                          style={{ width: `${s.pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
-                      <div className="h-full w-[95%] rounded-full bg-brand" />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-extrabold text-ink">
-                      <span>Node.js</span>
-                      <span>92%</span>
-                    </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
-                      <div className="h-full w-[92%] rounded-full bg-brand" />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-extrabold text-ink">
-                      <span>Problem Solving</span>
-                      <span>96%</span>
-                    </div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
-                      <div className="h-full w-[96%] rounded-full bg-brand" />
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">
@@ -466,7 +513,7 @@ export default function Home() {
               <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project starts here.</h2>
               <p className="mx-auto mt-5 max-w-xl text-base font-medium text-white/75">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:bg-forest"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
+                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-lg"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
               </div>
             </div>
           </div>
