@@ -53,7 +53,9 @@ export default function WalletPage() {
       const deposits = logs.filter(item => item.type === "deposit").reduce((sum, item) => sum + item.amount, 0);
       setBalance(Math.max(0, baseBalance + releasedEarnings + deposits - withdrawn));
       setTxs(logs);
-    } catch {} finally { setBusy(false); }
+    } catch (err) {
+      console.error("Failed to load wallet data:", err);
+    } finally { setBusy(false); }
   };
 
   useEffect(() => { if (user) load(); }, [user]);

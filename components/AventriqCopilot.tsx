@@ -133,7 +133,9 @@ export default function AventriqCopilot() {
     setMessages([INITIAL_MESSAGE]);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
-    } catch {}
+    } catch (err) {
+      console.debug("sessionStorage unavailable:", err);
+    }
   };
 
   const renderFormattedText = (raw: string) => {

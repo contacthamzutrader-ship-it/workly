@@ -329,7 +329,7 @@ export default function PublicProfilePage() {
                           </div>
                         )}
                         {item.link && (
-                          <a href={item.link} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-brand">
+                          <a href={item.link} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-brand">
                             <Link2 className="h-3.5 w-3.5" /> View project <ArrowUpRight className="h-3.5 w-3.5" />
                           </a>
                         )}

@@ -139,7 +139,7 @@ export default function PortfolioPanel({ user }: { user: User }) {
               <h2 className="text-base font-black tracking-[-0.03em] text-ink">{editingId ? "Edit project" : "New project"}</h2>
               <p className="mt-0.5 text-xs font-medium text-ink-400">Saved to your private portfolio on AventriqTalent.</p>
             </div>
-            <button type="button" onClick={resetForm} className="grid h-9 w-9 place-items-center rounded-xl border border-ink-100 text-ink-400 transition hover:bg-ink-50"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={resetForm} aria-label="Cancel editing" className="grid h-9 w-9 place-items-center rounded-xl border border-ink-100 text-ink-400 transition hover:bg-ink-50"><X className="h-4 w-4" /></button>
           </div>
 
           <div className="mt-4 space-y-4">
@@ -222,7 +222,7 @@ export default function PortfolioPanel({ user }: { user: User }) {
                       <button onClick={() => remove(item)} className="inline-flex items-center gap-1.5 rounded-lg border border-ink-100 px-3 py-1.5 text-xs font-extrabold text-red-600 transition hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /> Delete</button>
                     </div>
                     {item.link && (
-                      <a href={item.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-extrabold text-brand"><Link2 className="h-3.5 w-3.5" /> Open <ArrowUpRight className="h-3.5 w-3.5" /></a>
+                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-extrabold text-brand"><Link2 className="h-3.5 w-3.5" /> Open <ArrowUpRight className="h-3.5 w-3.5" /></a>
                     )}
                   </div>
                 </div>

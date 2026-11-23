@@ -890,6 +890,7 @@ export default function TaskDetailPage() {
                           <button
                             type="button"
                             onClick={() => removeAttachment(idx)}
+                            aria-label="Remove file attachment"
                             className="rounded-lg p-1 text-ink-400 transition hover:bg-ink-100 hover:text-red-600"
                             title="Remove file"
                           >
@@ -1042,10 +1043,10 @@ export default function TaskDetailPage() {
                           <div className="mt-2 flex flex-wrap gap-2">
                             {b.attachments.map((att, i) => (
                               <a
-                                key={i}
+                                key={att.url || `${att.name}-${i}`}
                                 href={att.url}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-ink-50 px-2.5 py-1 text-xs font-semibold text-ink hover:bg-brand-50 hover:text-brand"
                               >
                                 {att.type === "image" ? <ImageIcon className="h-3 w-3" /> : <FileText className="h-3 w-3" />}

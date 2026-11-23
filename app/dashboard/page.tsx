@@ -37,7 +37,9 @@ export default function DashboardPage() {
             setWallet(d.wallet ?? 0);
           }
         }
-      } catch { }
+      } catch (err) {
+        console.error("Failed to load user wallet:", err);
+      }
       setBusy(false);
     })();
   }, [loading, user, role]);

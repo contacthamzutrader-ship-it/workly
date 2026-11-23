@@ -213,21 +213,18 @@ export async function listTasksAssignedTo(taskerId: string): Promise<Task[]> {
 }
 
 export async function listTasksWithUserBids(bidderId: string): Promise<Task[]> {
-  const database = needDb();
   const bids = await listBidsByUser(bidderId);
-  const seen = new Set<string>();
-  const result: Task[] = [];
-  for (const bid of bids) {
-    if (seen.has(bid.taskId)) continue;
-    seen.add(bid.taskId);
-    try {
-      const task = await getTask(bid.taskId);
-      if (task) result.push(task);
-    } catch {
-      // Task may not be readable to the tasker (respect existing access rules).
-    }
-  }
-  return result.sort(byNewest);
+  const uniqueTaskIds = Array.from(new Set(bids.map((b) => b.taskId).filter(Boolean)));
+  const tasks = await Promise.all(
+    uniqueTaskIds.map(async (id) => {
+      try {
+        return await getTask(id);
+      } catch {
+        return null;
+      }
+    })
+  );
+  return tasks.filter((t): t is Task => Boolean(t)).sort(byNewest);
 }
 
 export interface RehireCandidate {

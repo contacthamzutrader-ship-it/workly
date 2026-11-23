@@ -92,7 +92,13 @@ export default function BrowsePage() {
     else if (sort === "due_soon") list.sort((a, b) => (a.deadline ? new Date(a.deadline).getTime() : Infinity) - (b.deadline ? new Date(b.deadline).getTime() : Infinity));
     else if (sort === "lowest_price") list.sort((a, b) => a.budget - b.budget);
     else if (sort === "highest_price") list.sort((a, b) => b.budget - a.budget);
-    else list.sort((a, b) => computeBidMatch(b, profile).percent - computeBidMatch(a, profile).percent || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    else {
+      const matchMap = new Map<string, number>();
+      for (const t of list) {
+        matchMap.set(t.id!, computeBidMatch(t, profile).percent);
+      }
+      list.sort((a, b) => (matchMap.get(b.id!) ?? 0) - (matchMap.get(a.id!) ?? 0) || (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+    }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, filters, sort, search, category, priceRange, remoteMode]);

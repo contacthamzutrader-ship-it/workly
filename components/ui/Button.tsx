@@ -14,7 +14,7 @@ export default function Button({
   className = "",
   ...props
 }: Props) {
-  const base = "inline-flex items-center justify-center font-bold tracking-[-0.01em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50";
+  const base = "inline-flex items-center justify-center font-bold tracking-[-0.01em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2";
 
   const sizeStyles: Record<ButtonSize, string> = {
     sm: "min-h-9 px-3.5 py-1.5 text-xs rounded-lg",

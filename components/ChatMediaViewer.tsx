@@ -133,7 +133,8 @@ export default function ChatMediaViewer({ attachments, isMine }: ChatMediaViewer
                 <a
                   href={att.url}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
+                  aria-label={`Open file ${att.name} in new tab`}
                   className={`rounded-lg p-1.5 transition ${
                     isMine ? "hover:bg-white/20 text-white" : "hover:bg-ink-100 text-ink-600"
                   }`}
