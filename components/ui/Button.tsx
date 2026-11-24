@@ -24,7 +24,7 @@ export default function Button({
   };
 
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: "bg-brand text-white shadow-forest hover:-translate-y-0.5 hover:bg-brand-700 active:scale-[0.98]",
+    primary: "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 active:scale-[0.98]",
     secondary: "border border-ink-200 bg-white text-ink hover:bg-ink-50 hover:border-ink-300 active:scale-[0.98]",
     outline: "border border-brand bg-white text-brand hover:bg-brand-50 active:scale-[0.98]",
     ghost: "text-ink-600 hover:bg-ink-100 hover:text-ink active:scale-[0.98]",

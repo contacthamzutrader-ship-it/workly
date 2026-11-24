@@ -24,6 +24,7 @@ import {
   MessageSquareText,
   Mic,
   Paintbrush,
+  Plus,
   Radar,
   Rocket,
   Search,
@@ -202,7 +203,7 @@ export default function Home() {
               </p>
               <h1 className="mt-3 max-w-2xl text-balance text-[2rem] font-black leading-[1.12] tracking-[-0.03em] text-slate-900 sm:text-[2.6rem] lg:text-[3rem]">
                 Hire Pakistan&apos;s Top 5%{" "}
-                <span className="bg-gradient-to-r from-emerald-600 via-brand to-forest bg-clip-text text-transparent">
+                <span className="text-emerald-600">
                   Verified Talent
                 </span>
                 . Skip the Review Trap.
@@ -213,19 +214,19 @@ export default function Home() {
 
               {/* Interactive Live Hero Search Bar */}
               <form onSubmit={handleHeroSearch} className="mt-8 max-w-xl">
-                <div className="flex items-center rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
+                <div className="flex items-center rounded-2xl border border-slate-200 bg-white p-2 shadow-xs transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20">
                   <Search className="ml-2.5 h-5 w-5 text-slate-400" />
                   <input
                     type="text"
                     value={heroQuery}
                     onChange={(e) => setHeroQuery(e.target.value)}
-                    placeholder="Search: 'Next.js', 'Python AI', 'Figma', 'Flutter'..."
+                    placeholder="Search by skill: React, Python AI, Figma, Flutter..."
                     aria-label="Search talent or skills"
                     className="w-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:outline-none"
                   />
                   <button
                     type="submit"
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700 active:scale-[0.98]"
                   >
                     <span>Search</span>
                     <ArrowRight className="h-4 w-4" />
@@ -248,7 +249,7 @@ export default function Home() {
                         setHeroQuery(chip.q);
                         router.push(`/browse?q=${encodeURIComponent(chip.q)}`);
                       }}
-                      className="rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 shadow-xs transition hover:border-brand hover:bg-emerald-50 hover:text-emerald-800"
+                      className="rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 shadow-xs transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-800"
                     >
                       {chip.label}
                     </button>
@@ -259,14 +260,14 @@ export default function Home() {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/browse"
-                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 active:scale-[0.98]"
+                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-7 text-sm font-bold text-white shadow-xs transition hover:bg-emerald-700 hover:-translate-y-0.5 active:scale-[0.98]"
                 >
                   <span>Hire Verified Talent</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/ai-interview"
-                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-7 text-sm font-bold text-slate-800 shadow-xs transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]"
+                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-7 text-sm font-bold text-slate-800 shadow-xs transition hover:border-slate-300 hover:bg-slate-50 hover:-translate-y-0.5 active:scale-[0.98]"
                 >
                   <span>Take 15-Min Skill Test</span>
                 </Link>
@@ -560,8 +561,8 @@ export default function Home() {
             ))}
           </div>
           <div className="mt-12 flex flex-wrap justify-center gap-3">
-            <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Post a job <ArrowRight className="h-4 w-4" /></Link>
-            <Link href="/#talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-300 bg-white px-6 text-sm font-extrabold text-ink transition hover:bg-brand-50"><SearchCheck className="h-4 w-4" /> Find freelancers</Link>
+            <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-xs transition hover:bg-emerald-700">Post a job <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-xs transition hover:bg-slate-50"><SearchCheck className="h-4 w-4" /> Browse Verified Talent</Link>
           </div>
         </div>
       </section>
@@ -646,7 +647,8 @@ export default function Home() {
               <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project starts here.</h2>
               <p className="mx-auto mt-5 max-w-xl text-base font-medium text-white/75">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-lg"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
+                <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-7 text-sm font-bold text-slate-900 shadow-xs transition hover:bg-slate-100 hover:-translate-y-0.5"><Plus className="h-4 w-4 text-emerald-600" /> Post a Project</Link>
+                <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-600 px-7 text-sm font-bold text-white shadow-xs transition hover:bg-emerald-700 hover:-translate-y-0.5"><UserPlus className="h-4 w-4" /> Start Freelancing</Link>
               </div>
             </div>
           </div>

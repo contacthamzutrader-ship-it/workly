@@ -61,7 +61,7 @@ export default function TaskCard({ task, href }: { task: Task; href?: string }) 
           <span className="block text-[11px] font-bold uppercase tracking-wider text-ink-400">Budget</span>
           <p className="text-xl font-black tracking-tight text-ink">{formatPKR(task.budget)}</p>
         </div>
-        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand-50 px-3.5 text-xs font-bold text-brand-700 transition-colors duration-200 group-hover:bg-brand group-hover:text-white group-hover:shadow-forest">
+        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-emerald-50 px-3.5 text-xs font-bold text-emerald-800 transition-colors duration-200 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-xs">
           View Task <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>

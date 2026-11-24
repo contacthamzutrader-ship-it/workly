@@ -22,12 +22,11 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Features", href: "/#ai" },
+  { label: "Find Work", href: "/tasks" },
+  { label: "Find Talent", href: "/browse" },
   { label: "Categories", href: "/#categories" },
-  { label: "About Us", href: "/#why" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Find Talent", href: "/#talent" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "Why Aventriq", href: "/#why" },
 ];
 
 const HEADER_OFFSET = 88;
