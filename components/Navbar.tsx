@@ -23,7 +23,7 @@ import { db } from "@/lib/firebase";
 
 const navLinks = [
   { label: "Find Work", href: "/tasks" },
-  { label: "Find Talent", href: "/browse" },
+  { label: "Find Talent", href: "/browse?mode=talent" },
   { label: "Categories", href: "/#categories" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Why Aventriq", href: "/#why" },
@@ -174,17 +174,17 @@ export default function Navbar() {
           {user ? (
             <>
               {canPost && (
-                <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700">
+                <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white shadow-xs transition hover:-translate-y-0.5 hover:bg-emerald-700">
                   <Plus className="h-4 w-4" /> Post a Job
                 </Link>
               )}
               <Link href="/notifications" aria-label="Notifications" className="relative grid h-10 w-10 place-items-center rounded-xl border border-ink-200 bg-white text-ink-600 transition hover:bg-ink-50 hover:text-ink">
                 <Bell className="h-4 w-4" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-brand" />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-emerald-500" />
               </Link>
               <div className="relative">
                 <button onClick={() => setAccountOpen(!accountOpen)} className="flex h-10 items-center gap-2 rounded-xl border border-ink-200 bg-white px-2 pr-3 text-left transition hover:bg-ink-50">
-                  <span className={avatarUrl ? "h-7 w-7 overflow-hidden rounded-lg" : "grid h-7 w-7 place-items-center rounded-lg bg-brand text-xs font-black text-white"}>
+                  <span className={avatarUrl ? "h-7 w-7 overflow-hidden rounded-lg" : "grid h-7 w-7 place-items-center rounded-lg bg-emerald-600 text-xs font-black text-white"}>
                     {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : (user.displayName || user.email || "U")[0].toUpperCase()}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-ink-300" />
@@ -216,7 +216,7 @@ export default function Navbar() {
             <>
               <Link href="/login" onClick={close} className="inline-flex min-h-10 items-center rounded-xl px-3.5 text-sm font-bold text-ink-600 transition hover:bg-ink-100/70 hover:text-ink">Log In</Link>
               <Link href="/signup" onClick={close} className="inline-flex min-h-10 items-center rounded-xl border border-ink-200 bg-white px-4 text-sm font-bold text-ink transition hover:bg-ink-50 hover:border-ink-300">Sign Up</Link>
-              <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700"><Plus className="h-4 w-4" /> Post a Job</Link>
+              <Link href="/post" onClick={close} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white shadow-xs transition hover:-translate-y-0.5 hover:bg-emerald-700"><Plus className="h-4 w-4" /> Post a Job</Link>
             </>
           )}
         </div>
@@ -257,7 +257,7 @@ export default function Navbar() {
           <div className="mt-3 flex flex-col gap-2 border-t border-ink-100 pt-3">
             {user ? (
               <>
-                {canPost && <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest"><Plus className="h-4 w-4" /> Post a Job</Link>}
+                {canPost && <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow-xs hover:bg-emerald-700"><Plus className="h-4 w-4" /> Post a Job</Link>}
                 {role === "tasker" && !interviewPassed ? (
                   <button
                     onClick={() => {
@@ -277,7 +277,7 @@ export default function Navbar() {
               <>
                 <Link href="/login" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-ink-200 px-5 text-sm font-bold text-ink-600">Log In</Link>
                 <Link href="/signup" onClick={close} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-ink-200 bg-white px-5 text-sm font-bold text-ink">Sign Up</Link>
-                <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest"><Plus className="h-4 w-4" /> Post a Job</Link>
+                <Link href="/post" onClick={close} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow-xs hover:bg-emerald-700"><Plus className="h-4 w-4" /> Post a Job</Link>
               </>
             )}
           </div>

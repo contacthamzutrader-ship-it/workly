@@ -547,7 +547,7 @@ export default function Home() {
               <Fragment key={step.title}>
                 <div className="relative rounded-2xl border border-ink-100 bg-white p-7 shadow-card transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-card-hover">
                   {index < clientSteps.length - 1 && (
-                    <span className="absolute -right-[14px] top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-brand text-white shadow-forest lg:grid"><ArrowRight className="h-3.5 w-3.5" /></span>
+                    <span className="absolute -right-[14px] top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-emerald-600 text-white shadow-xs lg:grid"><ArrowRight className="h-3.5 w-3.5" /></span>
                   )}
                   <span className="text-xs font-black uppercase tracking-[0.2em] text-brand-700">{step.step}</span>
                   <span className="mt-5 grid h-12 w-12 place-items-center rounded-2xl bg-brand-50 text-brand-700"><step.icon className="h-6 w-6" /></span>
@@ -562,7 +562,7 @@ export default function Home() {
           </div>
           <div className="mt-12 flex flex-wrap justify-center gap-3">
             <Link href="/post" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-xs transition hover:bg-emerald-700">Post a job <ArrowRight className="h-4 w-4" /></Link>
-            <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-xs transition hover:bg-slate-50"><SearchCheck className="h-4 w-4" /> Browse Verified Talent</Link>
+            <Link href="/browse?mode=talent" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-xs transition hover:bg-slate-50"><SearchCheck className="h-4 w-4" /> Browse Verified Talent</Link>
           </div>
         </div>
       </section>
@@ -604,7 +604,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-10 flex justify-center">
-              <Link href="/signup" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/ai-interview" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-xs transition hover:bg-emerald-700">Start freelancing <ArrowRight className="h-4 w-4" /></Link>
             </div>
           </div>
         </div>
@@ -615,7 +615,7 @@ export default function Home() {
         <div className="page-shell">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div><span className="eyebrow"><Award className="h-3.5 w-3.5" /> Top talent</span><h2 className="mt-5 max-w-xl text-2xl font-bold tracking-[-0.02em] text-ink sm:text-3xl">Verified freelancers, ready to start.</h2></div>
-            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-extrabold text-ink">Hire talent <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/browse?mode=talent" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition">Browse Verified Talent <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {topFreelancers.map((person) => (
@@ -640,9 +640,9 @@ export default function Home() {
       {/* CTA */}
       <section className="bg-white pb-24">
         <div className="page-shell">
-          <div className="relative overflow-hidden rounded-3xl bg-forest p-10 text-center text-white shadow-elevated sm:p-16">
-            <div className="pointer-events-none absolute inset-0 soft-grid opacity-40" />
-            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 p-10 text-center text-white shadow-xl sm:p-16">
+            <div className="pointer-events-none absolute inset-0 soft-grid opacity-20" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/15 blur-3xl" />
             <div className="relative">
               <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-[-0.02em] sm:text-3xl">Your next project starts here.</h2>
               <p className="mx-auto mt-5 max-w-xl text-base font-medium text-white/75">Join free, verify your skills, and connect with work you&apos;re great at — from both sides of the table.</p>

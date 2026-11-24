@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --brand: #00B33C;
-  --deep: #093A1D;
-  --forest: #093A1D;
+  --brand: #10B981;
+  --brand-dark: #059669;
+  --deep: #064E3B;
+  --forest: #0F172A;
   --mint: #10B981;
   --ink: #0F172A;
   --canvas: #F8FAFC;
@@ -34,7 +35,7 @@ body {
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #00B33C;
+  background: #10B981;
 }
 
 body {
@@ -63,7 +64,7 @@ p {
 }
 
 ::selection {
-  background: #00B33C;
+  background: #10B981;
   color: #ffffff;
 }
 
@@ -80,7 +81,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgb(0 179 60 / 0.25);
+  outline: 2px solid rgb(16 185 129 / 0.35);
   outline-offset: 2px;
 }
 
@@ -120,9 +121,9 @@ textarea:focus-visible {
   }
   .soft-grid {
     background-image:
-      linear-gradient(rgb(9 58 29 / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(9 58 29 / 0.07) 1px, transparent 1px);
-    background-size: 34px 34px;
+      linear-gradient(rgb(15 23 42 / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(15 23 42 / 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
   .noise {
     background-image: radial-gradient(rgb(255 255 255 / 0.12) 0.7px, transparent 0.7px);
