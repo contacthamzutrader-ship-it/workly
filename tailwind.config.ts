@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#E2F8EC",
+        canvas: "#F8FAFC",
         charcoal: {
           DEFAULT: "#111111",
           50: "#F7F7F7",

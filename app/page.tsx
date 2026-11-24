@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowRight,
@@ -25,6 +26,7 @@ import {
   Paintbrush,
   Radar,
   Rocket,
+  Search,
   SearchCheck,
   Send,
   ShieldCheck,
@@ -151,65 +153,163 @@ const sampleTalents = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const [heroQuery, setHeroQuery] = useState("");
   const [selectedTalent, setSelectedTalent] = useState(0);
   const currentTalent = sampleTalents[selectedTalent];
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroQuery.trim()) {
+      router.push("/browse");
+      return;
+    }
+    router.push(`/browse?q=${encodeURIComponent(heroQuery.trim())}`);
+  };
 
   return (
     <div className="overflow-hidden">
       {/* Hero */}
-      <section className="relative bg-canvas text-ink">
-        <div className="pointer-events-none absolute -left-32 top-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
-        <div className="pointer-events-none absolute -right-24 bottom-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50 to-canvas text-ink">
+        <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-10 h-96 w-96 rounded-full bg-brand-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 soft-grid opacity-25" />
 
-        <div className="page-shell relative pb-16 pt-8 lg:pb-24 lg:pt-12">
+        <div className="page-shell relative pb-20 pt-8 lg:pb-28 lg:pt-14">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div className="animate-fade-up">
-              <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">
-                ⚡ Zero Reviews? Zero Problem.
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-extrabold text-emerald-800 shadow-xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Zero Reviews? Zero Problem.
               </span>
-              <p className="mt-6 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-700">
+              <p className="mt-5 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-brand-700">
                 <AventriqMark className="h-5 w-5" />
                 <span>Pakistan&apos;s Smarter Freelancing Marketplace, Powered by AI.</span>
               </p>
-              <h1 className="mt-3 max-w-2xl text-balance text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink sm:text-[2.25rem] lg:text-[2.5rem] xl:text-[2.75rem]">
-                Get Hired on Verified Skill. Skip the 6-Month Review Trap.
+              <h1 className="mt-3 max-w-2xl text-balance text-[2rem] font-black leading-[1.12] tracking-[-0.03em] text-slate-900 sm:text-[2.6rem] lg:text-[3rem]">
+                Get Hired on{" "}
+                <span className="bg-gradient-to-r from-emerald-600 via-brand to-forest bg-clip-text text-transparent">
+                  Verified Skill
+                </span>
+                . Skip the 6-Month Review Trap.
               </h1>
-              <p className="mt-5 max-w-xl text-base font-medium leading-7 text-ink-500">
+              <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-slate-600">
                 New to freelancing or just graduated? Prove your skills with a quick 15-minute test, earn a verified skill score, and start winning clients from day one — no fake reviews, no prior experience, just real skills!
               </p>
 
+              {/* Interactive Live Hero Search Bar */}
+              <form onSubmit={handleHeroSearch} className="mt-8 max-w-xl">
+                <div className="flex items-center rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/5 transition focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
+                  <Search className="ml-2.5 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={heroQuery}
+                    onChange={(e) => setHeroQuery(e.target.value)}
+                    placeholder="Search: 'Next.js', 'Python AI', 'Figma', 'Flutter'..."
+                    aria-label="Search talent or skills"
+                    className="w-full bg-transparent px-3 py-1.5 text-sm font-semibold text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-brand px-5 text-sm font-extrabold text-white shadow-forest transition hover:bg-brand-700 active:scale-[0.98]"
+                  >
+                    <span>Search</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-slate-400">Popular:</span>
+                  {[
+                    { label: "Next.js & React", q: "React" },
+                    { label: "Python & AI", q: "Python" },
+                    { label: "UI/UX Figma", q: "UI/UX" },
+                    { label: "Node APIs", q: "Node" },
+                    { label: "Flutter Mobile", q: "Mobile" },
+                  ].map((chip) => (
+                    <button
+                      key={chip.label}
+                      type="button"
+                      onClick={() => {
+                        setHeroQuery(chip.q);
+                        router.push(`/browse?q=${encodeURIComponent(chip.q)}`);
+                      }}
+                      className="rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 shadow-xs transition hover:border-brand hover:bg-emerald-50 hover:text-emerald-800"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </form>
+
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/ai-interview" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 sm:min-h-14 sm:px-7">
+                <Link
+                  href="/ai-interview"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 sm:min-h-14 sm:px-7"
+                >
                   Take the Skill Test →
                 </Link>
-                <Link href="/browse" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-ink-200 bg-white px-6 text-sm font-bold text-ink transition hover:bg-ink-50 hover:border-ink-300 sm:min-h-14 sm:px-7">
+                <Link
+                  href="/browse"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-xs transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 sm:min-h-14 sm:px-7"
+                >
                   Browse Talent by Tier
                 </Link>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-xs font-extrabold text-ink-600">
-                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-brand-600" /> Zero Review Bias</span>
-                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-brand-600" /> Real-time Code & Skill Audit</span>
-                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-brand-600" /> Escrow Protected</span>
+              <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-extrabold text-slate-700">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Zero Review Bias
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Proctored Code &amp; Skill Audit
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 100% Escrow Protected
+                </span>
               </div>
             </div>
 
             <div className="relative mx-auto w-full max-w-lg">
-              <div className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-brand-100 blur-3xl" />
-              <div className="absolute -bottom-8 -left-8 h-48 w-48 rounded-full bg-brand-50 blur-3xl" />
+              {/* Subtle background glow */}
+              <div className="absolute -right-8 -top-8 h-56 w-56 rounded-full bg-emerald-500/15 blur-3xl" />
+              <div className="absolute -bottom-8 -left-8 h-56 w-56 rounded-full bg-brand-500/15 blur-3xl" />
 
-              <div className="relative rounded-3xl border border-white/60 bg-white/80 p-6 shadow-elevated backdrop-blur-lg sm:p-7">
+              {/* Top-Right Floating Badge */}
+              <div className="absolute -right-3 -top-4 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-md animate-breathe">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="text-left">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Safepay Escrow</p>
+                  <p className="text-xs font-bold text-slate-900">100% Payment Protected</p>
+                </div>
+              </div>
+
+              {/* Bottom-Left Floating Badge */}
+              <div className="absolute -bottom-4 -left-3 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-md">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-purple-50 text-purple-600">
+                  <Zap className="h-4 w-4" />
+                </span>
+                <div className="text-left">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">AI Anti-Cheat Proctor</p>
+                  <p className="text-xs font-bold text-slate-900">15-Min Calibrated Test</p>
+                </div>
+              </div>
+
+              {/* Main Capability Radar Card */}
+              <div className="relative rounded-3xl border border-slate-200/90 bg-white p-6 shadow-2xl sm:p-7">
                 {/* Domain Selector Tabs */}
-                <div className="mb-5 flex rounded-xl border border-ink-100 bg-ink-50/80 p-1">
+                <div className="mb-5 flex rounded-xl border border-slate-200/80 bg-slate-50 p-1">
                   {sampleTalents.map((t, idx) => (
                     <button
                       key={t.domain}
                       type="button"
                       onClick={() => setSelectedTalent(idx)}
-                      className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${
                         selectedTalent === idx
-                          ? "bg-white text-ink shadow-sm"
-                          : "text-ink-500 hover:text-ink"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-500 hover:text-slate-800"
                       }`}
                     >
                       {t.domain}
@@ -219,13 +319,13 @@ export default function Home() {
 
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-brand-700">
-                      <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Category Evaluation
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Category Evaluation Radar
                     </span>
-                    <h3 className="text-base font-black text-ink">{currentTalent.title}</h3>
-                    <p className="mt-0.5 text-xs font-medium text-ink-500">{currentTalent.poolNote}</p>
+                    <h3 className="text-base font-black text-slate-900">{currentTalent.title}</h3>
+                    <p className="mt-0.5 text-xs font-medium text-slate-500">{currentTalent.poolNote}</p>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white shadow-forest">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white shadow-forest">
                     {currentTalent.tier}
                   </span>
                 </div>
@@ -233,7 +333,7 @@ export default function Home() {
                 <div className="mt-5 flex flex-col items-center">
                   <div className="relative h-28 w-28">
                     <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="42" stroke="rgb(229 231 235)" strokeWidth="10" fill="none" />
+                      <circle cx="50" cy="50" r="42" stroke="rgb(241 245 249)" strokeWidth="10" fill="none" />
                       <circle
                         cx="50"
                         cy="50"
@@ -246,23 +346,25 @@ export default function Home() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-ink-500">Verified</p>
-                      <p className="mt-0.5 text-2xl font-black text-ink">{currentTalent.score}/100</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Score</p>
+                      <p className="mt-0.5 text-2xl font-black text-slate-900">{currentTalent.score}/100</p>
                     </div>
                   </div>
-                  <p className="mt-3 text-xs font-bold text-ink-500">Status: 0 client reviews needed to rank here</p>
+                  <p className="mt-3 text-xs font-bold text-slate-500">
+                    Status: Direct merit hire — zero prior reviews needed
+                  </p>
                 </div>
 
                 <div className="mt-5 space-y-3">
                   {currentTalent.skills.map((s) => (
                     <div key={s.name}>
-                      <div className="flex items-center justify-between text-xs font-extrabold text-ink">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-800">
                         <span>{s.name}</span>
-                        <span>{s.pct}%</span>
+                        <span className="font-extrabold text-emerald-700">{s.pct}%</span>
                       </div>
-                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink-100">
+                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-brand transition-all duration-300"
+                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-brand transition-all duration-300"
                           style={{ width: `${s.pct}%` }}
                         />
                       </div>
@@ -271,13 +373,13 @@ export default function Home() {
                 </div>
 
                 <div className="mt-6 flex flex-col gap-2">
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-emerald-800">
                     <AventriqMark className="h-4 w-4" />
                     Standardized Assessment Across Pakistan
                   </div>
                   <Link
                     href={`/browse?category=${encodeURIComponent(currentTalent.browseCategory)}`}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white py-2 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-800 shadow-xs transition hover:border-brand hover:text-brand"
                   >
                     <span>Browse All {currentTalent.domain} Talent</span>
                     <ArrowRight className="h-3.5 w-3.5" />
