@@ -100,46 +100,52 @@ const categories = [
 
 const topFreelancers = [
   { name: "Ayesha R.", title: "UI/UX & Product Designer", city: "Lahore", jobs: 12, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=5", tag: "First job in 3 weeks" },
-  { name: "Bilal K.", title: "Full Stack Web Developer", city: "Islamabad", jobs: 9, rating: 4.8, avatar: "https://i.pravatar.cc/150?img=8", tag: "First job in 2 weeks" },
+  { name: "Tariq M.", title: "Cloud & Backend Engineer", city: "Islamabad", jobs: 11, rating: 4.9, avatar: "https://i.pravatar.cc/150?img=11", tag: "First job in 2 weeks" },
   { name: "Mahnoor S.", title: "Virtual Assistant & Operations", city: "Karachi", jobs: 15, rating: 5.0, avatar: "https://i.pravatar.cc/150?img=9", tag: "First job in 1 week" },
   { name: "Usman T.", title: "AI & Python Developer", city: "Faisalabad", jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
 ];
 
 const sampleTalents = [
   {
-    name: "Bilal K.",
     domain: "Web & Software",
-    role: "Full Stack Engineer",
+    title: "Full Stack Web & Systems",
+    role: "Full Stack Engineering Benchmark",
+    poolNote: "1,420+ Certified Freelancers in Pakistan",
+    browseCategory: "Web & Software Development",
     tier: "Elite Tier • Top 5%",
     score: 96,
     skills: [
-      { name: "React & Next.js", pct: 96 },
-      { name: "Node.js & TypeScript", pct: 94 },
-      { name: "Database & System APIs", pct: 92 },
+      { name: "React & Next.js Architecture", pct: 96 },
+      { name: "Node.js & Scalable APIs", pct: 94 },
+      { name: "Database Concurrency & Caching", pct: 92 },
     ],
   },
   {
-    name: "Ayesha R.",
     domain: "UI/UX Design",
-    role: "UI/UX & Product Designer",
+    title: "Product & UI/UX Design",
+    role: "Product & Systems Design Benchmark",
+    poolNote: "890+ Certified Designers in Pakistan",
+    browseCategory: "Design & Creative",
     tier: "Elite Tier • Top 5%",
     score: 95,
     skills: [
-      { name: "Figma & Design Systems", pct: 97 },
-      { name: "User Research & Flows", pct: 94 },
-      { name: "Interactive Prototyping", pct: 95 },
+      { name: "Figma Tokens & Design Systems", pct: 97 },
+      { name: "User Journey & Conversion Flows", pct: 94 },
+      { name: "Interactive Responsive Prototypes", pct: 95 },
     ],
   },
   {
-    name: "Usman T.",
     domain: "AI & Data",
-    role: "AI & Automation Specialist",
+    title: "AI & Automation Engineering",
+    role: "AI & Pipeline Systems Benchmark",
+    poolNote: "640+ Certified AI Specialists in Pakistan",
+    browseCategory: "AI & Machine Learning",
     tier: "Professional Tier • Top 10%",
     score: 93,
     skills: [
-      { name: "Python & LLMs", pct: 95 },
-      { name: "Data Scraping & ETL", pct: 92 },
-      { name: "Workflow Automation", pct: 94 },
+      { name: "Python, LLM Schemas & Prompting", pct: 95 },
+      { name: "Data Pipelines & Automated ETL", pct: 92 },
+      { name: "Webhook & API Orchestration", pct: 94 },
     ],
   },
 ];
@@ -213,8 +219,11 @@ export default function Home() {
 
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-base font-extrabold text-ink">{currentTalent.name}</p>
-                    <p className="mt-0.5 text-xs font-semibold text-ink-500">{currentTalent.role}</p>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-brand-700">
+                      <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Category Evaluation
+                    </span>
+                    <h3 className="text-base font-black text-ink">{currentTalent.title}</h3>
+                    <p className="mt-0.5 text-xs font-medium text-ink-500">{currentTalent.poolNote}</p>
                   </div>
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white shadow-forest">
                     {currentTalent.tier}
@@ -261,9 +270,18 @@ export default function Home() {
                   ))}
                 </div>
 
-                <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">
-                  <AventriqMark className="h-4 w-4" />
-                  Skill verified by AventriqTalent
+                <div className="mt-6 flex flex-col gap-2">
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">
+                    <AventriqMark className="h-4 w-4" />
+                    Standardized Assessment Across Pakistan
+                  </div>
+                  <Link
+                    href={`/browse?category=${encodeURIComponent(currentTalent.browseCategory)}`}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-ink-200 bg-white py-2 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                  >
+                    <span>Browse All {currentTalent.domain} Talent</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 </div>
               </div>
             </div>
