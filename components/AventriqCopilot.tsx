@@ -80,6 +80,15 @@ export default function AventriqCopilot() {
     }
   }, [isOpen, messages]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   const handleSend = async (customText?: string) => {
     const userText = (customText || input).trim();
     if (!userText || isLoading) return;
@@ -217,14 +226,16 @@ export default function AventriqCopilot() {
               <button
                 onClick={handleReset}
                 title="Restart conversation"
-                className="rounded-lg p-1.5 hover:bg-white/10 hover:text-white transition"
+                aria-label="Restart conversation"
+                className="rounded-lg p-1.5 hover:bg-white/10 hover:text-white transition focus-visible:ring-2 focus-visible:ring-brand-400 focus:outline-none"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
                 title="Close Copilot"
-                className="rounded-lg p-1.5 hover:bg-white/10 hover:text-white transition"
+                aria-label="Close Copilot"
+                className="rounded-lg p-1.5 hover:bg-white/10 hover:text-white transition focus-visible:ring-2 focus-visible:ring-brand-400 focus:outline-none"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -325,6 +336,7 @@ export default function AventriqCopilot() {
                 }}
                 rows={1}
                 placeholder="Ask about Safepay, pricing, or posting jobs..."
+                aria-label="Ask about Safepay, pricing, or posting jobs"
                 className="flex-1 resize-none bg-transparent px-2.5 py-1.5 text-xs font-semibold text-slate-800 placeholder:font-normal placeholder:text-slate-400 focus:outline-none"
               />
               <button

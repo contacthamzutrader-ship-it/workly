@@ -188,7 +188,8 @@ function ChatPane({ convId, myName, otherName, onBack }: { convId: string; myNam
                 <button
                   type="button"
                   onClick={() => removeAttachment(idx)}
-                  className="ml-1 rounded p-0.5 text-ink-400 hover:text-red-600"
+                  aria-label={`Remove attachment ${att.name}`}
+                  className="ml-1 rounded p-0.5 text-ink-400 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-brand focus:outline-none"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -220,7 +221,8 @@ function ChatPane({ convId, myName, otherName, onBack }: { convId: string; myNam
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-canvas text-ink-600 transition hover:bg-brand-50 hover:text-brand"
+            aria-label="Attach images, videos, documents, or files"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-canvas text-ink-600 transition hover:bg-brand-50 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand focus:outline-none"
             title="Attach images, videos, documents, or files"
           >
             <Paperclip className="h-5 w-5" />
@@ -230,6 +232,7 @@ function ChatPane({ convId, myName, otherName, onBack }: { convId: string; myNam
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type a message, ask questions, or share files..."
+            aria-label="Type a message"
             className="flex-1"
           />
 
@@ -320,7 +323,13 @@ export default function MessagesPage() {
               </div>
               <div className="relative">
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search conversations..." className="min-h-10 w-full rounded-xl border border-ink-100 bg-canvas py-2.5 pl-10 pr-3 text-sm font-medium text-ink placeholder:text-ink-400 focus:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand/10" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search conversations..."
+                  aria-label="Search conversations"
+                  className="min-h-11 w-full rounded-xl border border-ink-100 bg-canvas py-2.5 pl-10 pr-3 text-sm font-medium text-ink placeholder:text-ink-400 focus:border-brand-300 focus:outline-none focus:ring-4 focus:ring-brand/10"
+                />
               </div>
             </div>
 

@@ -120,7 +120,8 @@ function HomePageContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleStartTest()}
-              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-bold text-white rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
+              aria-label="Start your skill assessment test"
+              className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-xs font-bold text-white rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-brand-400 focus:outline-none"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Start Your Test</span>
@@ -161,7 +162,8 @@ function HomePageContent() {
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => handleStartTest()}
-              className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-lg rounded-2xl shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 cursor-pointer group"
+              aria-label="Start your skill assessment test"
+              className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-lg rounded-2xl shadow-2xl shadow-indigo-600/40 hover:shadow-indigo-600/60 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 cursor-pointer group focus-visible:ring-2 focus-visible:ring-brand-400 focus:outline-none"
             >
               <Play className="w-6 h-6 fill-current group-hover:translate-x-0.5 transition-transform" />
               <span>Start Your Test</span>

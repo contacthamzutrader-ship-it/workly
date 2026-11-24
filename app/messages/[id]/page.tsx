@@ -227,7 +227,8 @@ export default function ConversationPage() {
                     <button
                       type="button"
                       onClick={() => removeAttachment(idx)}
-                      className="ml-1 rounded p-0.5 text-ink-400 hover:text-red-600"
+                      aria-label={`Remove attachment ${att.name}`}
+                      className="ml-1 rounded p-0.5 text-ink-400 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-brand focus:outline-none"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -259,7 +260,8 @@ export default function ConversationPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-canvas text-ink-600 transition hover:bg-brand-50 hover:text-brand"
+                aria-label="Attach photos, videos, documents, or files"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-canvas text-ink-600 transition hover:bg-brand-50 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand focus:outline-none"
                 title="Attach photos, videos, documents, or files"
               >
                 <Paperclip className="h-5 w-5" />
@@ -269,6 +271,7 @@ export default function ConversationPage() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Type a message, discuss delivery, or share files..."
+                aria-label="Type a message"
                 className="flex-1"
               />
               <button

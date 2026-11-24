@@ -112,6 +112,9 @@ export default function TaskDetailPage() {
   const [inviteReady, setInviteReady] = useState(!inviteToken);
   const [warning, setWarning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [choosingBidId, setChoosingBidId] = useState<string | null>(null);
+  const [statusBusy, setStatusBusy] = useState(false);
+  const [paymentBusy, setPaymentBusy] = useState(false);
   const [rehireAmounts, setRehireAmounts] = useState<Record<string, string>>({});
   const [rehireBusy, setRehireBusy] = useState<string | null>(null);
   const [rehireError, setRehireError] = useState("");
@@ -374,36 +377,55 @@ export default function TaskDetailPage() {
   };
 
   const chooseBid = async (bid: Bid) => {
-    if (!bid.id) return;
+    if (!bid.id || choosingBidId) return;
     setError("");
+    setChoosingBidId(bid.id);
     try {
       await selectBid(id, bid.id, bid.bidderId, bid.bidderName, bid.amount);
       load();
     } catch (err: any) {
       setError(err?.message || "Could not select this offer.");
+    } finally {
+      setChoosingBidId(null);
     }
   };
 
   const updateStatus = async (status: "in_progress" | "completed") => {
-    await setTaskStatus(id, status);
-    load();
+    if (statusBusy) return;
+    setStatusBusy(true);
+    try {
+      await setTaskStatus(id, status);
+      load();
+    } catch (err: any) {
+      setError(err?.message || "Could not update task status.");
+    } finally {
+      setStatusBusy(false);
+    }
   };
 
   const reqPayment = async () => {
+    if (paymentBusy) return;
+    setPaymentBusy(true);
     try {
       await requestPayment(id);
       load();
     } catch (err: any) {
       setError(err?.message || "Could not request payment");
+    } finally {
+      setPaymentBusy(false);
     }
   };
 
   const relPayment = async () => {
+    if (paymentBusy) return;
+    setPaymentBusy(true);
     try {
       await releasePayment(id);
       load();
     } catch (err: any) {
       setError(err?.message || "Could not release payment");
+    } finally {
+      setPaymentBusy(false);
     }
   };
 
@@ -600,9 +622,15 @@ export default function TaskDetailPage() {
       {/* Messaging permission */}
       {isPoster || isAssigned ? (
         task.assignedTo && (
-          <button onClick={startChat} className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
-            <MessageSquare className="h-4 w-4" /> Open chat
-          </button>
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            onClick={startChat}
+            className="mt-4 w-full justify-center gap-2 font-bold text-ink hover:text-brand"
+          >
+            <MessageSquare className="h-4 w-4 text-brand" /> Open chat with {isPoster ? task.assignedName : task.posterName}
+          </Button>
         )
       ) : (
         <div className="mt-4 rounded-xl border border-ink-100 bg-ink-50 p-3.5 text-sm leading-6 text-ink-500">
@@ -1031,8 +1059,12 @@ export default function TaskDetailPage() {
                             )}
                           </div>
                         </div>
-                        <Button onClick={() => chooseBid(b)} className="shrink-0">
-                          Select &amp; hold funds
+                        <Button
+                          onClick={() => chooseBid(b)}
+                          disabled={choosingBidId === b.id}
+                          className="shrink-0"
+                        >
+                          {choosingBidId === b.id ? "Selecting..." : "Select & hold funds"}
                         </Button>
                       </div>
 
@@ -1112,13 +1144,21 @@ export default function TaskDetailPage() {
           {canManage && (
             <div className="flex gap-3">
               {task.status === "assigned" && (
-                <Button onClick={() => updateStatus("in_progress")} className="rounded-xl">
-                  Start work
+                <Button
+                  onClick={() => updateStatus("in_progress")}
+                  disabled={statusBusy}
+                  className="rounded-xl min-h-11"
+                >
+                  {statusBusy ? "Updating..." : "Start work"}
                 </Button>
               )}
               {task.status === "in_progress" && (
-                <Button onClick={() => updateStatus("completed")} className="rounded-xl">
-                  Mark completed
+                <Button
+                  onClick={() => updateStatus("completed")}
+                  disabled={statusBusy}
+                  className="rounded-xl min-h-11"
+                >
+                  {statusBusy ? "Updating..." : "Mark completed"}
                 </Button>
               )}
             </div>
@@ -1141,8 +1181,12 @@ export default function TaskDetailPage() {
                     )}
                   </p>
                 </div>
-                <Button onClick={reqPayment} className="flex items-center gap-1.5 rounded-xl">
-                  <Send className="h-4 w-4" /> Request Payment
+                <Button
+                  onClick={reqPayment}
+                  disabled={paymentBusy}
+                  className="flex items-center gap-1.5 rounded-xl min-h-11"
+                >
+                  <Send className="h-4 w-4" /> {paymentBusy ? "Requesting..." : "Request Payment"}
                 </Button>
               </div>
             </div>
@@ -1163,8 +1207,12 @@ export default function TaskDetailPage() {
                     {formatPKR(task.heldAmount ? task.heldAmount - fee : 0)}
                   </p>
                 </div>
-                <Button onClick={relPayment} className="flex items-center gap-1.5 rounded-xl">
-                  <CheckCircle2 className="h-4 w-4" /> Release {formatPKR(task.heldAmount)}
+                <Button
+                  onClick={relPayment}
+                  disabled={paymentBusy}
+                  className="flex items-center gap-1.5 rounded-xl min-h-11"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> {paymentBusy ? "Releasing..." : `Release ${formatPKR(task.heldAmount)}`}
                 </Button>
               </div>
             </div>
@@ -1198,11 +1246,13 @@ export default function TaskDetailPage() {
                 <Star className="h-5 w-5 text-brand" /> Rate the tasker
               </h2>
               <div className="mt-4 flex items-center gap-3">
-                <span className="text-sm text-ink-500">Rating</span>
+                <label htmlFor="tasker-rating" className="text-sm font-semibold text-ink-500">Rating</label>
                 <select
+                  id="tasker-rating"
+                  aria-label="Select rating from 1 to 5 stars"
                   value={rating}
                   onChange={(e) => setRating(Number(e.target.value))}
-                  className="rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+                  className="rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 >
                   {[5, 4, 3, 2, 1].map((r) => (
                     <option key={r} value={r}>
@@ -1211,14 +1261,17 @@ export default function TaskDetailPage() {
                   ))}
                 </select>
               </div>
+              <label htmlFor="tasker-review-comment" className="sr-only">Leave a review comment</label>
               <textarea
+                id="tasker-review-comment"
+                aria-label="Leave a review comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
-                placeholder="Leave a comment..."
+                placeholder="Leave a comment about the deliverable, communication, and speed..."
                 className="mt-3 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
-              <Button type="submit" className="mt-3 rounded-xl">
+              <Button type="submit" size="md" className="mt-3 min-h-11 rounded-xl">
                 Submit review
               </Button>
             </form>

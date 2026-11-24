@@ -86,14 +86,24 @@ export default function SettingsPage() {
       <div className="page-shell max-w-6xl">
         <div className="grid items-start gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
           <aside className="rounded-2xl bg-brand p-3 text-white shadow-card lg:sticky lg:top-[76px]">
-            <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+            <div
+              className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0"
+              role="tablist"
+              aria-label="Settings categories"
+            >
               {SECTIONS.map((section) => {
                 const isActive = section.key === active;
-                const outer = `flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-bold transition lg:w-full ${
+                const outer = `flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-bold transition focus-visible:ring-2 focus-visible:ring-white focus:outline-none lg:w-full ${
                   isActive ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
                 }`;
                 return (
-                  <button key={section.key} onClick={() => setActive(section.key)} className={outer}>
+                  <button
+                    key={section.key}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActive(section.key)}
+                    className={outer}
+                  >
                     <section.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-white/70"}`} />
                     <span className="hidden sm:inline">{section.label}</span>
                     <ChevronRight className={`ml-auto h-3.5 w-3.5 lg:block ${isActive ? "text-white" : "text-white/40"} hidden`} />

@@ -364,10 +364,11 @@ export default function HelpPage() {
                         const Icon = cat.icon;
                         const isSelected = category === cat.id;
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={cat.id}
                             onClick={() => setCategory(cat.id)}
-                            className={`cursor-pointer rounded-2xl border p-3.5 transition ${
+                            className={`w-full text-left cursor-pointer rounded-2xl border p-3.5 transition focus-visible:ring-2 focus-visible:ring-brand focus:outline-none ${
                               isSelected
                                 ? "border-brand bg-brand-50/50 shadow-soft ring-2 ring-brand/20"
                                 : "border-ink-100 bg-white hover:border-brand/30 hover:bg-canvas"
@@ -384,7 +385,7 @@ export default function HelpPage() {
                               <h3 className="text-xs font-bold text-ink">{cat.label}</h3>
                             </div>
                             <p className="mt-1 text-[11px] leading-4 text-ink-500">{cat.desc}</p>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -513,7 +514,8 @@ export default function HelpPage() {
                             <button
                               type="button"
                               onClick={() => removeAttachment(idx)}
-                              className="text-ink-400 hover:text-red-600"
+                              aria-label={`Remove attachment ${att.name}`}
+                              className="text-ink-400 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-brand focus:outline-none"
                             >
                               <X className="h-3 w-3" />
                             </button>

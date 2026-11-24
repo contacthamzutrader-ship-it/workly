@@ -102,19 +102,19 @@ export default function ContactPage() {
           <form onSubmit={submit} noValidate className="surface mt-6 p-6 sm:p-8">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Name</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className={`${inputClass} ${errors.name ? "border-red-300" : ""}`} />
+                <label htmlFor="contact-name" className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Name</label>
+                <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className={`${inputClass} ${errors.name ? "border-red-300" : ""}`} />
                 {errors.name && <p className="mt-1 text-xs font-semibold text-red-600">{errors.name}</p>}
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Email</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="you@example.com" className={`${inputClass} ${errors.email ? "border-red-300" : ""}`} />
+                <label htmlFor="contact-email" className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Email</label>
+                <input id="contact-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="you@example.com" className={`${inputClass} ${errors.email ? "border-red-300" : ""}`} />
                 {errors.email && <p className="mt-1 text-xs font-semibold text-red-600">{errors.email}</p>}
               </div>
             </div>
             <div className="mt-4">
-              <label className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Subject</label>
-              <select value={subject} onChange={(e) => setSubject(e.target.value)} className={`${inputClass} ${errors.subject ? "border-red-300" : ""}`}>
+              <label htmlFor="contact-subject" className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Subject</label>
+              <select id="contact-subject" value={subject} onChange={(e) => setSubject(e.target.value)} className={`${inputClass} ${errors.subject ? "border-red-300" : ""}`}>
                 <option value="">Choose a subject...</option>
                 {SUBJECTS.map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -123,8 +123,8 @@ export default function ContactPage() {
               {errors.subject && <p className="mt-1 text-xs font-semibold text-red-600">{errors.subject}</p>}
             </div>
             <div className="mt-4">
-              <label className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Message</label>
-              <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} placeholder="Describe your question or issue - the more detail you give, the faster we can help." className={`${inputClass} resize-none ${errors.message ? "border-red-300" : ""}`} />
+              <label htmlFor="contact-message" className="mb-1.5 block text-xs font-black uppercase tracking-wide text-ink-500">Message</label>
+              <textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} placeholder="Describe your question or issue - the more detail you give, the faster we can help." className={`${inputClass} resize-none ${errors.message ? "border-red-300" : ""}`} />
               <div className="mt-1 flex items-center justify-between">
                 {errors.message ? <p className="text-xs font-semibold text-red-600">{errors.message}</p> : <span />}
                 <span className="text-[11px] font-medium text-ink-300">{message.trim().length} characters</span>
