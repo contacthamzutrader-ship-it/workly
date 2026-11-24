@@ -107,56 +107,70 @@ const topFreelancers = [
   { name: "Usman T.", title: "AI & Python Developer", city: "Faisalabad", jobs: 8, rating: 4.7, avatar: "https://i.pravatar.cc/150?img=12", tag: "First job in 4 weeks" },
 ];
 
-const sampleTalents = [
+const showcaseTalents = [
   {
+    id: "dev-1",
+    name: "Ayesha R.",
+    role: "Full Stack & Next.js Engineer",
+    city: "Lahore",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+    tier: "Elite Tier • Top 5%",
+    rate: "PKR 4,500/hr",
+    score: "98% Score",
     domain: "Web & Software",
-    title: "Full Stack Web & Systems",
-    role: "Full Stack Engineering Benchmark",
-    poolNote: "1,420+ Certified Freelancers in Pakistan",
+    skills: ["Next.js", "TypeScript", "Node.js", "PostgreSQL"],
     browseCategory: "Web & Software Development",
-    tier: "Elite Tier • Top 5%",
-    score: 96,
-    skills: [
-      { name: "React & Next.js Architecture", pct: 96 },
-      { name: "Node.js & Scalable APIs", pct: 94 },
-      { name: "Database Concurrency & Caching", pct: 92 },
-    ],
   },
   {
+    id: "des-1",
+    name: "Hamza M.",
+    role: "Product & UI/UX Systems Designer",
+    city: "Karachi",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    tier: "Elite Tier • Top 5%",
+    rate: "PKR 3,800/hr",
+    score: "96% Score",
     domain: "UI/UX Design",
-    title: "Product & UI/UX Design",
-    role: "Product & Systems Design Benchmark",
-    poolNote: "890+ Certified Designers in Pakistan",
+    skills: ["Figma Systems", "Design Tokens", "Mobile UX", "Prototypes"],
     browseCategory: "Design & Creative",
-    tier: "Elite Tier • Top 5%",
-    score: 95,
-    skills: [
-      { name: "Figma Tokens & Design Systems", pct: 97 },
-      { name: "User Journey & Conversion Flows", pct: 94 },
-      { name: "Interactive Responsive Prototypes", pct: 95 },
-    ],
   },
   {
+    id: "ai-1",
+    name: "Zainab K.",
+    role: "AI Workflow & Python Architect",
+    city: "Islamabad",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+    tier: "Professional Tier",
+    rate: "PKR 5,000/hr",
+    score: "95% Score",
     domain: "AI & Data",
-    title: "AI & Automation Engineering",
-    role: "AI & Pipeline Systems Benchmark",
-    poolNote: "640+ Certified AI Specialists in Pakistan",
+    skills: ["Python", "LangChain", "FastAPI", "Agentic Workflows"],
     browseCategory: "AI & Machine Learning",
-    tier: "Professional Tier • Top 10%",
-    score: 93,
-    skills: [
-      { name: "Python, LLM Schemas & Prompting", pct: 95 },
-      { name: "Data Pipelines & Automated ETL", pct: 92 },
-      { name: "Webhook & API Orchestration", pct: 94 },
-    ],
+  },
+  {
+    id: "mob-1",
+    name: "Usman T.",
+    role: "Mobile App Engineer (Flutter & iOS)",
+    city: "Faisalabad",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    tier: "Elite Tier • Top 5%",
+    rate: "PKR 4,200/hr",
+    score: "97% Score",
+    domain: "Web & Software",
+    skills: ["Flutter", "Dart", "Firebase", "State Management"],
+    browseCategory: "Web & Software Development",
   },
 ];
 
 export default function Home() {
   const router = useRouter();
   const [heroQuery, setHeroQuery] = useState("");
-  const [selectedTalent, setSelectedTalent] = useState(0);
-  const currentTalent = sampleTalents[selectedTalent];
+  const [activeDomain, setActiveDomain] = useState("All");
+
+  const filteredTalents =
+    activeDomain === "All"
+      ? showcaseTalents
+      : showcaseTalents.filter((t) => t.domain === activeDomain);
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,14 +201,14 @@ export default function Home() {
                 <span>Pakistan&apos;s Smarter Freelancing Marketplace, Powered by AI.</span>
               </p>
               <h1 className="mt-3 max-w-2xl text-balance text-[2rem] font-black leading-[1.12] tracking-[-0.03em] text-slate-900 sm:text-[2.6rem] lg:text-[3rem]">
-                Get Hired on{" "}
+                Hire Pakistan&apos;s Top 5%{" "}
                 <span className="bg-gradient-to-r from-emerald-600 via-brand to-forest bg-clip-text text-transparent">
-                  Verified Skill
+                  Verified Talent
                 </span>
-                . Skip the 6-Month Review Trap.
+                . Skip the Review Trap.
               </h1>
               <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-slate-600">
-                New to freelancing or just graduated? Prove your skills with a quick 15-minute test, earn a verified skill score, and start winning clients from day one — no fake reviews, no prior experience, just real skills!
+                New to freelancing or looking to hire proven specialists? Connect with pre-vetted professionals evaluated on real code and practical tests — zero fake reviews, 100% escrow payment protected.
               </p>
 
               {/* Interactive Live Hero Search Bar */}
@@ -242,18 +256,19 @@ export default function Home() {
                 </div>
               </form>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/ai-interview"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-6 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 sm:min-h-14 sm:px-7"
-                >
-                  Take the Skill Test →
-                </Link>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/browse"
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-xs transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 sm:min-h-14 sm:px-7"
+                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-sm font-extrabold text-white shadow-forest transition hover:-translate-y-0.5 hover:bg-brand-700 active:scale-[0.98]"
                 >
-                  Browse Talent by Tier
+                  <span>Hire Verified Talent</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/ai-interview"
+                  className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-7 text-sm font-bold text-slate-800 shadow-xs transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98]"
+                >
+                  <span>Take 15-Min Skill Test</span>
                 </Link>
               </div>
 
@@ -270,119 +285,117 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-lg">
-              {/* Subtle background glow */}
-              <div className="absolute -right-8 -top-8 h-56 w-56 rounded-full bg-emerald-500/15 blur-3xl" />
-              <div className="absolute -bottom-8 -left-8 h-56 w-56 rounded-full bg-brand-500/15 blur-3xl" />
+            {/* Right Column: Live Verified Talent Showcase */}
+            <div className="relative mx-auto w-full max-w-xl">
+              {/* Subtle ambient backglow */}
+              <div className="pointer-events-none absolute -right-6 -top-6 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-6 -left-6 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
 
-              {/* Top-Right Floating Badge */}
-              <div className="absolute -right-3 -top-4 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-md animate-breathe">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <ShieldCheck className="h-4 w-4" />
-                </span>
-                <div className="text-left">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Safepay Escrow</p>
-                  <p className="text-xs font-bold text-slate-900">100% Payment Protected</p>
+              {/* Main Talent Showcase Container */}
+              <div className="relative rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xl sm:p-6">
+                {/* Showcase Header */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Verified Talent
+                    </span>
+                    <h2 className="text-base font-bold text-slate-900">Active Professionals in Pakistan</h2>
+                  </div>
+                  <Link
+                    href="/browse"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition"
+                  >
+                    <span>Browse All Talent</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
                 </div>
-              </div>
 
-              {/* Bottom-Left Floating Badge */}
-              <div className="absolute -bottom-4 -left-3 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-2.5 shadow-xl backdrop-blur-md">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-purple-50 text-purple-600">
-                  <Zap className="h-4 w-4" />
-                </span>
-                <div className="text-left">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">AI Anti-Cheat Proctor</p>
-                  <p className="text-xs font-bold text-slate-900">15-Min Calibrated Test</p>
-                </div>
-              </div>
-
-              {/* Main Capability Radar Card */}
-              <div className="relative rounded-3xl border border-slate-200/90 bg-white p-6 shadow-2xl sm:p-7">
-                {/* Domain Selector Tabs */}
-                <div className="mb-5 flex rounded-xl border border-slate-200/80 bg-slate-50 p-1">
-                  {sampleTalents.map((t, idx) => (
+                {/* Domain Filter Pills */}
+                <div className="mt-4 flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                  {["All", "Web & Software", "UI/UX Design", "AI & Data"].map((domain) => (
                     <button
-                      key={t.domain}
+                      key={domain}
                       type="button"
-                      onClick={() => setSelectedTalent(idx)}
-                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${
-                        selectedTalent === idx
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
+                      onClick={() => setActiveDomain(domain)}
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition ${activeDomain === domain
+                          ? "bg-slate-900 text-white shadow-xs"
+                          : "bg-slate-100/80 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+                        }`}
                     >
-                      {t.domain}
+                      {domain}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Category Evaluation Radar
-                    </span>
-                    <h3 className="text-base font-black text-slate-900">{currentTalent.title}</h3>
-                    <p className="mt-0.5 text-xs font-medium text-slate-500">{currentTalent.poolNote}</p>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white shadow-forest">
-                    {currentTalent.tier}
-                  </span>
-                </div>
-
-                <div className="mt-5 flex flex-col items-center">
-                  <div className="relative h-28 w-28">
-                    <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="42" stroke="rgb(241 245 249)" strokeWidth="10" fill="none" />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="42"
-                        stroke="rgb(0 179 60)"
-                        strokeWidth="10"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(2 * Math.PI * 42 * currentTalent.score) / 100}, ${2 * Math.PI * 42}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">Score</p>
-                      <p className="mt-0.5 text-2xl font-black text-slate-900">{currentTalent.score}/100</p>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs font-bold text-slate-500">
-                    Status: Direct merit hire — zero prior reviews needed
-                  </p>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {currentTalent.skills.map((s) => (
-                    <div key={s.name}>
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                        <span>{s.name}</span>
-                        <span className="font-extrabold text-emerald-700">{s.pct}%</span>
+                {/* Talent Cards Stack */}
+                <div className="mt-4 space-y-3">
+                  {filteredTalents.slice(0, 3).map((talent) => (
+                    <div
+                      key={talent.id}
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 rounded-2xl border border-slate-200/70 bg-slate-50/50 p-4 transition duration-200 hover:border-emerald-300 hover:bg-white hover:shadow-md"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="relative shrink-0">
+                          <img
+                            src={talent.avatar}
+                            alt={talent.name}
+                            className="h-12 w-12 rounded-xl object-cover ring-2 ring-emerald-500/20"
+                          />
+                          <span className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-emerald-600 text-white">
+                            <BadgeCheck className="h-3 w-3" />
+                          </span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition">
+                              {talent.name}
+                            </span>
+                            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-800 border border-emerald-200/60">
+                              {talent.tier}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium">
+                            {talent.role} · {talent.city}
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {talent.skills.map((skill) => (
+                              <span
+                                key={skill}
+                                className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200/60"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-brand transition-all duration-300"
-                          style={{ width: `${s.pct}%` }}
-                        />
+
+                      <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center border-t border-slate-200/60 pt-2 sm:border-0 sm:pt-0 shrink-0">
+                        <p className="text-xs font-black text-slate-900">{talent.rate}</p>
+                        <Link
+                          href={`/browse?category=${encodeURIComponent(talent.browseCategory)}`}
+                          className="mt-1 inline-flex min-h-[34px] items-center gap-1 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 active:scale-95"
+                        >
+                          <span>Hire</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </Link>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 flex flex-col gap-2">
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.12em] text-emerald-800">
-                    <AventriqMark className="h-4 w-4" />
-                    Standardized Assessment Across Pakistan
-                  </div>
+                {/* Footer Micro-Bar */}
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 rounded-xl bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-600">
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    100% Escrow Safepay Protected
+                  </span>
                   <Link
-                    href={`/browse?category=${encodeURIComponent(currentTalent.browseCategory)}`}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-800 shadow-xs transition hover:border-brand hover:text-brand"
+                    href="/ai-interview"
+                    className="font-bold text-emerald-700 hover:text-emerald-800 transition"
                   >
-                    <span>Browse All {currentTalent.domain} Talent</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    Take Test to Join Pool →
                   </Link>
                 </div>
               </div>
