@@ -174,8 +174,9 @@ export default function ProfilePanel({ user, onSaved }: { user: FirebaseUser; on
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-extrabold text-ink">About</label>
+          <label htmlFor="profile-about" className="mb-1.5 block text-sm font-extrabold text-ink">About</label>
           <textarea
+            id="profile-about"
             value={about}
             onChange={(e) => setAbout(e.target.value)}
             rows={5}

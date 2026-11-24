@@ -78,9 +78,10 @@ export default function ChangePasswordPanel({ user }: { user: User }) {
     placeholder: string
   ) => (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-ink">{label}</label>
+      <label htmlFor={`pwd-${key}`} className="mb-1.5 block text-sm font-medium text-ink">{label}</label>
       <div className="relative">
         <input
+          id={`pwd-${key}`}
           type={show[key] ? "text" : "password"}
           value={value}
           onChange={(e) => setValue(e.target.value)}

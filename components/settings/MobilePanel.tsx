@@ -43,8 +43,8 @@ export default function MobilePanel({ user }: { user: User }) {
       <div className="flex items-start gap-3 rounded-2xl border border-ink-100 p-4">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand"><Smartphone className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
-          <label className="block text-sm font-medium text-ink">Mobile number</label>
-          <input value={phoneDraft} onChange={(e) => setPhoneDraft(e.target.value)} inputMode="tel" placeholder="03001234567" className="mt-1.5 min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20" />
+          <label htmlFor="mobile-number-input" className="block text-sm font-medium text-ink">Mobile number</label>
+          <input id="mobile-number-input" value={phoneDraft} onChange={(e) => setPhoneDraft(e.target.value)} inputMode="tel" placeholder="03001234567" className="mt-1.5 min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20" />
           <p className="mt-2 text-xs leading-5 text-ink-400">Shown only to the clients who hire you, and used for payment alerts. No OTP is sent - the number acts as your contact detail.</p>
         </div>
       </div>

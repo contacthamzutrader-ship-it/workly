@@ -67,8 +67,8 @@ export default function EmailPanel({ user }: { user: User }) {
         <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${emailVerified ? "bg-brand-50 text-brand-600" : "bg-amber-50 text-amber-600"}`}><BadgeCheck className="h-3.5 w-3.5" /> {emailVerified ? "Verified" : "Not verified"}</span>
       </div>
       <div className="mt-4">
-        <label className="mb-1.5 block text-sm font-medium text-ink">Email address</label>
-        <input value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} type="email" className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20" />
+        <label htmlFor="settings-email-input" className="mb-1.5 block text-sm font-medium text-ink">Email address</label>
+        <input id="settings-email-input" value={emailDraft} onChange={(e) => setEmailDraft(e.target.value)} type="email" className="min-h-11 w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20" />
       </div>
       <p className="mt-2 text-xs leading-5 text-ink-400">After saving, a verification link is sent to the new address before it becomes active.</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
